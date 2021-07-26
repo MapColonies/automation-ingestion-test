@@ -3,6 +3,28 @@ from mc_automation_tools import common
 import enum
 
 
+class EnvironmentTypes(enum.Enum):
+    """
+    Types of environment.
+    """
+    QA = 1
+    DEV = 2
+    PROD = 3
+
+
+class ResponseCode(enum.Enum):
+    """
+    Types of server responses
+    """
+    Ok = 200  # server return ok status
+    ChangeOk = 201 # server was return ok for changing
+    ValidationErrors = 400  # bad request
+    StatusNotFound = 404  # status\es not found on db
+    DuplicatedError = 409  # in case of requesting package with same name already exists
+    GetwayTimeOut = 504  # some server didn't respond
+    ServerError = 500  # problem with error
+
+
 class JobStatus(enum.Enum):
     """
     Types of job statuses
@@ -38,7 +60,11 @@ FOLLOW_TIMEOUT = common.get_environment_variable('FOLLOW_TIMEOUT', 5)
 
 
 ####################################################  environment  #####################################################
-TEST_ENV = common.get_environment_variable('TEST_ENV', 'prod')
+TEST_ENV = common.get_environment_variable('TEST_ENV', EnvironmentTypes.QA.name)
 PVC_HANDLER_ROUTE = common.get_environment_variable('PVC_HANDLER_ROUTE', None)
 PVC_CLONE_SOURCE = common.get_environment_variable('PVC_CLONE_SOURCE', None)
 PVC_CHANGE_METADATA = common.get_environment_variable('PVC_CHANGE_METADATA', None)
+
+NFS_ROOT_DIR = common.get_environment_variable('NFS_ROOT_DIR', '/tmp')
+NFS_SOURCE_DIR = common.get_environment_variable('NFS_SOURCE_DIR', 'ingestion/1')
+NFS_DEST_DIR = common.get_environment_variable('NFS_DEST_DIR', 'test_data')
