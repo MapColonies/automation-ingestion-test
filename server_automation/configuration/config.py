@@ -41,7 +41,7 @@ SHAPES_PATH = common.get_environment_variable('SHAPES_PATH', 'Shapes')
 TIFF_PATH = common.get_environment_variable('TIFF_PATH', 'tiff')
 # SHAPE_FILE_LIST = ['Files.dbf', 'Product.shp', 'Product.dbf', 'ShapeMetadata.shp', 'ShapeMetadata.dbf']
 SHAPE_FILE_LIST = ['Files.shp', 'Files.dbf', 'Product.shp', 'Product.dbf', 'ShapeMetadata.shp', 'ShapeMetadata.dbf']
-
+SHAPE_METADATA_FILE = common.get_environment_variable('SHAPE_METADATA_FILE', 'ShapeMetadata.shp')
 ##########################################  Ingestion API's sub urls & API's  ##########################################
 INGESTION_MANUAL_TRIGGER = 'trigger'
 INGESTION_WATCHER_STATUS = 'status'
@@ -64,6 +64,8 @@ TEST_ENV = common.get_environment_variable('TEST_ENV', EnvironmentTypes.QA.name)
 PVC_HANDLER_ROUTE = common.get_environment_variable('PVC_HANDLER_ROUTE', None)
 PVC_CLONE_SOURCE = common.get_environment_variable('PVC_CLONE_SOURCE', None)
 PVC_CHANGE_METADATA = common.get_environment_variable('PVC_CHANGE_METADATA', None)
+PVC_VALIDATE_METADATA = common.get_environment_variable('PVC_VALIDATE_METADATA', None)
+PVC_ROOT_DIR = common.get_environment_variable('PVC_ROOT_DIR', None)
 
 NFS_ROOT_DIR = common.get_environment_variable('NFS_ROOT_DIR', '/tmp')
 NFS_SOURCE_DIR = common.get_environment_variable('NFS_SOURCE_DIR', 'ingestion/1')

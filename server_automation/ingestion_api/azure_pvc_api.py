@@ -26,3 +26,15 @@ def make_unique_shapedata(host=config.PVC_HANDLER_ROUTE, api=config.PVC_CHANGE_M
     url = common.combine_url(host, api)
     resp = base_requests.send_get_request(url)
     return resp
+
+
+def validate_ingestion_directory(host=config.PVC_HANDLER_ROUTE, api=config.PVC_VALIDATE_METADATA):
+    """
+    This method validate on pvc directory if directory include all needed files for new discrete
+    :param host: route address to service
+    :param api: routing dir
+    :return: (True , data json if) or (False, str->error reason)
+    """
+    url = common.combine_url(host, api)
+    resp = base_requests.send_get_request(url)
+    return resp
