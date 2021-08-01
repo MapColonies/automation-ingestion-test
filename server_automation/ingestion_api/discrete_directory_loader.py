@@ -12,7 +12,7 @@ def validate_source_directory(path):
         _log.error(f'Path [{path}] not exists')
         return False, f'Path [{path}] not exists'
 
-    if not os.path.exists(os.path.join(path,config.SHAPES_PATH)):
+    if not os.path.exists(os.path.join(path, config.SHAPES_PATH)):
         _log.error(f'Path [{os.path.join(path,config.SHAPES_PATH)}] not exists')
         return False, f'Path [{os.path.join(path, config.SHAPES_PATH)}] not exists'
 

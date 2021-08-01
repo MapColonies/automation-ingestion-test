@@ -55,8 +55,8 @@ PG_USER = common.get_environment_variable('PG_USER', None)
 PG_PASS = common.get_environment_variable('PG_PASS', None)
 PG_HOST = common.get_environment_variable('PG_HOST', None)
 PG_JOB_TASK_DB_NAME = common.get_environment_variable('PG_JOB_TASK_DB_NAME', None)
-
-FOLLOW_TIMEOUT = common.get_environment_variable('FOLLOW_TIMEOUT', 5)
+PG_MAPPROXY_CONFIG = common.get_environment_variable('PG_MAPPROXY_CONFIG', None)
+FOLLOW_TIMEOUT = 60 * common.get_environment_variable('FOLLOW_TIMEOUT', 2)
 
 
 ####################################################  environment  #####################################################
@@ -70,3 +70,12 @@ PVC_ROOT_DIR = common.get_environment_variable('PVC_ROOT_DIR', None)
 NFS_ROOT_DIR = common.get_environment_variable('NFS_ROOT_DIR', '/tmp')
 NFS_SOURCE_DIR = common.get_environment_variable('NFS_SOURCE_DIR', 'ingestion/1')
 NFS_DEST_DIR = common.get_environment_variable('NFS_DEST_DIR', 'test_data')
+
+
+########################################################  s3  ##########################################################
+S3_ACCESS_KEY = common.get_environment_variable('S3_ACCESS_KEY', None)
+S3_SECRET_KEY = common.get_environment_variable('S3_SECRET_KEY', None)
+S3_BUCKET_NAME = common.get_environment_variable('S3_BUCKET_NAME', None)
+S3_END_POINT = common.get_environment_variable('S3_END_POINT', None)
+
+DEBUG_MODE_LOCAL = common.get_environment_variable('DEBUG_MODE_LOCAL', False)

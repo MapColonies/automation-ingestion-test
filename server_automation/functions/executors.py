@@ -131,10 +131,9 @@ def start_manuel_ingestion(path, env=config.EnvironmentTypes.QA.name):
     if not source_ok:
         raise FileNotFoundError(f'Directory [{path}] with missing files \ errors msg: [{body}]')
 
-
     _log.info(f'Send ingestion request for dir: {path}')
     if env == config.EnvironmentTypes.QA.name or env == config.EnvironmentTypes.DEV.name:
-       relative_path = path.split(config.PVC_ROOT_DIR)[1]
+        relative_path = path.split(config.PVC_ROOT_DIR)[1]
     elif env == config.EnvironmentTypes.PROD.name:
         relative_path = config.NFS_DEST_DIR
 
@@ -142,25 +141,51 @@ def start_manuel_ingestion(path, env=config.EnvironmentTypes.QA.name):
     status_code = resp.status_code
     content = resp.text
     _log.info(f'receive from agent - manual: status code [{status_code}] and message: [{content}]')
+
     return status_code, content
 
 
-def follow_running_task(job_id, timeout=config.FOLLOW_TIMEOUT):
+def follow_running_task(product_id, product_version, timeout=config.FOLLOW_TIMEOUT):
     """This method will follow running ingestion task and return results on finish"""
-
+    job_id = postgress_adapter.get_current_job_id(product_id, product_version)
     t_end = time.time() + timeout
     running = True
     while running:
         job = postgress_adapter.get_job_by_id(job_id, db_name=config.PG_JOB_TASK_DB_NAME)
         status = job['status']
-        if status == config.JobStatus.Completed.value:
+        reason = job['reason']
+        tasks = postgress_adapter.get_tasks_by_job(job_id)
+        completed_task = sum(1 for task in tasks if task['status'] == config.JobStatus.Completed.name)
+        _log.info(f'\nIngestion status of job for resource: {product_id}:{product_version} is [{status}]\n'
+                  f'finished tasks for current job: {completed_task} / {len(tasks)}')
 
-            return {'status': status, 'message': 'OK'}
-        else:
-            print('temp = on progress')
+        if status == config.JobStatus.Completed.name:
+            return {'status': status, 'message': " ".join(['OK', reason])}
+        elif status == config.JobStatus.Failed.name:
+            return {'status': status, 'message': " ".join(['Failed', reason])}
+
+        current_time = time.time()
+
+        if t_end < current_time:
+            return {'status': status, 'message': " ".join(['Failed:', 'got timeout while following job running'])}
 
 
 def update_shape_fs(shp):
     current_time_str = common.generate_datatime_zulu().replace('-', '_').replace(':', '_')
     resp = shape_convertor.add_ext_source_name(shp, current_time_str)
     return resp
+
+
+def test_cleanup(product_id, product_version, initial_mapproxy_config):
+    """This method will clean all created test data"""
+    job_id = postgress_adapter.get_current_job_id(product_id, product_version)
+    postgress_adapter.clean_job_task(job_id)
+    s3_conn = s3.S3Client(config.S3_END_POINT, config.S3_ACCESS_KEY, config.S3_SECRET_KEY)
+    s3_conn.delete_folder(config.S3_BUCKET_NAME, product_id)
+    current_config_mapproxy = postgress_adapter.get_mapproxy_configs(table_name='config', db_name=config.PG_MAPPROXY_CONFIG)
+    if len(current_config_mapproxy) > len(initial_mapproxy_config):
+        postgress_adapter.delete_config_mapproxy('id', current_config_mapproxy[0]['id'])
+    _log.info(f'Cleanup was executed and delete at end of test:\n'
+              f'DB - job and related task\n'
+              f'DB - mapproxy-config'
+              f'S3 - uploaded layers')
