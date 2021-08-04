@@ -5,12 +5,14 @@ import time
 import json
 import os
 import subprocess
+from server_automation.graphql import gql_wrapper
 from server_automation.configuration import config
 from server_automation.ingestion_api import discrete_agent_api, discrete_directory_loader, azure_pvc_api
 from server_automation.postgress import postgress_adapter
+from server_automation.graphql import gql_wrapper
 
 from mc_automation_tools import common as common
-from mc_automation_tools import shape_convertor
+from mc_automation_tools import shape_convertor, base_requests
 from mc_automation_tools import s3storage as s3
 
 _log = logging.getLogger('server_automation.function.executors')
@@ -147,14 +149,19 @@ def start_manuel_ingestion(path, env=config.EnvironmentTypes.QA.name):
 
 def follow_running_task(product_id, product_version, timeout=config.FOLLOW_TIMEOUT):
     """This method will follow running ingestion task and return results on finish"""
-    job_id = postgress_adapter.get_current_job_id(product_id, product_version)
+
     t_end = time.time() + timeout
     running = True
     while running:
-        job = postgress_adapter.get_job_by_id(job_id, db_name=config.PG_JOB_TASK_DB_NAME)
+        job = gql_wrapper.get_job_by_product(product_id, product_version, host=config.GQK_URL)
+        # job_id = postgress_adapter.get_current_job_id(product_id, product_version) # deprication
+        job_id = job['id']
+
+        # job = postgress_adapter.get_job_by_id(job_id, db_name=config.PG_JOB_TASK_DB_NAME)
         status = job['status']
         reason = job['reason']
-        tasks = postgress_adapter.get_tasks_by_job(job_id)
+        tasks = job['tasks']
+        # tasks = postgress_adapter.get_tasks_by_job(job_id)
         completed_task = sum(1 for task in tasks if task['status'] == config.JobStatus.Completed.name)
         _log.info(f'\nIngestion status of job for resource: {product_id}:{product_version} is [{status}]\n'
                   f'finished tasks for current job: {completed_task} / {len(tasks)}')
@@ -189,3 +196,34 @@ def test_cleanup(product_id, product_version, initial_mapproxy_config):
               f'DB - job and related task\n'
               f'DB - mapproxy-config'
               f'S3 - uploaded layers')
+
+
+def validate_pycsw(product_id, gqk=config.GQK_URL):
+    """
+    :return: dict of result validation
+    """
+    res_dict = {'validation': True, 'reason': ""}
+    pycsw_record = gql_wrapper.get_pycsw_record(gqk, product_id)
+    if not pycsw_record['data']['search']:
+        return {'validation': False, 'reason': 'Record not found'}
+
+    url1 = pycsw_record['data']['search'][0]['links'][0]['url']
+    url_1_state = {'state': base_requests.send_get_request(url1).status_code == config.ResponseCode.value, 'protocol': pycsw_record['data']['search'][0]['links'][0]['protocol']}
+
+    url2 = pycsw_record['data']['search'][0]['links'][1]['url']
+    url_2_state = {'state': base_requests.send_get_request(url2).status_code == config.ResponseCode.value,
+                   'protocol': pycsw_record['data']['search'][0]['links'][0]['protocol']}
+
+    url3 = pycsw_record['data']['search'][0]['links'][2]['url']
+    url_3_state = {'state': base_requests.send_get_request(url3).status_code == config.ResponseCode.value,
+                   'protocol': pycsw_record['data']['search'][0]['links'][0]['protocol']}
+
+
+    if url1['state'] and url1['state'] and url1['state']:
+        res_dict['validation'] = False
+        res_dict['reason'] = "-------\n-------".join([res_dict['reason'], f'Protocols Url provided not correct: {url1}\n'
+                                                                          f'{url2}\n'
+                                                                          f'{url3}'])
+
+
+    return pycsw_record

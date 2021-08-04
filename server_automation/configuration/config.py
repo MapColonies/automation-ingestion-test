@@ -17,7 +17,7 @@ class ResponseCode(enum.Enum):
     Types of server responses
     """
     Ok = 200  # server return ok status
-    ChangeOk = 201 # server was return ok for changing
+    ChangeOk = 201  # server was return ok for changing
     ValidationErrors = 400  # bad request
     StatusNotFound = 404  # status\es not found on db
     DuplicatedError = 409  # in case of requesting package with same name already exists
@@ -56,8 +56,7 @@ PG_PASS = common.get_environment_variable('PG_PASS', None)
 PG_HOST = common.get_environment_variable('PG_HOST', None)
 PG_JOB_TASK_DB_NAME = common.get_environment_variable('PG_JOB_TASK_DB_NAME', None)
 PG_MAPPROXY_CONFIG = common.get_environment_variable('PG_MAPPROXY_CONFIG', None)
-FOLLOW_TIMEOUT = 60 * common.get_environment_variable('FOLLOW_TIMEOUT', 2)
-
+FOLLOW_TIMEOUT = 60 * common.get_environment_variable('FOLLOW_TIMEOUT', 5)
 
 ####################################################  environment  #####################################################
 TEST_ENV = common.get_environment_variable('TEST_ENV', EnvironmentTypes.QA.name)
@@ -71,7 +70,6 @@ NFS_ROOT_DIR = common.get_environment_variable('NFS_ROOT_DIR', '/tmp')
 NFS_SOURCE_DIR = common.get_environment_variable('NFS_SOURCE_DIR', 'ingestion/1')
 NFS_DEST_DIR = common.get_environment_variable('NFS_DEST_DIR', 'test_data')
 
-
 ########################################################  s3  ##########################################################
 S3_ACCESS_KEY = common.get_environment_variable('S3_ACCESS_KEY', None)
 S3_SECRET_KEY = common.get_environment_variable('S3_SECRET_KEY', None)
@@ -79,3 +77,57 @@ S3_BUCKET_NAME = common.get_environment_variable('S3_BUCKET_NAME', None)
 S3_END_POINT = common.get_environment_variable('S3_END_POINT', None)
 
 DEBUG_MODE_LOCAL = common.get_environment_variable('DEBUG_MODE_LOCAL', False)
+
+#######################################################  gql  #########################################################
+GQK_URL = common.get_environment_variable('GQK_URL',
+                                          'http://discrete-layer-client-qa-bff-route-raster.apps.v0h0bdx6.eastus.aroapp.io/graphql')
+
+PYCSW_QUERY_BY_PRODUCTID = {
+    'query':
+        """
+        query searchme ($opts: SearchOptions, $end: Float, $start: Float){
+              search(opts: $opts, end: $end, start: $start) {
+                        ... on LayerRasterRecord {
+                          __typename
+                          productId
+                          productName
+                          sensorType
+                          description
+                          scale
+                          footprint
+                          layerPolygonParts
+                          type
+                          id
+                          accuracyCE90
+                          sourceDateEnd
+                          links {
+                            name
+                            description
+                            protocol
+                            url
+                          }
+                        }    	
+              }
+            }
+        """
+    ,
+    'variables':
+        {
+
+            "opts": {
+                "filter": [
+                    {
+                        "field": "mc:type",
+                        "eq": "RECORD_RASTER"
+                    },
+                    {
+                        "field": "mc:productId",
+                        "eq": "RECORD_ALL"
+                    }
+                ]
+            },
+            # "start": 1,
+            # "end": 50
+
+        }
+}

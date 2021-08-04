@@ -2,6 +2,7 @@
 import logging
 from conftest import ValueStorage
 import os
+import time
 from server_automation.configuration import config
 from server_automation.functions import executors
 from server_automation.postgress import postgress_adapter
@@ -36,6 +37,7 @@ def test_new_discrete_ingest():
     ValueStorage.discrete_list.append({'product_id': product_id, 'product_version': product_version})
     source_directory = resp['ingestion_dir']
     _log.info(f'{product_id} {product_version}')
+    time.sleep(10)
     try:
         status_code, content = executors.start_manuel_ingestion(source_directory, config.TEST_ENV)
     except Exception as e:
@@ -45,7 +47,11 @@ def test_new_discrete_ingest():
         f'Test: [{test_new_discrete_ingest.__name__}] Failed: trigger new ingest with status code: [{status_code}]\n' \
         f'details: [{content}]'
 
-    resp = executors.follow_running_task(product_id, product_version)
+    ingestion_follow_state = executors.follow_running_task(product_id, product_version)
+
+
+    pycsw_record = executors.validate_pycsw(config.GQK_URL, product_id)
+    assert pycsw_record, f'Test: [{test_new_discrete_ingest.__name__}] Failed: validation of pycsw record\n'
     if config.DEBUG_MODE_LOCAL:
         executors.test_cleanup(product_id, product_version, initial_mapproxy_config)
 
