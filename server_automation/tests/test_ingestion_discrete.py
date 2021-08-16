@@ -1,27 +1,23 @@
 """This module provide multiple test of ingestion services"""
 import logging
 from conftest import ValueStorage
-import os
 import time
 from server_automation.configuration import config
 from server_automation.functions import executors
 from server_automation.postgress import postgress_adapter
-from server_automation.ingestion_api import discrete_directory_loader
-from mc_automation_tools import common as common
 
 _log = logging.getLogger('server_automation.tests.test_ingestion_discrete')
 
 initial_mapproxy_config = postgress_adapter.get_mapproxy_configs()
 
 
-def test_new_discrete_ingest():
+def test_manuel_discrete_ingest():
     """
     This test will test full e2e discrete ingestion
     """
     # config.TEST_ENV = 'PROD'
+
     # prepare test data
-
-
     try:
         resp = executors.init_ingestion_src(config.TEST_ENV)
         error_msg = None
@@ -29,31 +25,108 @@ def test_new_discrete_ingest():
         resp = None
         error_msg = str(e)
     assert resp, \
-        f'Test: [{test_new_discrete_ingest.__name__}] Failed: on creating and updating layerSource folder [{error_msg}]'
-
+        f'Test: [{test_manuel_discrete_ingest.__name__}] Failed: on creating and updating layerSource folder [{error_msg}]'
     _log.info(f'{resp}')
-    # triggering new ingestion
+
+    # triggering and validate start of new manuel job
     product_id, product_version = resp['resource_name'].split('-')
     ValueStorage.discrete_list.append({'product_id': product_id, 'product_version': product_version})
     source_directory = resp['ingestion_dir']
     _log.info(f'{product_id} {product_version}')
-    time.sleep(10)
+    time.sleep(5)
+
     try:
-        status_code, content = executors.start_manuel_ingestion(source_directory, config.TEST_ENV)
+        status_code, content, source_data = executors.start_manuel_ingestion(source_directory, config.TEST_ENV)
     except Exception as e:
         status_code = 'unknown'
         content = str(e)
     assert status_code == config.ResponseCode.Ok.value, \
-        f'Test: [{test_new_discrete_ingest.__name__}] Failed: trigger new ingest with status code: [{status_code}]\n' \
+        f'Test: [{test_manuel_discrete_ingest.__name__}] Failed: trigger new ingest with status code: [{status_code}]\n' \
         f'details: [{content}]'
 
-    ingestion_follow_state = executors.follow_running_task(product_id, product_version)
+    # validating following and completion of ingestion job
+    try:
+        ingestion_follow_state = executors.follow_running_task(product_id, product_version)
+        resp = (ingestion_follow_state['status'] == config.JobStatus.Completed.name)
+        error_msg = ingestion_follow_state['message']
 
+    except Exception as e:
+        resp = None
+        error_msg = str(e)
+    assert resp, \
+        f'Test: [{test_manuel_discrete_ingest.__name__}] Failed: on following ingestion process [{error_msg}]'
 
-    pycsw_record = executors.validate_pycsw(config.GQK_URL, product_id)
-    assert pycsw_record, f'Test: [{test_new_discrete_ingest.__name__}] Failed: validation of pycsw record\n'
+    # validate new discrete on pycsw records
+    try:
+        resp, pycsw_record = executors.validate_pycsw(config.GQK_URL, product_id, source_data)
+        state = resp['validation']
+        error_msg = resp['reason']
+    except Exception as e:
+        state = False
+        error_msg = str(e)
+    assert state, f'Test: [{test_manuel_discrete_ingest.__name__}] Failed: validation of pycsw record\n' \
+                         f'related errors:\n' \
+                         f'{error_msg}'
+
+    # validating new discrete on mapproxy
+    try:
+        resp = executors.validate_new_discrete(pycsw_record, product_id, product_version)
+        state = resp['validation']
+        error_msg = resp['reason']
+    except Exception as e:
+        state = False
+        error_msg = str(e)
+
+    assert state, f'Test: [{test_manuel_discrete_ingest.__name__}] Failed: validation of mapproxy layer\n' \
+                  f'related errors:\n' \
+                  f'{error_msg}'
+
     if config.DEBUG_MODE_LOCAL:
         executors.test_cleanup(product_id, product_version, initial_mapproxy_config)
+
+
+def test_watch_discrete_ingest():
+    """
+    This test ingestion by watching shared folder
+    """
+
+    # config.TEST_ENV = 'PROD'
+    # stop watching folder as prerequisites
+    try:
+        resp = executors.stop_watch()
+        state = resp['state']
+        error_msg = resp['reason']
+    except Exception as e:
+        state = False
+        error_msg = str(e)
+    assert state, \
+        f'Test: [{test_watch_discrete_ingest.__name__}] Failed: on stop agent watch [{error_msg}]'
+
+    try:
+        resp = executors.init_watch_ingestion_src(config.TEST_ENV)
+        error_msg = None
+    except Exception as e:
+        resp = None
+        error_msg = str(e)
+    assert resp, \
+        f'Test: [{test_watch_discrete_ingest.__name__}] Failed: on creating and updating layerSource folder [{error_msg}]'
+    _log.info(f'{resp}')
+
+    # triggering and validate start of new manuel job
+    product_id, product_version = resp['resource_name'].split('-')
+    ValueStorage.discrete_list.append({'product_id': product_id, 'product_version': product_version})
+    source_directory = resp['ingestion_dir']
+    _log.info(f'{product_id} {product_version}')
+    time.sleep(5)
+
+    try:
+        status_code, content, source_data = executors.start_watch_ingestion(source_directory, config.TEST_ENV)
+    except Exception as e:
+        status_code = 'unknown'
+        content = str(e)
+    assert status_code == config.ResponseCode.Ok.value, \
+        f'Test: [{test_manuel_discrete_ingest.__name__}] Failed: trigger new ingest with status code: [{status_code}]\n' \
+        f'details: [{content}]'
 
 
 def teardown_module(module):  # pylint: disable=unused-argument
@@ -67,4 +140,5 @@ def teardown_module(module):  # pylint: disable=unused-argument
 
 
 if config.DEBUG_MODE_LOCAL:
-    test_new_discrete_ingest()
+    # test_manuel_discrete_ingest()
+    test_watch_discrete_ingest()

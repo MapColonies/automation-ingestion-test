@@ -4,7 +4,7 @@ from mc_automation_tools import common
 from mc_automation_tools import base_requests
 
 
-def create_new_ingestion_dir(host=config.PVC_HANDLER_ROUTE, api=config.PVC_CLONE_SOURCE):
+def create_new_ingestion_dir(host, api):
     """
     This method will send http get request to pvc server and create new directory of ingested source data
     :param host: route address to service

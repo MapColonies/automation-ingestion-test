@@ -49,7 +49,10 @@ INGESTION_START_WATCHER = 'start'
 INGESTION_STOP_WATCHER = 'stop'
 INGESTION_AGENT_URL = common.get_environment_variable('INGESTION_AGENT_URL',
                                                       'https://discrete-agent-dev-agent-route-raster-dev.apps.v0h0bdx6.eastus.aroapp.io')
-
+################################################  MAPPROXY VARIABELS  ##################################################
+WMS = 'WMS'
+WMTS = 'WMTS'
+WMTS_LAYER = 'WMTS_LAYER'
 ###############################################  POSTGRESS CREDENTIALS  ################################################
 PG_USER = common.get_environment_variable('PG_USER', None)
 PG_PASS = common.get_environment_variable('PG_PASS', None)
@@ -69,6 +72,23 @@ PVC_ROOT_DIR = common.get_environment_variable('PVC_ROOT_DIR', None)
 NFS_ROOT_DIR = common.get_environment_variable('NFS_ROOT_DIR', '/tmp')
 NFS_SOURCE_DIR = common.get_environment_variable('NFS_SOURCE_DIR', 'ingestion/1')
 NFS_DEST_DIR = common.get_environment_variable('NFS_DEST_DIR', 'test_data')
+
+
+PVC_HANDLER_ROUTE = common.get_environment_variable('PVC_HANDLER_ROUTE', None)
+PVC_CLONE_SOURCE = common.get_environment_variable('PVC_CLONE_SOURCE', 'createTestDir')
+PVC_CHANGE_METADATA = common.get_environment_variable('PVC_CHANGE_METADATA', 'updateShape')
+PVC_CHANGE_WATCH_METADATA = common.get_environment_variable('PVC_CHANGE_WATCH_METADATA', 'updateWatchShape')
+PVC_VALIDATE_METADATA = common.get_environment_variable('PVC_VALIDATE_METADATA', 'validatePath')
+PVC_ROOT_DIR = common.get_environment_variable('PVC_ROOT_DIR', '/layerSources')
+
+PVC_WATCH_CREATE_DIR = common.get_environment_variable('PVC_WATCH_CREATE_DIR', 'createWatchDir')
+PVC_WATCH_UPDATE_SHAPE = common.get_environment_variable('PVC_WATCH_UPDATE_SHAPE', 'updateWatchShape')
+PVC_WATCH_VALIDATE = common.get_environment_variable('PVC_WATCH_VALIDATE', 'validateWatchPath')
+
+NFS_WATCH_ROOT_DIR = common.get_environment_variable('NFS_ROOT_DIR', '/tmp')
+NFS_WATCH_SOURCE_DIR = common.get_environment_variable('NFS_WATCH_SOURCE_DIR', 'ingestion/1')
+NFS_WATCH_BASE_DIR = common.get_environment_variable('NFS_WATCH_SOURCE_DIR', 'ingestion/1')
+NFS_WATCH_DEST_DIR = common.get_environment_variable('NFS_WATCH_DEST_DIR', 'watch')
 
 ########################################################  s3  ##########################################################
 S3_ACCESS_KEY = common.get_environment_variable('S3_ACCESS_KEY', None)
@@ -131,3 +151,5 @@ PYCSW_QUERY_BY_PRODUCTID = {
 
         }
 }
+
+
