@@ -19,7 +19,7 @@ _log = logging.getLogger('server_automation.function.executors')
 
 def stop_watch():
     """
-    This method stop and validate stop \ status api of agent for watching
+    This method stop and validate stop / status api of agent for watching
     :return: result dict: {state: bool, reason: str}
     """
     try:
@@ -30,7 +30,7 @@ def stop_watch():
 
         reason = json.loads(resp.content)
         if reason['isWatching']:
-            return {'state': False, 'reason': f'Failed on stop watch via status API: [{resp.content}]'}
+            return {'state': False, 'reason': f'Failed on stop watch via status API: [{json.loads(resp.content)}]'}
         resp = discrete_agent_api.get_watching_statuses()
         status_code = resp.status_code
         if status_code != config.ResponseCode.Ok.value:
@@ -38,10 +38,37 @@ def stop_watch():
                     'reason': f'Failed on getting watch status API after changing: [{status_code}]:[{resp.content}]'}
 
         return {'state': True, 'reason': 'isWatch=False - agent not watching'}
-
     except Exception as e:
         _log.error(f'Failed on stop watching process with error: [{str(e)}]')
         raise Exception(f'Failed on stop watching process with error: [{str(e)}]')
+
+
+def start_watch():
+    """
+    This method start and validate start \ status api of agent for watching
+    :return: result dict: {state: bool, reason: str}
+    """
+    try:
+        resp = discrete_agent_api.post_start_watch()
+        status_code = resp.status_code
+        if status_code != config.ResponseCode.Ok.value:
+            return {'state': False,
+                    'reason': f'Failed on getting watch status API: [{status_code}]:[{resp.content}]'}
+
+        reason = json.loads(resp.content)
+        if not reason['isWatching']:
+            return {'state': False, 'reason': f'Failed on start watch via status API: [{resp.content}]'}
+        resp = discrete_agent_api.get_watching_statuses()
+        status_code = resp.status_code
+        if status_code != config.ResponseCode.Ok.value:
+            return {'state': False,
+                    'reason': f'Failed on getting watch status API after changing: [{status_code}]:[{resp.content}]'}
+
+        return {'state': True, 'reason': 'isWatch=True - agent on watching'}
+
+    except Exception as e:
+        _log.error(f'Failed on start watching process with error: [{str(e)}]')
+        raise Exception(f'Failed on start watching process with error: [{str(e)}]')
 
 
 def init_watch_ingestion_src(env=config.EnvironmentTypes.QA.name):
@@ -59,12 +86,13 @@ def init_watch_ingestion_src(env=config.EnvironmentTypes.QA.name):
         return res
     elif env == config.EnvironmentTypes.PROD.name:
         src = os.path.join(config.NFS_WATCH_ROOT_DIR, config.NFS_WATCH_SOURCE_DIR)
-        dst = os.path.join(config.NFS_WATCH_ROOT_DIR, config.NFS_WATCH_ROOT_DIR, config.NFS_WATCH_DEST_DIR, common.generate_uuid())
+        dst = os.path.join(config.NFS_WATCH_ROOT_DIR, config.NFS_WATCH_ROOT_DIR, config.NFS_WATCH_DEST_DIR,
+                           common.generate_uuid())
         res = init_ingestion_src_fs(src, dst, watch=True)
         return res
     else:
         raise Exception(f'Illegal environment value type: {env}')
-    pass
+
 
 
 def init_ingestion_src(env=config.EnvironmentTypes.QA.name):
@@ -127,7 +155,8 @@ def init_ingestion_src_fs(src, dst, watch=False):
     return {'ingestion_dir': dst, 'resource_name': source_name}
 
 
-def init_ingestion_src_pvc(host=config.PVC_HANDLER_ROUTE, create_api=config.PVC_CLONE_SOURCE, change_api=config.PVC_CHANGE_METADATA):
+def init_ingestion_src_pvc(host=config.PVC_HANDLER_ROUTE, create_api=config.PVC_CLONE_SOURCE,
+                           change_api=config.PVC_CHANGE_METADATA):
     """
     This module will init new ingestion source folder inside pvc - only on azure.
     The prerequisites must have source folder with suitable data and destination folder for new data
@@ -190,7 +219,7 @@ def start_manuel_ingestion(path, env=config.EnvironmentTypes.QA.name):
     # validate directory include all needed files and data
     source_ok, body = validate_source_directory(path, env)
     if not source_ok:
-        raise FileNotFoundError(f'Directory [{path}] with missing files \ errors msg: [{body}]')
+        raise FileNotFoundError(f'Directory [{path}] with missing files / errors msg: [{body}]')
 
     _log.info(f'Send ingestion request for dir: {path}')
     if env == config.EnvironmentTypes.QA.name or env == config.EnvironmentTypes.DEV.name:
@@ -208,23 +237,27 @@ def start_manuel_ingestion(path, env=config.EnvironmentTypes.QA.name):
 
 def start_watch_ingestion(path, env=config.EnvironmentTypes.QA.name):
     """This method will start watch agent and validate start of current job"""
+
     # validate directory include all needed files and data
     source_ok, body = validate_source_directory(path, env, watch=True)
     if not source_ok:
-        raise FileNotFoundError(f'Directory [{path}] with missing files \ errors msg: [{body}]')
+        raise FileNotFoundError(f'Directory [{path}] with missing files / errors msg: [{body}]')
 
-    _log.info(f'Send ingestion request for dir: {path}')
-    if env == config.EnvironmentTypes.QA.name or env == config.EnvironmentTypes.DEV.name:
-        relative_path = path.split(config.PVC_ROOT_DIR)[1]
-    elif env == config.EnvironmentTypes.PROD.name:
-        relative_path = config.NFS_DEST_DIR
+    _log.info(f'Init ingestion via watch start request for dir: {path}')
+    # if env == config.EnvironmentTypes.QA.name or env == config.EnvironmentTypes.DEV.name:
+    #     relative_path = path.split(config.PVC_ROOT_DIR)[1]
+    # elif env == config.EnvironmentTypes.PROD.name:
+    #     relative_path = config.NFS_DEST_DIR
 
-    resp = discrete_agent_api.post_manual_trigger(relative_path)
-    status_code = resp.status_code
-    content = resp.text
-    _log.info(f'receive from agent - manual: status code [{status_code}] and message: [{content}]')
+    resp = start_watch()
+    watch_state = resp['state']
+    if not watch_state:
+        raise Exception(f'Failed on start watching with error:\n'
+                        f'{resp["reason"]}')
 
-    return status_code, content, body
+    _log.info(f'Receive from agent - watch status: [{watch_state}] and message: [{resp["reason"]}]')
+
+    return watch_state, resp["reason"], body
 
 
 def follow_running_task(product_id, product_version, timeout=config.FOLLOW_TIMEOUT):
@@ -232,14 +265,21 @@ def follow_running_task(product_id, product_version, timeout=config.FOLLOW_TIMEO
 
     t_end = time.time() + timeout
     running = True
+    resp = gql_wrapper.get_job_by_product(product_id, product_version, host=config.GQK_URL)
+    _log.info(resp)
+    if not resp:
+        raise Exception(f'Job for {product_id}:{product_version} not found')
+
     while running:
-        time.sleep(10)
+        time.sleep(config.SYSTEM_DELAY // 2)
         job = gql_wrapper.get_job_by_product(product_id, product_version, host=config.GQK_URL)
+
         job_id = job['id']
 
         status = job['status']
         reason = job['reason']
         tasks = job['tasks']
+
         completed_task = sum(1 for task in tasks if task['status'] == config.JobStatus.Completed.name)
         _log.info(f'\nIngestion status of job for resource: {product_id}:{product_version} is [{status}]\n'
                   f'finished tasks for current job: {completed_task} / {len(tasks)}')
@@ -256,6 +296,7 @@ def follow_running_task(product_id, product_version, timeout=config.FOLLOW_TIMEO
                     'job_id': job_id}
 
 
+
 def update_shape_fs(shp):
     current_time_str = common.generate_datatime_zulu().replace('-', '_').replace(':', '_')
     resp = shape_convertor.add_ext_source_name(shp, current_time_str)
@@ -270,12 +311,17 @@ def test_cleanup(product_id, product_version, initial_mapproxy_config):
     s3_conn.delete_folder(config.S3_BUCKET_NAME, product_id)
     current_config_mapproxy = postgress_adapter.get_mapproxy_configs(table_name='config',
                                                                      db_name=config.PG_MAPPROXY_CONFIG)
+    postgress_adapter.clean_pycsw_record(product_id)
     if len(current_config_mapproxy) > len(initial_mapproxy_config):
         postgress_adapter.delete_config_mapproxy('id', current_config_mapproxy[0]['id'])
+    postgress_adapter.delete_agent_path("layerId", product_id )
+    postgress_adapter.delete_pycsw_record('product_id', product_id)
     _log.info(f'Cleanup was executed and delete at end of test:\n'
               f'DB - job and related task\n'
-              f'DB - mapproxy-config'
-              f'S3 - uploaded layers')
+              f'DB - mapproxy-config\n'
+              f'DB - pycsw-records\n'
+              f'DB - agent-discrete\n'
+              f'S3 - uploaded layers\n')
 
 
 def validate_pycsw(gqk=config.GQK_URL, product_id=None, source_data=None):

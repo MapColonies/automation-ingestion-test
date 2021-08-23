@@ -45,6 +45,18 @@ def clean_job_task(job_id, db_name=config.PG_JOB_TASK_DB_NAME):
         return {'status': "Failed", 'message': f'deleted Failed: [{str(e)}]'}
 
 
+def clean_pycsw_record(product_id, db_name=config.PG_RECORD_PYCSW_DB):
+    """This will directly clean job and related task from db"""
+    deletion_command = f"""DELETE FROM "records" WHERE "product_id"='{product_id}'"""
+    client = postgres.PGClass(config.PG_HOST, db_name, config.PG_USER, config.PG_PASS)
+    try:
+        client.command_execute([deletion_command])
+        _log.info(f'Cleaned up successfully records: [{product_id}]')
+        return {'status': "OK", 'message': f'deleted ok {product_id}'}
+
+    except Exception as e:
+        return {'status': "Failed", 'message': f'deleted Failed: [{str(e)}]'}
+
 def get_mapproxy_config(db_name=config.PG_MAPPROXY_CONFIG):
     """will get mapproxy-config data"""
     client = postgres.PGClass(config.PG_HOST, db_name, config.PG_USER, config.PG_PASS)
@@ -76,3 +88,27 @@ def delete_config_mapproxy(id, value, db_name=config.PG_MAPPROXY_CONFIG, table_n
     """
     client = postgres.PGClass(config.PG_HOST, db_name, config.PG_USER, config.PG_PASS)
     res = client.delete_row_by_id(table_name, id, value)
+
+
+def delete_pycsw_record(product_id, value, db_name=config.PG_RECORD_PYCSW_DB, table_name='records'):
+    """
+    This method will delete entire row on mapproxy
+    :param product_id: id of layer as product_id
+    :param value: The product_id
+    :param db_name: name of db
+    :param table_name: name of table
+    """
+    client = postgres.PGClass(config.PG_HOST, db_name, config.PG_USER, config.PG_PASS)
+    res = client.delete_row_by_id(table_name, product_id, value)
+
+
+def delete_agent_path(layer_id, value, db_name=config.PG_AGENT, table_name='layer_history'):
+    """
+    This method will delete entire row on mapproxy
+    :param layer_id: represent the later unique ID
+    :param value: value of id
+    :param db_name: name of db
+    :param table_name: name of table
+    """
+    client = postgres.PGClass(config.PG_HOST, db_name, config.PG_USER, config.PG_PASS)
+    res = client.delete_row_by_id(table_name, layer_id, value)

@@ -1,23 +1,21 @@
 """This module provide all method to access discrete ingestion bff service based on graphql"""
 import logging
 from server_automation.configuration import config
-from mc_automation_tools import graphql
+from mc_automation_tools import graphql, common
 
 _log = logging.getLogger('automation_tools.graphql.gql_wrapper')
 
 
-
-
-
 def get_jobs_task(host=config.GQK_URL):
     """return jobs data"""
+
     gql_client = graphql.GqlClient(host)
     res = gql_client.get_jobs_tasks()
     return res['data']['jobs']
 
 
 def get_job_by_product(product_id, product_version, host=config.GQK_URL):
-    all_jobs = get_jobs_task(host=config.GQK_URL)
+    all_jobs = get_jobs_task(host=host)
     job = [element for element in all_jobs if element['resourceId'] == product_id and element['version'] == product_version]
     return job[0]
 

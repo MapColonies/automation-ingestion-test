@@ -35,6 +35,13 @@ class JobStatus(enum.Enum):
     Pending = 'Pending'
 
 
+############################################  general running environment  #############################################
+CLEAN_UP = common.get_environment_variable('CLEAN_UP', False)  # If should clean running data from env at the end
+DEBUG_MODE_LOCAL = common.get_environment_variable('DEBUG_MODE_LOCAL', False)  # for multiple debug option on dev
+FOLLOW_TIMEOUT = 60 * common.get_environment_variable('FOLLOW_TIMEOUT', 10)
+SYSTEM_DELAY = common.get_environment_variable('SYSTEM_DELAY', 50)
+TEST_ENV = common.get_environment_variable('TEST_ENV', EnvironmentTypes.QA.name)  # compatibility to azure + prod env
+
 ORIG_DISCRETE_PATH = common.get_environment_variable('ORIG_DISCRETE_PATH',
                                                      '/home/ronenk1/dev/automation-server-test/shp/1')
 SHAPES_PATH = common.get_environment_variable('SHAPES_PATH', 'Shapes')
@@ -58,11 +65,12 @@ PG_USER = common.get_environment_variable('PG_USER', None)
 PG_PASS = common.get_environment_variable('PG_PASS', None)
 PG_HOST = common.get_environment_variable('PG_HOST', None)
 PG_JOB_TASK_DB_NAME = common.get_environment_variable('PG_JOB_TASK_DB_NAME', None)
+PG_RECORD_PYCSW_DB = common.get_environment_variable('PG_RECORD_PYCSW_DB', None)
 PG_MAPPROXY_CONFIG = common.get_environment_variable('PG_MAPPROXY_CONFIG', None)
-FOLLOW_TIMEOUT = 60 * common.get_environment_variable('FOLLOW_TIMEOUT', 5)
+PG_PYCSW_RECORD = common.get_environment_variable('PG_PYCSW_RECORD', None)
+PG_AGENT = common.get_environment_variable('PG_AGENT', None)
 
 ####################################################  environment  #####################################################
-TEST_ENV = common.get_environment_variable('TEST_ENV', EnvironmentTypes.QA.name)
 PVC_HANDLER_ROUTE = common.get_environment_variable('PVC_HANDLER_ROUTE', None)
 PVC_CLONE_SOURCE = common.get_environment_variable('PVC_CLONE_SOURCE', None)
 PVC_CHANGE_METADATA = common.get_environment_variable('PVC_CHANGE_METADATA', None)
@@ -72,7 +80,6 @@ PVC_ROOT_DIR = common.get_environment_variable('PVC_ROOT_DIR', None)
 NFS_ROOT_DIR = common.get_environment_variable('NFS_ROOT_DIR', '/tmp')
 NFS_SOURCE_DIR = common.get_environment_variable('NFS_SOURCE_DIR', 'ingestion/1')
 NFS_DEST_DIR = common.get_environment_variable('NFS_DEST_DIR', 'test_data')
-
 
 PVC_HANDLER_ROUTE = common.get_environment_variable('PVC_HANDLER_ROUTE', None)
 PVC_CLONE_SOURCE = common.get_environment_variable('PVC_CLONE_SOURCE', 'createTestDir')
@@ -95,8 +102,6 @@ S3_ACCESS_KEY = common.get_environment_variable('S3_ACCESS_KEY', None)
 S3_SECRET_KEY = common.get_environment_variable('S3_SECRET_KEY', None)
 S3_BUCKET_NAME = common.get_environment_variable('S3_BUCKET_NAME', None)
 S3_END_POINT = common.get_environment_variable('S3_END_POINT', None)
-
-DEBUG_MODE_LOCAL = common.get_environment_variable('DEBUG_MODE_LOCAL', False)
 
 #######################################################  gql  #########################################################
 GQK_URL = common.get_environment_variable('GQK_URL',
@@ -151,5 +156,3 @@ PYCSW_QUERY_BY_PRODUCTID = {
 
         }
 }
-
-
