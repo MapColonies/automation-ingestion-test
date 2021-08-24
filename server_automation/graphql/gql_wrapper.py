@@ -32,18 +32,8 @@ def get_pycsw_record(host, product_id):
         pycsw_template_request = config.PYCSW_QUERY_BY_PRODUCTID
         query = pycsw_template_request['query']
         variables = pycsw_template_request['variables']
-
         variables['opts']['filter'][1]['eq'] = product_id
-
         records = gql_client.execute_free_query(query, variables)
-
-
-        # for record in records['data']['search']:
-        #     if record.get('productId') == product_id:
-        #         return record
-        #
-        #     # else:
-        #     #     _log.error(f'Record not found on pycsw for product: [{product_id}]')
 
     except Exception as e:
         _log.error(f'Failed on getting pycsw record with error: [{str(e)}]')

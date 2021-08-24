@@ -304,18 +304,21 @@ def update_shape_fs(shp):
 
 
 def test_cleanup(product_id, product_version, initial_mapproxy_config):
-    """This method will clean all created test data"""
-    job_id = postgress_adapter.get_current_job_id(product_id, product_version)
-    postgress_adapter.clean_job_task(job_id)
-    s3_conn = s3.S3Client(config.S3_END_POINT, config.S3_ACCESS_KEY, config.S3_SECRET_KEY)
-    s3_conn.delete_folder(config.S3_BUCKET_NAME, product_id)
-    current_config_mapproxy = postgress_adapter.get_mapproxy_configs(table_name='config',
-                                                                     db_name=config.PG_MAPPROXY_CONFIG)
-    postgress_adapter.clean_pycsw_record(product_id)
-    if len(current_config_mapproxy) > len(initial_mapproxy_config):
-        postgress_adapter.delete_config_mapproxy('id', current_config_mapproxy[0]['id'])
-    postgress_adapter.delete_agent_path("layerId", product_id )
-    postgress_adapter.delete_pycsw_record('product_id', product_id)
+    try:
+        """This method will clean all created test data"""
+        job_id = postgress_adapter.get_current_job_id(product_id, product_version)
+        postgress_adapter.clean_job_task(job_id)
+        s3_conn = s3.S3Client(config.S3_END_POINT, config.S3_ACCESS_KEY, config.S3_SECRET_KEY)
+        s3_conn.delete_folder(config.S3_BUCKET_NAME, product_id)
+        current_config_mapproxy = postgress_adapter.get_mapproxy_configs(table_name='config',
+                                                                         db_name=config.PG_MAPPROXY_CONFIG)
+        postgress_adapter.clean_pycsw_record(product_id)
+        if len(current_config_mapproxy) > len(initial_mapproxy_config):
+            postgress_adapter.delete_config_mapproxy('id', current_config_mapproxy[0]['id'])
+        postgress_adapter.delete_agent_path("layerId", product_id )
+        postgress_adapter.delete_pycsw_record('product_id', product_id)
+    except Exception as e:
+        _log.error(f'Failed on cleanup with error: {str(e)}')
     _log.info(f'Cleanup was executed and delete at end of test:\n'
               f'DB - job and related task\n'
               f'DB - mapproxy-config\n'
