@@ -271,7 +271,7 @@ def follow_running_task(product_id, product_version, timeout=config.FOLLOW_TIMEO
         raise Exception(f'Job for {product_id}:{product_version} not found')
 
     while running:
-        time.sleep(config.SYSTEM_DELAY // 2)
+        time.sleep(config.SYSTEM_DELAY // 4)
         job = gql_wrapper.get_job_by_product(product_id, product_version, host=config.GQK_URL)
 
         job_id = job['id']
@@ -296,7 +296,6 @@ def follow_running_task(product_id, product_version, timeout=config.FOLLOW_TIMEO
                     'job_id': job_id}
 
 
-
 def update_shape_fs(shp):
     current_time_str = common.generate_datatime_zulu().replace('-', '_').replace(':', '_')
     resp = shape_convertor.add_ext_source_name(shp, current_time_str)
@@ -317,14 +316,16 @@ def test_cleanup(product_id, product_version, initial_mapproxy_config):
             postgress_adapter.delete_config_mapproxy('id', current_config_mapproxy[0]['id'])
         postgress_adapter.delete_agent_path("layerId", product_id )
         postgress_adapter.delete_pycsw_record('product_id', product_id)
+
+        _log.info(f'Cleanup was executed and delete at end of test:\n'
+                  f'DB - job and related task\n'
+                  f'DB - mapproxy-config\n'
+                  f'DB - pycsw-records\n'
+                  f'DB - agent-discrete\n'
+                  f'S3 - uploaded layers\n')
+
     except Exception as e:
         _log.error(f'Failed on cleanup with error: {str(e)}')
-    _log.info(f'Cleanup was executed and delete at end of test:\n'
-              f'DB - job and related task\n'
-              f'DB - mapproxy-config\n'
-              f'DB - pycsw-records\n'
-              f'DB - agent-discrete\n'
-              f'S3 - uploaded layers\n')
 
 
 def validate_pycsw(gqk=config.GQK_URL, product_id=None, source_data=None):

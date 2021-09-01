@@ -1,5 +1,3 @@
-#!/bin/sh
-#export FILE_LOGS=1 # remove to avoid logging to file - will print only to console
+#!/bin/bash
 source /source_code/venv/bin/activate
-
-pytest pytest server_automation/tests/test_ingestion_discrete.py
+pytest --show-capture=no /source_code/server_automation/tests/test_ingestion_discrete.py

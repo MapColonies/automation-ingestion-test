@@ -12,14 +12,14 @@ fi
 
 
 VERSION=$(python setup.py --version | sed 's/+/./g')
-IMAGE_FULL_NAME=automation-test:$VERSION
+IMAGE_FULL_NAME=automation-ingestion-test:$VERSION
 OUTPUT_DIR=/docker_images
 
 echo VERSION:$VERSION
-docker build --no-cache -t automation-test:$VERSION --build-arg VERSION=$VERSION .
+docker build --no-cache -t automation-ingestion-test:$VERSION --build-arg VERSION=$VERSION .
 #docker build -t automation-test:$VERSION --build-arg VERSION=$VERSION .
 
-docker tag automation-test:$VERSION automation-test:latest
+docker tag automation-ingestion-test:$VERSION automation-ingestion-test:latest
 
 echo automation-test:$VERSION > ./docker_images/generated_dockers.txt
 
@@ -30,6 +30,6 @@ DUMP_OUTPUT_PATH=${OUTPUT_DIR}/releases/${FILE_NAME}
 
 if [[ ! -z "${DUMP_IMAGE}" ]]
 then
-     docker save -o ./${DUMP_OUTPUT_PATH} automation-test:$VERSION
+     docker save -o ./${DUMP_OUTPUT_PATH} automation-ingestion-test:$VERSION
      echo Saved docker image file into:${DUMP_OUTPUT_PATH}
 fi

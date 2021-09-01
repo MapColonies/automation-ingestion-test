@@ -42,7 +42,7 @@ RUN venv/bin/pip install --upgrade .
 FROM python:3.6
 # setup workdir
 WORKDIR /source_code
-COPY --from=0 /source_code .
+COPY --from=build /source_code .
 # add user: app and group app - application user
 RUN chmod +x start.sh
 
@@ -56,5 +56,5 @@ RUN useradd -ms /bin/bash user && usermod -a -G root user
 # sets the user to run the application with: "app"
 USER user
 # cmd to run
-CMD ["/source_code/start.sh"]
+CMD "/source_code/start.sh"
 
