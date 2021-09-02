@@ -1,54 +1,41 @@
-# automation-ingestion-test
+[![Python 3.6](https://img.shields.io/badge/python-3.6-green.svg)](https://www.python.org/downloads/release/python-360/)
+
+# Automation-ingestion-test
 This repo provide full set of test responsible of Discrete Ingestion services based on MC project requirements
 
--e TEST_ENV=QA \
--e NFS_ROOT_DIR=/tmp \
--e NFS_SOURCE_DIR=ingestion/1 \
--e NFS_DEST_DIR=ingestion/2 \
--e INGESTION_AGENT_URL=https://discrete-agent-qa-agent-route-raster.apps.v0h0bdx6.eastus.aroapp.io \
--e S3_ACCESS_KEY=raster \
--e S3_SECRET_KEY=rasterPassword \
--e S3_BUCKET_NAME=raster \
--e DEBUG_MODE_LOCAL=false \
--e CLEAN_UP=True \
--e SYSTEM_DELAY=50 \
--e FOLLOW_TIMEOUT=1 \
+## Test suite include following tests:
+1. Ingestion of new discrete layer into system:
+    1. Manuel ingestion
+    2. Auto ingestion by agent watch
+2. Ingestion discrete partial update - NOT IMPLEMENTED
+3. Best Management - NOT IMPLEMENTED
 
-###Runtime Environment variables        
+
+## Run & Deployment:
+1. This 
+
+
+####Runtime Environment variables        
 |  Variable   | Value       | Mandatory   |   Default   |
 | :----------- | :-----------: | :-----------: | :-----------: |
-| ENVIRONMENT_NAME | environment running on | + | dev | 
-| EXPORTER_TRIGGER_API | full uri of trigger api | + | from environment specification | 
-| MAX_EXPORT_RUNNING_TIME   | integer represent min for run timeout | - | 5 | 
-| RUNNING_WORKERS_NUMBER   | depends on system configuration | - | 1 | 
-| TMP_DIR | internal temp directory | in case of File system mode | /tmp/auto-exporter | 
-| DEBUG_LOGS | any value for debug logs | - | None | 
-| FILE_LOGS | any value for logs file output | - | None | 
-| LOGS_OUTPUT | permitted directory for logs file output | in case of FILE_LOGS=1 | /tmp/mc_logs |
-| BEST_LAYER_URL   | relevant layer url | + | provided on exported chart | 
-| SOURCE_LAYER | source layer name | + | provided on exported chart |
-| S3_EXPORT_STORAGE_MODE   | true for object storage mode | in case of prod environment(openshift) | False | 
-| S3_DOWNLOAD_DIR | valid directory downloading data from S3 | in case of S3 mode | /tmp | 
-| S3_BUCKET_NAME | export output bucket name | in case of S3 mode | provided from secret | 
-| S3_ACCESS_KEY | AWS access key | in case of S3 mode | provided from secret |
-| S3_SECRET_KEY | AWS secret key | in case of S3 mode | provided from secret | 
-| S3_END_POINT | Storage procided endpoint | in case of S3 mode | provided from secret | 
-| USE_JIRA | true for updating jira's specific cycle | - | False | 
-| JIRA_CONF | Directory of configuration json | - | placed locally | \
+| TEST_ENV | environment running on - running on default with PVC mode| - | QA | 
+| DEBUG_MODE_LOCAL | extended internal flows on flag - BOOL| - | False | 
+| SYSTEM_DELAY   | Mutual delay value - seconds | - | 5 | 
+| FOLLOW_TIMEOUT   | Value for internal timeout for follow ingestion function - minutes | - | 10 | 
+| INGESTION_AGENT_URL | Route url for ingestion rest API services | + | from environment specification | 
+| CLEAN_UP | Flag for environment cleanup on test ending - BOOL | - | False | 
 
-####S3 Environment variables [ optional environment variables ]        
+
+#####S3 Environment variables [ optional environment variables ]        
 |  Variable   | Value       | Mandatory   |   Default   |
 | :----------- | :-----------: | :-----------: | :-----------: |
-| S3_END_POINT | Endpoint url of server | + | from environment specification | 
-| S3_BUCKET_NAME | User name credential | + | raster | 
-| PG_PASS | Password credential | + | from environment specification |
-| PG_JOB_TASK_DB_NAME | Job & Task table name | + | from environment specification |
-| PG_RECORD_PYCSW_DB | Discrete pycsw record table name | + | from environment specification |
-| PG_AGENT | Agent manager table name | + | from environment specification |
-| PG_MAPPROXY_CONFIG   | mapproxy upload configuration table | + | from environment specification |
+| S3_END_POINT | Endpoint url of S3 server | + | from environment specification | 
+| S3_BUCKET_NAME | Bucket name | + | raster | 
+| S3_SECRET_KEY | Secret key | + | from environment specification |
+| S3_ACCESS_KEY | Access key | + | from environment specification |
 
 
-####Postgress Environment variables [ optional variables for debug running ]        
+#####Postgress Environment variables [ optional variables for debug running ]        
 |  Variable   | Value       | Mandatory   |   Default   |
 | :----------- | :-----------: | :-----------: | :-----------: |
 | PG_HOST | Endpoint url of server | + | from environment specification | 
@@ -60,7 +47,15 @@ This repo provide full set of test responsible of Discrete Ingestion services ba
 | PG_MAPPROXY_CONFIG   | mapproxy upload configuration table | + | from environment specification |
 
 
-####Persistent volume claim Handler - Environment variables [ optional variables for environment without NFS ]        
+#####NFS Environment variables [ optional environment variables - when running with NFS ]        
+|  Variable   | Value       | Mandatory   |   Default   |
+| :----------- | :-----------: | :-----------: | :-----------: |
+| NFS_ROOT_DIR | Base directory | - | /tmp | 
+| NFS_SOURCE_DIR | Relative path of source data | - | ingestion/1 | 
+| NFS_DEST_DIR | Relative destination test path of copied data | - | ingestion/2 |
+
+
+#####Persistent volume claim Handler - Environment variables [ optional variables for environment without NFS ]        
 |  Variable   | Value       | Mandatory   |   Default   |
 | :----------- | :-----------: | :-----------: | :-----------: |
 | PVC_ROOT_DIR | Base configurable folder | + | layerSources |
