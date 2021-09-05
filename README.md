@@ -15,7 +15,7 @@ This repo provide full set of test responsible of Discrete Ingestion services ba
 1. This 
 
 
-####Runtime Environment variables        
+#### Runtime Environment variables        
 |  Variable   | Value       | Mandatory   |   Default   |
 | :----------- | :-----------: | :-----------: | :-----------: |
 | TEST_ENV | environment running on - running on default with PVC mode| - | QA | 
@@ -26,7 +26,7 @@ This repo provide full set of test responsible of Discrete Ingestion services ba
 | CLEAN_UP | Flag for environment cleanup on test ending - BOOL | - | False | 
 
 
-#####S3 Environment variables [ optional environment variables ]        
+##### S3 Environment variables [ optional environment variables ]        
 |  Variable   | Value       | Mandatory   |   Default   |
 | :----------- | :-----------: | :-----------: | :-----------: |
 | S3_END_POINT | Endpoint url of S3 server | + | from environment specification | 
@@ -47,7 +47,7 @@ This repo provide full set of test responsible of Discrete Ingestion services ba
 | PG_MAPPROXY_CONFIG   | mapproxy upload configuration table | + | from environment specification |
 
 
-#####NFS Environment variables [ optional environment variables - when running with NFS ]        
+##### NFS Environment variables [ optional environment variables - when running with NFS ]        
 |  Variable   | Value       | Mandatory   |   Default   |
 | :----------- | :-----------: | :-----------: | :-----------: |
 | NFS_ROOT_DIR | Base directory | - | /tmp | 
