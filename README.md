@@ -1,4 +1,5 @@
 [![Python 3.6](https://img.shields.io/badge/python-3.6-green.svg)](https://www.python.org/downloads/release/python-360/)
+<img alt="GitHub release (latest by date including pre-releases)" src="https://img.shields.io/github/v/release/MapColonies/automation-ingestion-test">
 
 # Automation-ingestion-test
 This repo provide full set of test responsible of Discrete Ingestion services based on MC project requirements
@@ -12,7 +13,11 @@ This repo provide full set of test responsible of Discrete Ingestion services ba
 
 
 ## Run & Deployment:
-1. This 
+1. This repo can run tests as:
+    1. Local package
+    2. Docker
+    
+2. 
 
 
 #### Runtime Environment variables        
