@@ -1,8 +1,9 @@
 [![Python 3.6](https://img.shields.io/badge/python-3.6-green.svg)](https://www.python.org/downloads/release/python-360/)
 <img alt="GitHub release (latest by date including pre-releases)" src="https://img.shields.io/github/v/release/MapColonies/automation-ingestion-test">
-
-# Automation-ingestion-test
-This repo provide full set of test responsible of Discrete Ingestion services based on MC project requirements
+![GitHub](https://img.shields.io/github/license/MapColonies/automation-ingestion-test)
+<img alt="GitHub last commit" src="https://img.shields.io/github/last-commit/MapColonies/automation-ingestion-test">
+# Automation-Ingestion-Test
+This repo provide full set of tests that responsible for Discrete Ingestion services based on MC project requirements
 
 ## Test suite include following tests:
 1. Ingestion of new discrete layer into system:
@@ -17,7 +18,34 @@ This repo provide full set of test responsible of Discrete Ingestion services ba
     1. Local package
     2. Docker
     
-2. 
+2. To run tests locally:
+    1. download repo
+    2. environment specification:
+        1. os: Ubuntu
+        2. python: 3.6.8
+        3. GDAL external plugin library installed:
+            *  ``wget http://download.osgeo.org/libspatialindex/spatialindex-src-1.8.5.tar.gz &&
+                  tar -xvzf spatialindex-src-1.8.5.tar.gz &&
+                  cd spatialindex-src-1.8.5 &&
+                  ./configure &&
+                  make &&
+                  make install &&
+                  cd - &&
+                  rm -rf spatialindex-src-1.8.5* &&
+                  ldconfig``
+    3. from root directory run:
+        1. ``python -m venv venv``
+        2. ``source venv\bin\actiavte``
+        3. ``pip install .``
+        4. ``pytest server_automation\tests\test_ingestion_discrete.py``
+            * don't forget configure before "pytest" run the relevant environment variables
+3. Build and Run as container:
+    1. Build:
+        1. use "build.sh" script provided on repo
+        2. ``./build.sh`` to build new image
+        3. run new image with relevant parameters:
+            1. image name mentioned on "build.sh"
+            2. default as written on script you will run as: ``docker run automation-ingestion-test:latest``
 
 
 #### Runtime Environment variables        
