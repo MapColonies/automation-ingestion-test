@@ -94,7 +94,6 @@ def init_watch_ingestion_src(env=config.EnvironmentTypes.QA.name):
         raise Exception(f'Illegal environment value type: {env}')
 
 
-
 def init_ingestion_src(env=config.EnvironmentTypes.QA.name):
     """
     This module will init new ingestion source folder.
@@ -314,7 +313,7 @@ def test_cleanup(product_id, product_version, initial_mapproxy_config):
         postgress_adapter.clean_pycsw_record(product_id)
         if len(current_config_mapproxy) > len(initial_mapproxy_config):
             postgress_adapter.delete_config_mapproxy('id', current_config_mapproxy[0]['id'])
-        postgress_adapter.delete_agent_path("layerId", product_id )
+        postgress_adapter.delete_agent_path("layerId", product_id)
         postgress_adapter.delete_pycsw_record('product_id', product_id)
 
         _log.info(f'Cleanup was executed and delete at end of test:\n'
