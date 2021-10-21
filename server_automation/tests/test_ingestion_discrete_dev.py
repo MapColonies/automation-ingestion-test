@@ -36,7 +36,7 @@ def test_manuel_discrete_ingest():
     time.sleep(5)
 
     try:
-        status_code, content, source_data = executors.start_manuel_ingestion(source_directory, config.TEST_ENV)
+        status_code, content, source_data = executors.start_manual_ingestion(source_directory, config.TEST_ENV)
     except Exception as e:
         status_code = 'unknown'
         content = str(e)

@@ -203,9 +203,10 @@ def validate_source_directory(path=None, env=config.EnvironmentTypes.QA.name, wa
         else:
             resp = azure_pvc_api.validate_ingestion_directory()
         content = json.loads(resp.text)
-
-        return not content['failure'], content['json_data']
-
+        if content.get('json_data'):
+            return not content['failure'], content['json_data']
+        else:
+            return not content['failure'], content['message']
     elif env == config.EnvironmentTypes.PROD.name:
         resp = discrete_directory_loader.validate_source_directory(path)
         return resp[0], resp[1]
@@ -213,7 +214,7 @@ def validate_source_directory(path=None, env=config.EnvironmentTypes.QA.name, wa
         raise Exception(f'illegal Environment name: [{env}]')
 
 
-def start_manuel_ingestion(path, env=config.EnvironmentTypes.QA.name):
+def start_manual_ingestion(path, env=config.EnvironmentTypes.QA.name):
     """This method will trigger new process of discrete ingestion by provided path"""
     # validate directory include all needed files and data
     source_ok, body = validate_source_directory(path, env)

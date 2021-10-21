@@ -1,7 +1,8 @@
 """This module provide multiple test of ingestion services"""
 import logging
-from conftest import ValueStorage
 import time
+
+from conftest import ValueStorage
 from server_automation.configuration import config
 from server_automation.functions import executors
 from server_automation.postgress import postgress_adapter
@@ -11,7 +12,7 @@ _log = logging.getLogger('server_automation.tests.test_ingestion_discrete')
 initial_mapproxy_config = postgress_adapter.get_mapproxy_configs()
 
 
-def test_manuel_discrete_ingest():
+def test_manual_discrete_ingest():
     """
     This test will test full e2e discrete ingestion
     """
@@ -25,7 +26,7 @@ def test_manuel_discrete_ingest():
         resp = None
         error_msg = str(e)
     assert resp, \
-        f'Test: [{test_manuel_discrete_ingest.__name__}] Failed: on creating and updating layerSource folder [{error_msg}]'
+        f'Test: [{test_manual_discrete_ingest.__name__}] Failed: on creating and updating layerSource folder [{error_msg}]'
     _log.info(f'{resp}')
 
     # triggering and validate start of new manuel job
@@ -36,12 +37,12 @@ def test_manuel_discrete_ingest():
     time.sleep(5)
 
     try:
-        status_code, content, source_data = executors.start_manuel_ingestion(source_directory, config.TEST_ENV)
+        status_code, content, source_data = executors.start_manual_ingestion(source_directory, config.TEST_ENV)
     except Exception as e:
         status_code = 'unknown'
         content = str(e)
     assert status_code == config.ResponseCode.Ok.value, \
-        f'Test: [{test_manuel_discrete_ingest.__name__}] Failed: trigger new ingest with status code: [{status_code}]\n' \
+        f'Test: [{test_manual_discrete_ingest.__name__}] Failed: trigger new ingest with status code: [{status_code}]\n' \
         f'details: [{content}]'
 
     # validating following and completion of ingestion job
@@ -54,19 +55,19 @@ def test_manuel_discrete_ingest():
         resp = None
         error_msg = str(e)
     assert resp, \
-        f'Test: [{test_manuel_discrete_ingest.__name__}] Failed: on following ingestion process [{error_msg}]'
+        f'Test: [{test_manual_discrete_ingest.__name__}] Failed: on following ingestion process [{error_msg}]'
 
     # validate new discrete on pycsw records
-    try:
-        resp, pycsw_record = executors.validate_pycsw(config.GQK_URL, product_id, source_data)
-        state = resp['validation']
-        error_msg = resp['reason']
-    except Exception as e:
-        state = False
-        error_msg = str(e)
-    assert state, f'Test: [{test_manuel_discrete_ingest.__name__}] Failed: validation of pycsw record\n' \
-                  f'related errors:\n' \
-                  f'{error_msg}'
+    # try:
+    #     resp, pycsw_record = executors.validate_pycsw(config.GQK_URL, product_id, source_data)
+    #     state = resp['validation']
+    #     error_msg = resp['reason']
+    # except Exception as e:
+    #     state = False
+    #     error_msg = str(e)
+    # assert state, f'Test: [{test_manuel_discrete_ingest.__name__}] Failed: validation of pycsw record\n' \
+    #               f'related errors:\n' \
+    #               f'{error_msg}'
 
     # validating new discrete on mapproxy
     # try:
@@ -166,6 +167,7 @@ def test_watch_discrete_ingest():
     #               f'related errors:\n' \
     #               f'{error_msg}'
     resp = executors.stop_watch()
+
     if config.DEBUG_MODE_LOCAL:
         executors.test_cleanup(product_id, product_version, initial_mapproxy_config)
 
@@ -180,5 +182,5 @@ def teardown_module(module):  # pylint: disable=unused-argument
 
 
 if config.DEBUG_MODE_LOCAL:
-    test_manuel_discrete_ingest()
+    test_manual_discrete_ingest()
     # test_watch_discrete_ingest()
