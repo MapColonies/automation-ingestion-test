@@ -208,8 +208,8 @@ def validate_source_directory(path=None, env=config.EnvironmentTypes.QA.name, wa
         else:
             return not content['failure'], content['message']
     elif env == config.EnvironmentTypes.PROD.name:
-        resp = discrete_directory_loader.validate_source_directory(path)
-        return resp[0], resp[1]
+        state, resp = discrete_directory_loader.validate_source_directory(path)
+        return state, resp
     else:
         raise Exception(f'illegal Environment name: [{env}]')
 
