@@ -98,4 +98,8 @@ This repo provide full set of tests that responsible for Discrete Ingestion serv
 | PVC_VALIDATE_METADATA | Manuel ingest source data validator - route | + | validatePath |
 | PVC_WATCH_CREATE_DIR | Watch ingest source data duplicate - route | + | createWatchDir |
 | PVC_WATCH_UPDATE_SHAPE | Watch ingest source id update - route | + | updateWatchShape |
-| PVC_WATCH_VALIDATE   | Watch ingest source data validator - route | + | validateWatchPath |
+| PVC_WATCH_VALIDATE | Watch ingest source data validator - route | + | validateWatchPath |
+| PVC_UPDATE_ZOOM | bool - default False, for True will override the max resolution | - parameter | PVC_UPDATE_ZOOM |
+| PVC_CHANGE_MAX_ZOOM | route to change tfw resolution value - route | max_zoom parameter | changeMaxZoom |
+| PVC_CHANGE_WATCH_MAX_ZOOM | route to change tfw resolution value on watch dir - route | max_zoom parameter | changeWatchMaxZoom |
+| MAX_ZOOM_TO_CHANGE | value of max zoom to changed | - | zoom level related to resolution |
