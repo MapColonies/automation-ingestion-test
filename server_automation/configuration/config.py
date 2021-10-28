@@ -92,6 +92,12 @@ PVC_WATCH_CREATE_DIR = common.get_environment_variable('PVC_WATCH_CREATE_DIR', '
 PVC_WATCH_UPDATE_SHAPE = common.get_environment_variable('PVC_WATCH_UPDATE_SHAPE', 'updateWatchShape')
 PVC_WATCH_VALIDATE = common.get_environment_variable('PVC_WATCH_VALIDATE', 'validateWatchPath')
 
+PVC_UPDATE_ZOOM = common.get_environment_variable('PVC_UPDATE_ZOOM', None)  # default not change max zoom
+PVC_CHANGE_MAX_ZOOM = common.get_environment_variable('PVC_CHANGE_MAX_ZOOM', 'changeMaxZoom')
+PVC_CHANGE_WATCH_MAX_ZOOM = common.get_environment_variable('PVC_CHANGE_WATCH_MAX_ZOOM', 'changeWatchMaxZoom')
+MAX_ZOOM_TO_CHANGE = common.get_environment_variable('MAX_ZOOM_TO_CHANGE', 5)
+
+
 NFS_WATCH_ROOT_DIR = common.get_environment_variable('NFS_ROOT_DIR', '/tmp')
 NFS_WATCH_SOURCE_DIR = common.get_environment_variable('NFS_WATCH_SOURCE_DIR', 'ingestion/1')
 NFS_WATCH_BASE_DIR = common.get_environment_variable('NFS_WATCH_SOURCE_DIR', 'ingestion/1')
@@ -116,6 +122,7 @@ PYCSW_QUERY_BY_PRODUCTID = {
                           __typename
                           productId
                           productName
+                          productType
                           sensorType
                           description
                           scale
@@ -155,4 +162,31 @@ PYCSW_QUERY_BY_PRODUCTID = {
             # "end": 50
 
         }
+}
+
+# mapping of zoom level and related resolution values
+zoom_level_dict = {
+    0: 0.703125,
+    1: 0.3515625,
+    2: 0.17578125,
+    3: 0.087890625,
+    4: 0.0439453125,
+    5: 0.02197265625,
+    6: 0.010986328125,
+    7: 0.0054931640625,
+    8: 0.00274658203125,
+    9: 0.001373291015625,
+    10: 0.0006866455078125,
+    11: 0.00034332275390625,
+    12: 0.000171661376953125,
+    13: 0.0000858306884765625,
+    14: 0.0000429153442382812,
+    15: 0.0000214576721191406,
+    16: 0.0000107288360595703,
+    17: 0.00000536441802978516,
+    18: 0.00000268220901489258,
+    19: 0.00000134110450744629,
+    20: 0.000000670552253723145,
+    21: 0.000000335276126861572,
+    22: 0.000000167638063430786
 }

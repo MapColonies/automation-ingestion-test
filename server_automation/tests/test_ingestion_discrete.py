@@ -1,5 +1,6 @@
 """This module provide multiple test of ingestion services"""
 import logging
+from conftest import ValueStorage
 import time
 import json
 from conftest import ValueStorage
@@ -18,8 +19,8 @@ def test_manual_discrete_ingest():
     """
     This test will test full e2e discrete ingestion
     """
-    config.TEST_ENV = 'PROD'
-
+    # config.TEST_ENV = 'PROD'
+    # config.PVC_UPDATE_ZOOM = False
     # prepare test data
     try:
         resp = executors.init_ingestion_src(config.TEST_ENV)
@@ -64,16 +65,16 @@ def test_manual_discrete_ingest():
         f'Test: [{test_manual_discrete_ingest.__name__}] Failed: on following ingestion process [{error_msg}]'
 
     # validate new discrete on pycsw records
-    # try:
-    #     resp, pycsw_record = executors.validate_pycsw(config.GQK_URL, product_id, source_data)
-    #     state = resp['validation']
-    #     error_msg = resp['reason']
-    # except Exception as e:
-    #     state = False
-    #     error_msg = str(e)
-    # assert state, f'Test: [{test_manuel_discrete_ingest.__name__}] Failed: validation of pycsw record\n' \
-    #               f'related errors:\n' \
-    #               f'{error_msg}'
+    try:
+        resp, pycsw_record = executors.validate_pycsw(config.GQK_URL, product_id, source_data)
+        state = resp['validation']
+        error_msg = resp['reason']
+    except Exception as e:
+        state = False
+        error_msg = str(e)
+    assert state, f'Test: [{test_manual_discrete_ingest.__name__}] Failed: validation of pycsw record\n' \
+                  f'related errors:\n' \
+                  f'{error_msg}'
 
     # validating new discrete on mapproxy
     # try:
@@ -144,21 +145,19 @@ def test_watch_discrete_ingest():
     except Exception as e:
         resp = None
         error_msg = str(e)
-    # assert resp, \
-    #     f'Test: [{test_watch_discrete_ingest.__name__}] Failed: on following ingestion process [{error_msg}]'
+    assert resp, \
+        f'Test: [{test_watch_discrete_ingest.__name__}] Failed: on following ingestion process [{error_msg}]'
     # validate new discrete on pycsw records
     try:
         resp, pycsw_record = executors.validate_pycsw(config.GQK_URL, product_id, source_data)
-        # import json
-        # json.dumps(pycsw_record['data']['search'][0])
         state = resp['validation']
         error_msg = resp['reason']
     except Exception as e:
         state = False
         error_msg = str(e)
-    assert state, f'Test: [{test_watch_discrete_ingest.__name__}] Failed: validation of pycsw record\n' \
-                  f'related errors:\n' \
-                  f'{error_msg}'
+    # assert state, f'Test: [{test_watch_discrete_ingest.__name__}] Failed: validation of pycsw record\n' \
+    #               f'related errors:\n' \
+    #               f'{error_msg}'
 
     # validating new discrete on mapproxy
     try:
@@ -175,7 +174,6 @@ def test_watch_discrete_ingest():
     #               f'related errors:\n' \
     #               f'{error_msg}'
     resp = executors.stop_watch()
-
     if config.DEBUG_MODE_LOCAL:
         executors.test_cleanup(product_id, product_version, initial_mapproxy_config)
 
@@ -190,5 +188,5 @@ def teardown_module(module):  # pylint: disable=unused-argument
 
 
 if config.DEBUG_MODE_LOCAL:
-    # test_manual_discrete_ingest()
-    test_watch_discrete_ingest()
+    test_manual_discrete_ingest()
+    # test_watch_discrete_ingest()

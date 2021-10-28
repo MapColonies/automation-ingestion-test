@@ -108,10 +108,16 @@ def init_ingestion_src(env=config.EnvironmentTypes.QA.name):
     elif env == config.EnvironmentTypes.PROD.name:
         src = os.path.join(config.NFS_ROOT_DIR, config.NFS_SOURCE_DIR)
         dst = os.path.join(config.NFS_ROOT_DIR, config.NFS_DEST_DIR)
-        res = init_ingestion_src_fs(src, dst)
-        return res
+        try:
+            res = init_ingestion_src_fs(src, dst)
+            return res
+        except FileNotFoundError as e:
+            raise e
+        except Exception as e1:
+            raise Exception(f'Failed generating testing directory with error: {str(e1)}')
+
     else:
-        raise Exception(f'Illegal environment value type: {env}')
+        raise ValueError(f'Illegal environment value type: {env}')
 
 
 def init_ingestion_src_fs(src, dst, watch=False):
@@ -156,7 +162,7 @@ def init_ingestion_src_fs(src, dst, watch=False):
 
 
 def init_ingestion_src_pvc(host=config.PVC_HANDLER_ROUTE, create_api=config.PVC_CLONE_SOURCE,
-                           change_api=config.PVC_CHANGE_METADATA):
+                           change_api=config.PVC_CHANGE_METADATA, update_tfw_url=config.PVC_CHANGE_MAX_ZOOM):
     """
     This module will init new ingestion source folder inside pvc - only on azure.
     The prerequisites must have source folder with suitable data and destination folder for new data
@@ -187,6 +193,16 @@ def init_ingestion_src_pvc(host=config.PVC_HANDLER_ROUTE, create_api=config.PVC_
     except Exception as e:
         raise Exception(f'Failed access pvc on changing shape metadata: [{str(e)}]')
 
+    if config.PVC_UPDATE_ZOOM:
+        try:
+            print()
+            resp = azure_pvc_api.change_max_zoom_tfw(host=host, api=update_tfw_url)
+            if resp.status_code == config.ResponseCode.Ok.value:
+                _log.info(f'Max resolution changed successfully: [{json.loads(resp.text)["json_data"][0]["reason"]}]')
+            else:
+                raise Exception(f'Failed on updating zoom level with error: [{json.loads(resp.text)["message"]} | {json.loads(resp.text)["json_data"]}]')
+        except Exception as e:
+            pass
     return {'ingestion_dir': new_dir, 'resource_name': resource_name}
 
 
