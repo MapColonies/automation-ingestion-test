@@ -200,7 +200,8 @@ def init_ingestion_src_pvc(host=config.PVC_HANDLER_ROUTE, create_api=config.PVC_
             if resp.status_code == config.ResponseCode.Ok.value:
                 _log.info(f'Max resolution changed successfully: [{json.loads(resp.text)["json_data"][0]["reason"]}]')
             else:
-                raise Exception(f'Failed on updating zoom level with error: [{json.loads(resp.text)["message"]} | {json.loads(resp.text)["json_data"]}]')
+                raise Exception(
+                    f'Failed on updating zoom level with error: [{json.loads(resp.text)["message"]} | {json.loads(resp.text)["json_data"]}]')
         except Exception as e:
             pass
     return {'ingestion_dir': new_dir, 'resource_name': resource_name}
@@ -375,6 +376,9 @@ def test_cleanup(product_id, product_version, initial_mapproxy_config):
 
 
 def validate_pycsw(gqk=config.GQK_URL, product_id=None, source_data=None):
+
+
+
     """
     :return: dict of result validation
     """

@@ -188,5 +188,5 @@ def teardown_module(module):  # pylint: disable=unused-argument
 
 
 if config.DEBUG_MODE_LOCAL:
-    test_manual_discrete_ingest()
-    # test_watch_discrete_ingest()
+    # test_manual_discrete_ingest()
+    test_watch_discrete_ingest()
