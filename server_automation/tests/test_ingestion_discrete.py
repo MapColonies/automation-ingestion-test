@@ -66,7 +66,7 @@ def test_manual_discrete_ingest():
 
     # validate new discrete on pycsw records
     try:
-        #todo -> danny, this is new function of validation with new csw records getter
+        # todo -> danny, this is new function of validation with new csw records getter
         resp, pycsw_record, links = executors.validate_pycsw2(product_id, product_version)
         # todo this is legacy records validator based graphql -> for future needs mabye
         # resp, pycsw_record = executors.validate_pycsw(config.GQK_URL, product_id, source_data)
@@ -129,35 +129,40 @@ def test_watch_discrete_ingest():
     source_directory = resp['ingestion_dir']
     _log.info(f'{product_id} {product_version}')
 
-    try:
-        state, content, source_data = executors.start_watch_ingestion(source_directory, config.TEST_ENV)
-    except Exception as e:
-        status_code = 'unknown'
-        content = str(e)
-    assert state, \
-        f'Test: [{test_watch_discrete_ingest.__name__}] Failed: Trigger ingest process from watch agent: [{status_code}]\n' \
-        f'details: [{content}]'
-
-    time.sleep(config.SYSTEM_DELAY)  # validate generation of new job
-    # validating following and completion of ingestion job
-    try:
-        ingestion_follow_state = executors.follow_running_task(product_id, product_version)
-        resp = (ingestion_follow_state['status'] == config.JobStatus.Completed.name)
-        error_msg = ingestion_follow_state['message']
-
-    except Exception as e:
-        resp = None
-        error_msg = str(e)
-    assert resp, \
-        f'Test: [{test_watch_discrete_ingest.__name__}] Failed: on following ingestion process [{error_msg}]'
+    # try:
+    #     state, content, source_data = executors.start_watch_ingestion(source_directory, config.TEST_ENV)
+    # except Exception as e:
+    #     status_code = 'unknown'
+    #     content = str(e)
+    # assert state, \
+    #     f'Test: [{test_watch_discrete_ingest.__name__}] Failed: Trigger ingest process from watch agent: [{status_code}]\n' \
+    #     f'details: [{content}]'
+    #
+    # time.sleep(config.SYSTEM_DELAY)  # validate generation of new job
+    # # validating following and completion of ingestion job
+    # try:
+    #     ingestion_follow_state = executors.follow_running_task(product_id, product_version)
+    #     resp = (ingestion_follow_state['status'] == config.JobStatus.Completed.name)
+    #     error_msg = ingestion_follow_state['message']
+    #
+    # except Exception as e:
+    #     resp = None
+    #     error_msg = str(e)
+    # assert resp, \
+    #     f'Test: [{test_watch_discrete_ingest.__name__}] Failed: on following ingestion process [{error_msg}]'
     # validate new discrete on pycsw records
     try:
-        resp, pycsw_record = executors.validate_pycsw(config.GQK_URL, product_id, source_data)
+        resp, pycsw_record, links = executors.validate_pycsw2(product_id, product_version)
+        # resp, pycsw_record = executors.validate_pycsw(config.GQK_URL, product_id, source_data)
         state = resp['validation']
         error_msg = resp['reason']
     except Exception as e:
         state = False
         error_msg = str(e)
+    assert state, f'Test: [{test_manual_discrete_ingest.__name__}] Failed: validation of pycsw record\n' \
+                  f'related errors:\n' \
+                  f'{error_msg}'
+
     # assert state, f'Test: [{test_watch_discrete_ingest.__name__}] Failed: validation of pycsw record\n' \
     #               f'related errors:\n' \
     #               f'{error_msg}'
@@ -193,6 +198,7 @@ def teardown_module(module):  # pylint: disable=unused-argument
 if config.DEBUG_MODE_LOCAL:
     # res = pycsw_handler.get_record_by_id('2021_10_26T11_03_39Z_MAS_6_ORT_247993', '1.0', host=config.PYCSW_URL, params=config.PYCSW_GET_RECORD_PARAMS)
     # res = pycsw_handler.get_raster_records()
-    test_manual_discrete_ingest()
-    # test_watch_discrete_ingest()
+    # test_manual_discrete_ingest()
+    test_watch_discrete_ingest()
+
 #
