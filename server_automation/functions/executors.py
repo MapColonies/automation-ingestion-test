@@ -3,6 +3,7 @@
 import logging
 import time
 import json
+import glob
 import os
 from shapely.geometry import Polygon
 from server_automation.configuration import config
@@ -168,9 +169,9 @@ def init_ingestion_src_pvc(host=config.PVC_HANDLER_ROUTE, create_api=config.PVC_
             raise Exception(
                 f'Failed access pvc on source data cloning with error: [{resp.text}] and status: [{resp.status_code}]')
         msg = json.loads(resp.text)
-        new_dir = msg['newDesination']
+        new_dir = msg['newDestination']
         _log.info(
-            f'[{resp.status_code}]: New test running directory was created from source data: {msg["source"]} into {msg["newDesination"]}')
+            f'[{resp.status_code}]: New test running directory was created from source data: {msg["source"]} into {msg["newDestination"]}')
     except Exception as e:
         raise Exception(f'Failed access pvc on source data cloning with error: [{str(e)}]')
 
@@ -204,7 +205,10 @@ def validate_source_directory(path=None, env=config.EnvironmentTypes.QA.name, wa
             resp = azure_pvc_api.validate_ingestion_directory()
         content = json.loads(resp.text)
         if content.get('json_data'):
+            validation_tiff_dict, error_msg = validate_tiff_exists(path, content.get('json_data')['fileNames'])
+            assert all(validation_tiff_dict.values()) is True, f' Failed: on following ingestion process [{error_msg}]'
             return not content['failure'], content['json_data']
+
         else:
             return not content['failure'], content['message']
     elif env == config.EnvironmentTypes.PROD.name:
@@ -240,6 +244,7 @@ def start_watch_ingestion(path, env=config.EnvironmentTypes.QA.name):
 
     # validate directory include all needed files and data
     source_ok, body = validate_source_directory(path, env, watch=True)
+    # validate_tiff_exists(body['fileNames']) #ToDo: here
     if not source_ok:
         raise FileNotFoundError(f'Directory [{path}] with missing files / errors msg: [{body}]')
 
@@ -302,6 +307,31 @@ def update_shape_fs(shp):
     return resp
 
 
+def validate_tiff_exists(path_name, tiff_list):
+    # path_name = '/tmp/ingestion/watch/test_data_automation/89b89916-dd38-44fb-8a86-a1ab2b606cd6'
+    # tiff_list = ['/X185_Y167.tiff']
+    err = ''
+    x = {}
+    text_files = glob.glob(path_name + "/**/*.tif", recursive=True)
+    for item in tiff_list:
+        if '.' in item:
+            item = item.split('.')[0]
+        if any(item in text for text in text_files):
+            x[item] = True
+        else:
+            x[item] = False
+            err = 'tiff files missing :' + item
+    if len(text_files) != len(tiff_list):
+        x['length_is_equal'] = False
+        err = 'tiff files length is not equal'
+    else:
+        x['length_is_equal'] = True
+    if err:
+        return x, err
+    else:
+        return x, ""
+
+
 def test_cleanup(product_id, product_version, initial_mapproxy_config):
     try:
         """This method will clean all created test data"""
@@ -334,6 +364,9 @@ def validate_pycsw(gqk=config.GQK_URL, product_id=None, source_data=None):
     """
     res_dict = {'validation': True, 'reason': ""}
     pycsw_record = gql_wrapper.get_pycsw_record(host=gqk, product_id=product_id)
+    pycsw_received_keys = pycsw_record['data']['search'][0].keys()
+    data = json.dumps(pycsw_record['data']['search'][0])
+
     if not pycsw_record['data']['search']:
         return {'validation': False, 'reason': f'Record of [{product_id}] not found'}
 
@@ -440,3 +473,13 @@ def validate_new_discrete(pycsw_record, product_id, product_version):
         return {'validation': False, 'reason': f'Layer not exists on several capabilities:\n'
                                                f'wmts layers: {wmts_layers_name}\n'
                                                f'wms layers: {wms_layers_name}'}
+
+
+def get_json_schema(path_to_schema):
+    """This function loads the given schema available"""
+    try:
+        with open(path_to_schema, 'r') as file:
+            schema = json.load(file)
+    except IOError:
+        return None
+    return schema

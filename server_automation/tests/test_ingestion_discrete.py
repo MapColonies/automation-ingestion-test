@@ -1,11 +1,13 @@
 """This module provide multiple test of ingestion services"""
 import logging
 import time
-
+import json
 from conftest import ValueStorage
 from server_automation.configuration import config
 from server_automation.functions import executors
 from server_automation.postgress import postgress_adapter
+from discrete_kit.validator.json_compare_pycsw import *
+from server_automation.functions.executors import *
 
 _log = logging.getLogger('server_automation.tests.test_ingestion_discrete')
 
@@ -16,7 +18,7 @@ def test_manual_discrete_ingest():
     """
     This test will test full e2e discrete ingestion
     """
-    # config.TEST_ENV = 'PROD'
+    config.TEST_ENV = 'PROD'
 
     # prepare test data
     try:
@@ -54,6 +56,10 @@ def test_manual_discrete_ingest():
     except Exception as e:
         resp = None
         error_msg = str(e)
+
+    # ToDo : add validation by pycsw and json object created  source_data
+    result, err = validate_pycsw_with_shape_json(get_json_schema('pycsw.json'), source_data)
+
     assert resp, \
         f'Test: [{test_manual_discrete_ingest.__name__}] Failed: on following ingestion process [{error_msg}]'
 
@@ -138,11 +144,13 @@ def test_watch_discrete_ingest():
     except Exception as e:
         resp = None
         error_msg = str(e)
-    assert resp, \
-        f'Test: [{test_watch_discrete_ingest.__name__}] Failed: on following ingestion process [{error_msg}]'
+    # assert resp, \
+    #     f'Test: [{test_watch_discrete_ingest.__name__}] Failed: on following ingestion process [{error_msg}]'
     # validate new discrete on pycsw records
     try:
         resp, pycsw_record = executors.validate_pycsw(config.GQK_URL, product_id, source_data)
+        # import json
+        # json.dumps(pycsw_record['data']['search'][0])
         state = resp['validation']
         error_msg = resp['reason']
     except Exception as e:
@@ -182,5 +190,5 @@ def teardown_module(module):  # pylint: disable=unused-argument
 
 
 if config.DEBUG_MODE_LOCAL:
-    test_manual_discrete_ingest()
-    # test_watch_discrete_ingest()
+    # test_manual_discrete_ingest()
+    test_watch_discrete_ingest()

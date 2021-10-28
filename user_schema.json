@@ -1,0 +1,198 @@
+{
+  "type": "object",
+  "required": [],
+  "properties": {
+    "fileNames": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "metadata": {
+      "type": "object",
+      "required": [],
+      "properties": {
+        "type": {
+          "type": "string"
+        },
+        "productName": {
+          "type": "string"
+        },
+        "region": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "creationDate": {
+          "type": "string"
+        },
+        "ingestionDate": {
+          "type": "string"
+        },
+        "updateDate": {
+          "type": "string"
+        },
+        "sourceDateStart": {
+          "type": "string"
+        },
+        "sourceDateEnd": {
+          "type": "string"
+        },
+        "accuracyCE90": {
+          "type": "number"
+        },
+        "sensorType": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "rms": {
+          "type": "string"
+        },
+        "scale": {
+          "type": "string"
+        },
+        "productId": {
+          "type": "string"
+        },
+        "productVersion": {
+          "type": "string"
+        },
+        "productType": {
+          "type": "string"
+        },
+        "resolution": {
+          "type": "string"
+        },
+        "maxResolutionMeter": {
+          "type": "number"
+        },
+        "footprint": {
+          "type": "object",
+          "required": [],
+          "properties": {
+            "type": {
+              "type": "string"
+            },
+            "coordinates": {
+              "type": "array",
+              "items": {
+                "type": "array",
+                "items": {
+                  "type": "array",
+                  "items": {
+                    "type": "number"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "srsName": {
+          "type": "string"
+        },
+        "srsId": {
+          "type": "string"
+        },
+        "layerPolygonParts": {
+          "type": "object",
+          "required": [],
+          "properties": {
+            "type": {
+              "type": "string"
+            },
+            "features": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": [],
+                "properties": {
+                  "type": {
+                    "type": "string"
+                  },
+                  "properties": {
+                    "type": "object",
+                    "required": [],
+                    "properties": {
+                      "Cities": {
+                        "type": "string"
+                      },
+                      "Countries": {
+                        "type": "string"
+                      },
+                      "Dsc": {
+                        "type": "string"
+                      },
+                      "Ep90": {
+                        "type": "string"
+                      },
+                      "Resolution": {
+                        "type": "string"
+                      },
+                      "Rms": {
+                        "type": "null"
+                      },
+                      "Scale": {
+                        "type": "null"
+                      },
+                      "SensorType": {
+                        "type": "string"
+                      },
+                      "Source": {
+                        "type": "string"
+                      },
+                      "SourceName": {
+                        "type": "string"
+                      },
+                      "UpdateDate": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "geometry": {
+                    "type": "object",
+                    "required": [],
+                    "properties": {
+                      "type": {
+                        "type": "string"
+                      },
+                      "coordinates": {
+                        "type": "array",
+                        "items": {
+                          "type": "array",
+                          "items": {
+                            "type": "array",
+                            "items": {
+                              "type": "number"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "bbox": {
+              "type": "array",
+              "items": {
+                "type": "number"
+              }
+            }
+          }
+        },
+        "includedInBests": {
+          "type": "string"
+        },
+        "productBoundingBox": {
+          "type": "string"
+        }
+      }
+    },
+    "originDirectory": {
+      "type": "string"
+    }
+  }
+}
