@@ -116,7 +116,7 @@ PYCSW_VERSION = common.get_environment_variable("PYCSW_VERSION", "2.0.2")
 PYCSW_REQUEST_GET_RECORDS = common.get_environment_variable("PYCSW_REQUEST_GET_RECORDS", "GetRecords")
 PYCSW_TYPE_NAMES = common.get_environment_variable("PYCSW_TYPE_NAMES", "mc:MCRasterRecord")
 PYCSW_ElEMENT_SET_NAME = common.get_environment_variable("PYCSW_ElEMENT_SET_NAME", "full")
-PYCSW_OUTPUT_FORMAT = common.get_environment_variable("PYCSW_OUTPUT_FORMAT", "application/json")
+PYCSW_OUTPUT_FORMAT = common.get_environment_variable("PYCSW_OUTPUT_FORMAT", "application/xml")
 PYCSW_RESULT_TYPE = common.get_environment_variable("PYCSW_RESULT_TYPE", "results")
 PYCSW_OUTPUT_SCHEMA = common.get_environment_variable("PYCSW_OUTPUT_SCHEMA", "http://schema.mapcolonies.com/raster")
 
@@ -128,7 +128,7 @@ PYCSW_GET_RECORD_PARAMS = {
     'request': PYCSW_REQUEST_GET_RECORDS,
     'typenames': PYCSW_TYPE_NAMES,
     'ElementSetName': PYCSW_ElEMENT_SET_NAME,
-    'outputFormat': PYCSW_OUTPUT_FORMAT,
+    # 'outputFormat': PYCSW_OUTPUT_FORMAT,
     'resultType': PYCSW_RESULT_TYPE,
     'outputSchema': PYCSW_OUTPUT_SCHEMA
 }
