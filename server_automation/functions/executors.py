@@ -12,6 +12,8 @@ from server_automation.postgress import postgress_adapter
 from server_automation.graphql import gql_wrapper
 from server_automation.pycsw import pycsw_handler
 
+from discrete_kit.validator.json_compare_pycsw import *
+
 from mc_automation_tools import common as common
 from mc_automation_tools import shape_convertor, base_requests
 from mc_automation_tools import s3storage as s3
@@ -382,8 +384,8 @@ def validate_pycsw2(product_id=None, product_version=None):
     """
     res_dict = {'validation': True, 'reason': ""}
     pycsw_records = pycsw_handler.get_record_by_id(product_id, product_version, host=config.PYCSW_URL,
-                                                  params=config.PYCSW_GET_RECORD_PARAMS)
-
+                                                   params=config.PYCSW_GET_RECORD_PARAMS)
+    validate_pycsw_with_shape_json(pycsw_records, )
     if not pycsw_records:
         return {'validation': False, 'reason': f'Records of [{product_id}] not found'}
     links = {}
@@ -401,11 +403,11 @@ def validate_pycsw(gqk=config.GQK_URL, product_id=None, source_data=None):
     """
     :return: dict of result validation
     """
-    #Todo -> refactoring records getting with Danny's validator
+    # Todo -> refactoring records getting with Danny's validator
     pycsw_record = pycsw_handler.get_record_by_id(source_data, product_id, host=config.PYCSW_URL,
-                                         params=config.PYCSW_GET_RECORD_PARAMS)
+                                                  params=config.PYCSW_GET_RECORD_PARAMS)
 
-    #TODO -> this is old records getting by pycsw -> should stay as mark on code and use the new getting directly from pycsw
+    # TODO -> this is old records getting by pycsw -> should stay as mark on code and use the new getting directly from pycsw
     res_dict = {'validation': True, 'reason': ""}
     pycsw_record = gql_wrapper.get_pycsw_record(host=gqk, product_id=product_id)
     if not pycsw_record['data']['search']:
