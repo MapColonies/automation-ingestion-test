@@ -357,10 +357,10 @@ def validate_pycsw2(product_id=None, product_version=None):
         return {'validation': False, 'reason': f'Records of [{product_id}] not found'}
     links = {}
     for record in pycsw_records:
-        links[record['mcraster:productType']] = {
-            record['mcraster:links'][0]['@scheme']: record['mcraster:links'][0]['#text'],
-            record['mcraster:links'][1]['@scheme']: record['mcraster:links'][1]['#text'],
-            record['mcraster:links'][2]['@scheme']: record['mcraster:links'][2]['#text']
+        links[record['mc:productType']] = {
+            record['mc:links'][0]['@scheme']: record['mc:links'][0]['#text'],
+            record['mc:links'][1]['@scheme']: record['mc:links'][1]['#text'],
+            record['mc:links'][2]['@scheme']: record['mc:links'][2]['#text']
         }
 
     return res_dict, pycsw_records, links
