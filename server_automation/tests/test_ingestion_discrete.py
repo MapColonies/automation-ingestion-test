@@ -183,6 +183,7 @@ def teardown_module(module):  # pylint: disable=unused-argument
 
 
 if config.DEBUG_MODE_LOCAL:
+    # from server_automation.pycsw import pycsw_handler
     # res = pycsw_handler.get_record_by_id('2021_10_26T11_03_39Z_MAS_6_ORT_247993', '1.0', host=config.PYCSW_URL, params=config.PYCSW_GET_RECORD_PARAMS)
     # res = pycsw_handler.get_raster_records()
     test_manuel_discrete_ingest()
