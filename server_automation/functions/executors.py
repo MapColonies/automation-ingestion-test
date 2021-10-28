@@ -10,6 +10,7 @@ from server_automation.configuration import config
 from server_automation.ingestion_api import discrete_agent_api, discrete_directory_loader, azure_pvc_api
 from server_automation.postgress import postgress_adapter
 from server_automation.graphql import gql_wrapper
+from server_automation.pycsw import pycsw_handler
 
 from mc_automation_tools import common as common
 from mc_automation_tools import shape_convertor, base_requests
@@ -261,7 +262,6 @@ def start_watch_ingestion(path, env=config.EnvironmentTypes.QA.name):
 
     # validate directory include all needed files and data
     source_ok, body = validate_source_directory(path, env, watch=True)
-    # validate_tiff_exists(body['fileNames']) #ToDo: here
     if not source_ok:
         raise FileNotFoundError(f'Directory [{path}] with missing files / errors msg: [{body}]')
 
@@ -375,18 +375,39 @@ def test_cleanup(product_id, product_version, initial_mapproxy_config):
         _log.error(f'Failed on cleanup with error: {str(e)}')
 
 
-def validate_pycsw(gqk=config.GQK_URL, product_id=None, source_data=None):
-
-
-
+def validate_pycsw2(product_id=None, product_version=None):
+    # todo -> implement full function
     """
     :return: dict of result validation
     """
     res_dict = {'validation': True, 'reason': ""}
-    pycsw_record = gql_wrapper.get_pycsw_record(host=gqk, product_id=product_id)
-    pycsw_received_keys = pycsw_record['data']['search'][0].keys()
-    data = json.dumps(pycsw_record['data']['search'][0])
+    pycsw_records = pycsw_handler.get_record_by_id(product_id, product_version, host=config.PYCSW_URL,
+                                                  params=config.PYCSW_GET_RECORD_PARAMS)
 
+    if not pycsw_records:
+        return {'validation': False, 'reason': f'Records of [{product_id}] not found'}
+    links = {}
+    for record in pycsw_records:
+        links[record['mcraster:productType']] = {
+            record['mcraster:links'][0]['@scheme']: record['mcraster:links'][0]['#text'],
+            record['mcraster:links'][1]['@scheme']: record['mcraster:links'][1]['#text'],
+            record['mcraster:links'][2]['@scheme']: record['mcraster:links'][2]['#text']
+        }
+
+    return res_dict, pycsw_records, links
+
+
+def validate_pycsw(gqk=config.GQK_URL, product_id=None, source_data=None):
+    """
+    :return: dict of result validation
+    """
+    #Todo -> refactoring records getting with Danny's validator
+    pycsw_record = pycsw_handler.get_record_by_id(source_data, product_id, host=config.PYCSW_URL,
+                                         params=config.PYCSW_GET_RECORD_PARAMS)
+
+    #TODO -> this is old records getting by pycsw -> should stay as mark on code and use the new getting directly from pycsw
+    res_dict = {'validation': True, 'reason': ""}
+    pycsw_record = gql_wrapper.get_pycsw_record(host=gqk, product_id=product_id)
     if not pycsw_record['data']['search']:
         return {'validation': False, 'reason': f'Record of [{product_id}] not found'}
 

@@ -57,6 +57,7 @@ This repo provide full set of tests that responsible for Discrete Ingestion serv
 | FOLLOW_TIMEOUT   | Value for internal timeout for follow ingestion function - minutes | - | 10 | 
 | INGESTION_AGENT_URL | Route url for ingestion rest API services | + | from environment specification | 
 | CLEAN_UP | Flag for environment cleanup on test ending - BOOL | - | False | 
+| PYCSW_URL | Endpoint of pycsw server | + | from environment specification | 
 
 
 ##### S3 Environment variables [ optional environment variables ]        

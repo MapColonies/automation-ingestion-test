@@ -66,7 +66,10 @@ def test_manual_discrete_ingest():
 
     # validate new discrete on pycsw records
     try:
-        resp, pycsw_record = executors.validate_pycsw(config.GQK_URL, product_id, source_data)
+        #todo -> danny, this is new function of validation with new csw records getter
+        resp, pycsw_record, links = executors.validate_pycsw2(product_id, product_version)
+        # todo this is legacy records validator based graphql -> for future needs mabye
+        # resp, pycsw_record = executors.validate_pycsw(config.GQK_URL, product_id, source_data)
         state = resp['validation']
         error_msg = resp['reason']
     except Exception as e:
@@ -188,5 +191,8 @@ def teardown_module(module):  # pylint: disable=unused-argument
 
 
 if config.DEBUG_MODE_LOCAL:
-    # test_manual_discrete_ingest()
-    test_watch_discrete_ingest()
+    # res = pycsw_handler.get_record_by_id('2021_10_26T11_03_39Z_MAS_6_ORT_247993', '1.0', host=config.PYCSW_URL, params=config.PYCSW_GET_RECORD_PARAMS)
+    # res = pycsw_handler.get_raster_records()
+    test_manual_discrete_ingest()
+    # test_watch_discrete_ingest()
+#
