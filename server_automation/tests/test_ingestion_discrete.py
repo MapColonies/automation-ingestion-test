@@ -128,6 +128,7 @@ def test_watch_discrete_ingest():
     ValueStorage.discrete_list.append({'product_id': product_id, 'product_version': product_version})
     source_directory = resp['ingestion_dir']
     _log.info(f'{product_id} {product_version}')
+    # ToDo: uncomment to get shapemetadata + pass it to pycsw2 with sourc_edata and return relevant assert
 
     # try:
     #     state, content, source_data = executors.start_watch_ingestion(source_directory, config.TEST_ENV)
@@ -152,7 +153,7 @@ def test_watch_discrete_ingest():
     #     f'Test: [{test_watch_discrete_ingest.__name__}] Failed: on following ingestion process [{error_msg}]'
     # validate new discrete on pycsw records
     try:
-        resp, pycsw_record, links = executors.validate_pycsw2(product_id, product_version)
+        resp, pycsw_record, links = executors.validate_pycsw2(source_data, product_id, product_version)
         # resp, pycsw_record = executors.validate_pycsw(config.GQK_URL, product_id, source_data)
         state = resp['validation']
         error_msg = resp['reason']
@@ -197,7 +198,8 @@ def teardown_module(module):  # pylint: disable=unused-argument
 
 if config.DEBUG_MODE_LOCAL:
     # from server_automation.pycsw import pycsw_handler
-    res = pycsw_handler.get_record_by_id('2021_10_26T11_03_39Z_MAS_6_ORT_247993', '1.0', host=config.PYCSW_URL, params=config.PYCSW_GET_RECORD_PARAMS)
+    res = pycsw_handler.get_record_by_id('2021_10_26T11_03_39Z_MAS_6_ORT_247993', '1.0', host=config.PYCSW_URL,
+                                         params=config.PYCSW_GET_RECORD_PARAMS)
     # res = pycsw_handler.get_raster_records()
     # test_manual_discrete_ingest()
     test_watch_discrete_ingest()

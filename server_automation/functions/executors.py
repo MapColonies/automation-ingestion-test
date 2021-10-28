@@ -377,7 +377,7 @@ def test_cleanup(product_id, product_version, initial_mapproxy_config):
         _log.error(f'Failed on cleanup with error: {str(e)}')
 
 
-def validate_pycsw2(product_id=None, product_version=None):
+def validate_pycsw2(source_json_metadata, product_id=None, product_version=None):
     # todo -> implement full function
     """
     :return: dict of result validation
@@ -385,7 +385,7 @@ def validate_pycsw2(product_id=None, product_version=None):
     res_dict = {'validation': True, 'reason': ""}
     pycsw_records = pycsw_handler.get_record_by_id(product_id, product_version, host=config.PYCSW_URL,
                                                    params=config.PYCSW_GET_RECORD_PARAMS)
-    validate_pycsw_with_shape_json(pycsw_records, )
+    validate_pycsw_with_shape_json(pycsw_records, source_json_metadata)
     if not pycsw_records:
         return {'validation': False, 'reason': f'Records of [{product_id}] not found'}
     links = {}
