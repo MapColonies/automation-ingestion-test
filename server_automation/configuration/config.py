@@ -109,9 +109,38 @@ S3_SECRET_KEY = common.get_environment_variable('S3_SECRET_KEY', None)
 S3_BUCKET_NAME = common.get_environment_variable('S3_BUCKET_NAME', None)
 S3_END_POINT = common.get_environment_variable('S3_END_POINT', None)
 
-#######################################################  gql  #########################################################
+###################################################  gql & pycsw  ######################################################
+PYCSW_URL = common.get_environment_variable('PYCSW_URL',"http://raster-qa-catalog-raster-catalog-pycsw-route-raster.apps.v0h0bdx6.eastus.aroapp.io")
+PYCSW_SERVICE = common.get_environment_variable("PYCSW_SERVICE", "CSW")
+PYCSW_VERSION = common.get_environment_variable("PYCSW_VERSION", "2.0.2")
+PYCSW_REQUEST_GET_RECORDS = common.get_environment_variable("PYCSW_REQUEST_GET_RECORDS", "GetRecords")
+PYCSW_TYPE_NAMES = common.get_environment_variable("PYCSW_TYPE_NAMES", "mc:MCRasterRecord")
+PYCSW_ElEMENT_SET_NAME = common.get_environment_variable("PYCSW_ElEMENT_SET_NAME", "full")
+PYCSW_OUTPUT_FORMAT = common.get_environment_variable("PYCSW_OUTPUT_FORMAT", "application/json")
+PYCSW_RESULT_TYPE = common.get_environment_variable("PYCSW_RESULT_TYPE", "results")
+PYCSW_OUTPUT_SCHEMA = common.get_environment_variable("PYCSW_OUTPUT_SCHEMA", "http://schema.mapcolonies.com/raster")
+
+PYCSW_REQUEST_GET_CAPABILITIES = common.get_environment_variable("PYCSW_REQUEST_RECORDS", "GetCapabilities")
+
+PYCSW_GET_RECORD_PARAMS = {
+    'service': PYCSW_SERVICE,
+    'version': PYCSW_VERSION,
+    'request': PYCSW_REQUEST_GET_RECORDS,
+    'typenames': PYCSW_TYPE_NAMES,
+    'ElementSetName': PYCSW_ElEMENT_SET_NAME,
+    'outputFormat': PYCSW_OUTPUT_FORMAT,
+    'resultType': PYCSW_RESULT_TYPE,
+    'outputSchema': PYCSW_OUTPUT_SCHEMA
+}
+
+PYCSW_GET_CAPABILITIES_PARAMS = {
+    'service': PYCSW_SERVICE,
+    'version': PYCSW_VERSION,
+    'request': PYCSW_REQUEST_GET_CAPABILITIES
+}
 GQK_URL = common.get_environment_variable('GQK_URL',
                                           'http://discrete-layer-client-qa-bff-route-raster.apps.v0h0bdx6.eastus.aroapp.io/graphql')
+
 
 PYCSW_QUERY_BY_PRODUCTID = {
     'query':
