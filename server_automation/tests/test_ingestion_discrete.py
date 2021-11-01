@@ -16,7 +16,7 @@ def test_manuel_discrete_ingest():
     This test will test full e2e discrete ingestion
     """
     # config.TEST_ENV = 'PROD'
-    # config.PVC_UPDATE_ZOOM = False
+    config.PVC_UPDATE_ZOOM = False
     # prepare test data
     try:
         resp = executors.init_ingestion_src(config.TEST_ENV)
@@ -72,17 +72,17 @@ def test_manuel_discrete_ingest():
                   f'{error_msg}'
 
     # validating new discrete on mapproxy
-    # try:
-    #     resp = executors.validate_new_discrete(pycsw_record, product_id, product_version)
-    #     state = resp['validation']
-    #     error_msg = resp['reason']
-    # except Exception as e:
-    #     state = False
-    #     error_msg = str(e)
-    #
-    # assert state, f'Test: [{test_manuel_discrete_ingest.__name__}] Failed: validation of mapproxy layer\n' \
-    #               f'related errors:\n' \
-    #               f'{error_msg}'
+    try:
+        resp = executors.validate_new_discrete(pycsw_record, product_id, product_version)
+        state = resp['validation']
+        error_msg = resp['reason']
+    except Exception as e:
+        state = False
+        error_msg = str(e)
+
+    assert state, f'Test: [{test_manuel_discrete_ingest.__name__}] Failed: validation of mapproxy layer\n' \
+                  f'related errors:\n' \
+                  f'{error_msg}'
 
     if config.DEBUG_MODE_LOCAL:
         executors.test_cleanup(product_id, product_version, initial_mapproxy_config)
@@ -144,7 +144,10 @@ def test_watch_discrete_ingest():
         f'Test: [{test_watch_discrete_ingest.__name__}] Failed: on following ingestion process [{error_msg}]'
     # validate new discrete on pycsw records
     try:
-        resp, pycsw_record = executors.validate_pycsw(config.GQK_URL, product_id, source_data)
+        # todo -> danny, this is new function of validation with new csw records getter
+        resp, pycsw_record, links = executors.validate_pycsw2(product_id, product_version)
+        # todo this is legacy records validator based graphql -> for future needs mabye
+        # resp, pycsw_record = executors.validate_pycsw(config.GQK_URL, product_id, source_data)
         state = resp['validation']
         error_msg = resp['reason']
     except Exception as e:
@@ -183,9 +186,14 @@ def teardown_module(module):  # pylint: disable=unused-argument
 
 
 if config.DEBUG_MODE_LOCAL:
-    # from server_automation.pycsw import pycsw_handler
-    # res = pycsw_handler.get_record_by_id('2021_10_26T11_03_39Z_MAS_6_ORT_247993', '1.0', host=config.PYCSW_URL, params=config.PYCSW_GET_RECORD_PARAMS)
-    # res = pycsw_handler.get_raster_records()
-    test_manuel_discrete_ingest()
-    # test_watch_discrete_ingest()
-#
+    config.PVC_UPDATE_ZOOM = True
+    config.MAX_ZOOM_TO_CHANGE = 4
+
+    # test_manuel_discrete_ingest()
+    test_watch_discrete_ingest()
+
+
+
+# from server_automation.pycsw import pycsw_handler
+# res = pycsw_handler.get_record_by_id('2021_10_26T11_03_39Z_MAS_6_ORT_247993', '1.0', host=config.PYCSW_URL, params=config.PYCSW_GET_RECORD_PARAMS)
+# res = pycsw_handler.get_raster_records()

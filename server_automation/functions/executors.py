@@ -83,7 +83,7 @@ def init_watch_ingestion_src(env=config.EnvironmentTypes.QA.name):
         host = config.PVC_HANDLER_ROUTE
         api = config.PVC_WATCH_CREATE_DIR
         change_api = config.PVC_WATCH_UPDATE_SHAPE
-        res = init_ingestion_src_pvc(host, api, change_api)
+        res = init_ingestion_src_pvc(host, api, change_api, update_tfw_url=config.PVC_CHANGE_WATCH_MAX_ZOOM)
         return res
     elif env == config.EnvironmentTypes.PROD.name:
         src = os.path.join(config.NFS_WATCH_ROOT_DIR, config.NFS_WATCH_SOURCE_DIR)
@@ -195,12 +195,12 @@ def init_ingestion_src_pvc(host=config.PVC_HANDLER_ROUTE, create_api=config.PVC_
 
     if config.PVC_UPDATE_ZOOM:
         try:
-            print()
             resp = azure_pvc_api.change_max_zoom_tfw(host=host, api=update_tfw_url)
             if resp.status_code == config.ResponseCode.Ok.value:
                 _log.info(f'Max resolution changed successfully: [{json.loads(resp.text)["json_data"][0]["reason"]}]')
             else:
-                raise Exception(f'Failed on updating zoom level with error: [{json.loads(resp.text)["message"]} | {json.loads(resp.text)["json_data"]}]')
+                raise Exception(
+                    f'Failed on updating zoom level with error: [{json.loads(resp.text)["message"]} | {json.loads(resp.text)["json_data"]}]')
         except Exception as e:
             pass
     return {'ingestion_dir': new_dir, 'resource_name': resource_name}
@@ -351,7 +351,7 @@ def validate_pycsw2(product_id=None, product_version=None):
     """
     res_dict = {'validation': True, 'reason': ""}
     pycsw_records = pycsw_handler.get_record_by_id(product_id, product_version, host=config.PYCSW_URL,
-                                                  params=config.PYCSW_GET_RECORD_PARAMS)
+                                                   params=config.PYCSW_GET_RECORD_PARAMS)
 
     if not pycsw_records:
         return {'validation': False, 'reason': f'Records of [{product_id}] not found'}
@@ -370,11 +370,11 @@ def validate_pycsw(gqk=config.GQK_URL, product_id=None, source_data=None):
     """
     :return: dict of result validation
     """
-    #Todo -> refactoring records getting with Danny's validator
+    # Todo -> refactoring records getting with Danny's validator
     pycsw_record = pycsw_handler.get_record_by_id(source_data, product_id, host=config.PYCSW_URL,
-                                         params=config.PYCSW_GET_RECORD_PARAMS)
+                                                  params=config.PYCSW_GET_RECORD_PARAMS)
 
-    #TODO -> this is old records getting by pycsw -> should stay as mark on code and use the new getting directly from pycsw
+    # TODO -> this is old records getting by pycsw -> should stay as mark on code and use the new getting directly from pycsw
     res_dict = {'validation': True, 'reason': ""}
     # pycsw_record = gql_wrapper.get_pycsw_record(host=gqk, product_id=product_id)
     if not pycsw_record['data']['search']:
@@ -453,33 +453,62 @@ def validate_pycsw(gqk=config.GQK_URL, product_id=None, source_data=None):
     return res_dict, pycsw_record
 
 
-def validate_new_discrete(pycsw_record, product_id, product_version):
+def validate_new_discrete(pycsw_records, product_id, product_version):
     """
     This method will validate access and data on mapproxy
     :return:
     """
-    layer_full_name = "-".join([product_id, product_version])
-    links = {
-        pycsw_record['data']['search'][0]['links'][0]['protocol']: pycsw_record['data']['search'][0]['links'][0]['url'],
-        pycsw_record['data']['search'][0]['links'][1]['protocol']: pycsw_record['data']['search'][0]['links'][1]['url'],
-        pycsw_record['data']['search'][0]['links'][2]['protocol']: pycsw_record['data']['search'][0]['links'][2]['url']}
+    # layer_full_name = "-".join([product_id, product_version])
+    # links = {
+    #     pycsw_record['data']['search'][0]['links'][0]['protocol']: pycsw_record['data']['search'][0]['links'][0]['url'],
+    #     pycsw_record['data']['search'][0]['links'][1]['protocol']: pycsw_record['data']['search'][0]['links'][1]['url'],
+    #     pycsw_record['data']['search'][0]['links'][2]['protocol']: pycsw_record['data']['search'][0]['links'][2]['url']}
+
+    # extract relevant links -> wms capabilities, wmts capabilities and wmts tile url request -> orthophoto + history
+    links = {}
+    for record in pycsw_records:
+        links[record['mc:productType']] = {
+            record['mc:links'][0]['@scheme']: record['mc:links'][0]['#text'],
+            record['mc:links'][1]['@scheme']: record['mc:links'][1]['#text'],
+            record['mc:links'][2]['@scheme']: record['mc:links'][2]['#text']
+        }
+
+    results = dict.fromkeys(list(links.keys()), dict())
+    for link_group in list(links.keys()):
+        results[link_group] = {k: v for k, v in links[link_group].items()}
+
+    for group in results.keys():
+        layer_name = "-".join([product_id, product_version, group])  # layer name
+        results[group]['is_valid'] = {}
+        # check that wms include the new layer on capabilities
+        wms_capabilities = common.get_xml_as_dict(results[group]['WMS'])
+        results[group]['is_valid']['WMS'] = layer_name in [layer['Name'] for layer in wms_capabilities['WMS_Capabilities']['Capability']['Layer']['Layer']]
+
+        # check that wmts include the new layer on capabilities
+        wmts_capabilities = common.get_xml_as_dict(results[group]['WMTS'])
+        results[group]['is_valid']['WMTS'] = layer_name in [layer['ows:Identifier'] for layer in wmts_capabilities['Capabilities']['Contents']['Layer']]
+
+        # check access to random tile by wmts_layer url
+        s3_conn = s3.S3Client(config.S3_END_POINT, config.S3_ACCESS_KEY, config.S3_SECRET_KEY)
+        list_of_tiles = s3_conn.list_folder_content(config.S3_BUCKET_NAME,"/".join([product_id,product_version]))
+        wmts_layers = results[group]['WMTS_LAYER']
 
     # validate WMS capabilities:
     wms_capabilities = common.get_xml_as_dict(links[config.WMS])
     wms_layers = wms_capabilities['WMS_Capabilities']['Capability']['Layer']['Layer']
     wms_layers_name = [layer['Name'] for layer in wms_layers]
-    wms_layer_exists = layer_full_name in wms_layers_name
+    # wms_layer_exists = layer_full_name in wms_layers_name
 
     # validate WMTS capabilities:
     wmts_capabilities = common.get_xml_as_dict(links[config.WMTS])
     wmts_layers = wmts_capabilities['Capabilities']['Contents']['Layer']
     wmts_layers_name = [layer['ows:Identifier'] for layer in wmts_layers]
-    wmts_layer_exists = layer_full_name in wmts_layers_name
+    # wmts_layer_exists = layer_full_name in wmts_layers_name
 
-    if wms_layer_exists and wmts_layer_exists:
-        return {'validation': True, 'reason': 'Layer was added into capabilities'}
+    # if wms_layer_exists and wmts_layer_exists:
+    #     return {'validation': True, 'reason': 'Layer was added into capabilities'}
 
-    else:
-        return {'validation': False, 'reason': f'Layer not exists on several capabilities:\n'
-                                               f'wmts layers: {wmts_layers_name}\n'
-                                               f'wms layers: {wms_layers_name}'}
+    # else:
+    #     return {'validation': False, 'reason': f'Layer not exists on several capabilities:\n'
+    #                                            f'wmts layers: {wmts_layers_name}\n'
+    #                                            f'wms layers: {wms_layers_name}'}
