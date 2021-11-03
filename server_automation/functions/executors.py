@@ -14,7 +14,7 @@ from server_automation.pycsw import pycsw_handler
 from mc_automation_tools import common as common
 from mc_automation_tools import shape_convertor, base_requests
 from mc_automation_tools import s3storage as s3
-
+from discrete_kit.functions import metadata_convertor
 _log = logging.getLogger('server_automation.function.executors')
 
 
@@ -144,7 +144,10 @@ def init_ingestion_src_fs(src, dst, watch=False):
     try:
         command = f'cp -r {src}/. {dst}'
         os.system(command)
-        _log.info(f'Success copy and creation of test data on: {dst}')
+        if os.path.exists(dst):
+            _log.info(f'Success copy and creation of test data on: {dst}')
+        else:
+            raise IOError('Failed on creating ingestion directory')
 
     except Exception as e2:
         _log.error(f'Failed copy files from {src} into {dst} with error: [{str(e2)}]')
@@ -158,7 +161,11 @@ def init_ingestion_src_fs(src, dst, watch=False):
     except Exception as e:
         _log.error(f'Failed on updating shape file: {file} with error: {str(e)}')
         raise e
-    return {'ingestion_dir': dst, 'resource_name': source_name}
+
+    if config.PVC_UPDATE_ZOOM:
+        res = metadata_convertor.replace_discrete_resolution(dst, str(config.zoom_level_dict[config.MAX_ZOOM_TO_CHANGE]), 'tfw')
+
+    return {'ingestion_dir': dst, 'resource_name': source_name, 'max_resolution': res}
 
 
 def init_ingestion_src_pvc(host=config.PVC_HANDLER_ROUTE, create_api=config.PVC_CLONE_SOURCE,
@@ -202,7 +209,7 @@ def init_ingestion_src_pvc(host=config.PVC_HANDLER_ROUTE, create_api=config.PVC_
                 raise Exception(
                     f'Failed on updating zoom level with error: [{json.loads(resp.text)["message"]} | {json.loads(resp.text)["json_data"]}]')
         except Exception as e:
-            pass
+            raise IOError(f'Failed updating zoom max level with error: [{str(e)}]')
     return {'ingestion_dir': new_dir, 'resource_name': resource_name}
 
 
@@ -458,13 +465,7 @@ def validate_new_discrete(pycsw_records, product_id, product_version):
     This method will validate access and data on mapproxy
     :return:
     """
-    # layer_full_name = "-".join([product_id, product_version])
-    # links = {
-    #     pycsw_record['data']['search'][0]['links'][0]['protocol']: pycsw_record['data']['search'][0]['links'][0]['url'],
-    #     pycsw_record['data']['search'][0]['links'][1]['protocol']: pycsw_record['data']['search'][0]['links'][1]['url'],
-    #     pycsw_record['data']['search'][0]['links'][2]['protocol']: pycsw_record['data']['search'][0]['links'][2]['url']}
 
-    # extract relevant links -> wms capabilities, wmts capabilities and wmts tile url request -> orthophoto + history
     links = {}
     for record in pycsw_records:
         links[record['mc:productType']] = {
@@ -478,7 +479,13 @@ def validate_new_discrete(pycsw_records, product_id, product_version):
         results[link_group] = {k: v for k, v in links[link_group].items()}
 
     for group in results.keys():
-        layer_name = "-".join([product_id, product_version, group])  # layer name
+        if group == 'Orthophoto':
+            layer_name = "-".join([product_id, group])
+        elif group == 'OrthophotoHistory':
+            layer_name = "-".join([product_id, product_version, group])  # layer name
+        else:
+            raise ValueError(f'records type on recognize as OrthophotoHistory or Orthophoto')
+
         results[group]['is_valid'] = {}
         # check that wms include the new layer on capabilities
         wms_capabilities = common.get_xml_as_dict(results[group]['WMS'])
@@ -487,28 +494,36 @@ def validate_new_discrete(pycsw_records, product_id, product_version):
         # check that wmts include the new layer on capabilities
         wmts_capabilities = common.get_xml_as_dict(results[group]['WMTS'])
         results[group]['is_valid']['WMTS'] = layer_name in [layer['ows:Identifier'] for layer in wmts_capabilities['Capabilities']['Contents']['Layer']]
+        wmts_layer_properties = [layer for layer in wmts_capabilities['Capabilities']['Contents']['Layer'] if layer_name in layer['ows:Identifier']]
 
         # check access to random tile by wmts_layer url
-        s3_conn = s3.S3Client(config.S3_END_POINT, config.S3_ACCESS_KEY, config.S3_SECRET_KEY)
-        list_of_tiles = s3_conn.list_folder_content(config.S3_BUCKET_NAME,"/".join([product_id,product_version]))
-        wmts_layers = results[group]['WMTS_LAYER']
+        if config.TEST_ENV == config.EnvironmentTypes.QA.name or config.TEST_ENV == config.EnvironmentTypes.DEV.name:
+            s3_conn = s3.S3Client(config.S3_END_POINT, config.S3_ACCESS_KEY, config.S3_SECRET_KEY)
+            list_of_tiles = s3_conn.list_folder_content(config.S3_BUCKET_NAME, "/".join([product_id, product_version]))
+        elif config.TEST_ENV == config.EnvironmentTypes.PROD.name:
+            path = os.path.join(config.NFS_TILES_DIR, product_id, product_version)
+            list_of_tiles = []
+            # r=root, d=directories, f = files
+            for r, d, f in os.walk(path):
+                for file in f:
+                    if '.png' in file:
+                        list_of_tiles.append(os.path.join(r, file))
+        else:
+            raise Exception(f'Illegal environment value type: {config.TEST_ENV}')
 
-    # validate WMS capabilities:
-    wms_capabilities = common.get_xml_as_dict(links[config.WMS])
-    wms_layers = wms_capabilities['WMS_Capabilities']['Capability']['Layer']['Layer']
-    wms_layers_name = [layer['Name'] for layer in wms_layers]
-    # wms_layer_exists = layer_full_name in wms_layers_name
+        zxy = list_of_tiles[len(list_of_tiles)-1].split('/')[-3:]
+        zxy[2] = zxy[2].split('.')[0]
+        tile_matrix_set = wmts_layer_properties[0]['TileMatrixSetLink']['TileMatrixSet']
+        wmts_layers_url = results[group]['WMTS_LAYER']
+        wmts_layers_url = wmts_layers_url.format(TileMatrixSet=tile_matrix_set, TileMatrix=zxy[0], TileCol=zxy[1], TileRow=zxy[2])  # formatted url for testing
+        resp = base_requests.send_get_request(wmts_layers_url)
+        results[group]['is_valid']['WMTS_LAYER'] = resp.status_code == config.ResponseCode.Ok.value
 
-    # validate WMTS capabilities:
-    wmts_capabilities = common.get_xml_as_dict(links[config.WMTS])
-    wmts_layers = wmts_capabilities['Capabilities']['Contents']['Layer']
-    wmts_layers_name = [layer['ows:Identifier'] for layer in wmts_layers]
-    # wmts_layer_exists = layer_full_name in wmts_layers_name
+    # validation iteration -> check if all URL's state is True
+    validation = True
+    for group_name, value in results.items():
+        if not all(val for key, val in value['is_valid'].items()):
+            validation = False
+            break
+    return {'validation': validation, 'reason': results}
 
-    # if wms_layer_exists and wmts_layer_exists:
-    #     return {'validation': True, 'reason': 'Layer was added into capabilities'}
-
-    # else:
-    #     return {'validation': False, 'reason': f'Layer not exists on several capabilities:\n'
-    #                                            f'wmts layers: {wmts_layers_name}\n'
-    #                                            f'wms layers: {wms_layers_name}'}

@@ -80,6 +80,7 @@ PVC_ROOT_DIR = common.get_environment_variable('PVC_ROOT_DIR', None)
 NFS_ROOT_DIR = common.get_environment_variable('NFS_ROOT_DIR', '/tmp')
 NFS_SOURCE_DIR = common.get_environment_variable('NFS_SOURCE_DIR', 'ingestion/1')
 NFS_DEST_DIR = common.get_environment_variable('NFS_DEST_DIR', 'test_data')
+NFS_TILES_DIR = common.get_environment_variable('NFS_TILES_DIR', '/tmp')
 
 PVC_HANDLER_ROUTE = common.get_environment_variable('PVC_HANDLER_ROUTE', None)
 PVC_CLONE_SOURCE = common.get_environment_variable('PVC_CLONE_SOURCE', 'createTestDir')
