@@ -55,7 +55,9 @@ def test_manuel_discrete_ingest():
         error_msg = str(e)
     assert resp, \
         f'Test: [{test_manuel_discrete_ingest.__name__}] Failed: on following ingestion process [{error_msg}]'
-
+    
+    time.sleep(config.FOLLOW_TIMEOUT) # this timeout is for mapproxy updating time of new layer on configuration
+    
     # validate new discrete on pycsw records
     try:
         # todo -> danny, this is new function of validation with new csw records getter
@@ -142,6 +144,9 @@ def test_watch_discrete_ingest():
         error_msg = str(e)
     assert resp, \
         f'Test: [{test_watch_discrete_ingest.__name__}] Failed: on following ingestion process [{error_msg}]'
+    
+    time.sleep(config.FOLLOW_TIMEOUT) # this timeout is for mapproxy updating time of new layer on configuration
+    
     # validate new discrete on pycsw records
     try:
         # todo -> danny, this is new function of validation with new csw records getter
