@@ -16,7 +16,8 @@ def create_new_ingestion_dir(host, api):
     return resp
 
 
-def change_max_zoom_tfw(host=config.PVC_HANDLER_ROUTE, api=config.PVC_CHANGE_MAX_ZOOM, params={'max_zoom':config.zoom_level_dict[config.MAX_ZOOM_TO_CHANGE]}):
+def change_max_zoom_tfw(host=config.PVC_HANDLER_ROUTE, api=config.PVC_CHANGE_MAX_ZOOM):
+    params = {'max_zoom': config.zoom_level_dict[config.MAX_ZOOM_TO_CHANGE]}
     url = common.combine_url(host, api)
     resp = base_requests.send_get_request(url, params)
     return resp

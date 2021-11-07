@@ -17,7 +17,7 @@ from discrete_kit.validator.json_compare_pycsw import *
 from mc_automation_tools import common as common
 from mc_automation_tools import shape_convertor, base_requests
 from mc_automation_tools import s3storage as s3
-
+from discrete_kit.functions import metadata_convertor
 _log = logging.getLogger('server_automation.function.executors')
 
 
@@ -86,7 +86,7 @@ def init_watch_ingestion_src(env=config.EnvironmentTypes.QA.name):
         host = config.PVC_HANDLER_ROUTE
         api = config.PVC_WATCH_CREATE_DIR
         change_api = config.PVC_WATCH_UPDATE_SHAPE
-        res = init_ingestion_src_pvc(host, api, change_api)
+        res = init_ingestion_src_pvc(host, api, change_api, update_tfw_url=config.PVC_CHANGE_WATCH_MAX_ZOOM)
         return res
     elif env == config.EnvironmentTypes.PROD.name:
         src = os.path.join(config.NFS_WATCH_ROOT_DIR, config.NFS_WATCH_SOURCE_DIR)
@@ -147,7 +147,10 @@ def init_ingestion_src_fs(src, dst, watch=False):
     try:
         command = f'cp -r {src}/. {dst}'
         os.system(command)
-        _log.info(f'Success copy and creation of test data on: {dst}')
+        if os.path.exists(dst):
+            _log.info(f'Success copy and creation of test data on: {dst}')
+        else:
+            raise IOError('Failed on creating ingestion directory')
 
     except Exception as e2:
         _log.error(f'Failed copy files from {src} into {dst} with error: [{str(e2)}]')
@@ -161,7 +164,11 @@ def init_ingestion_src_fs(src, dst, watch=False):
     except Exception as e:
         _log.error(f'Failed on updating shape file: {file} with error: {str(e)}')
         raise e
-    return {'ingestion_dir': dst, 'resource_name': source_name}
+
+    if config.PVC_UPDATE_ZOOM:
+        res = metadata_convertor.replace_discrete_resolution(dst, str(config.zoom_level_dict[config.MAX_ZOOM_TO_CHANGE]), 'tfw')
+
+    return {'ingestion_dir': dst, 'resource_name': source_name, 'max_resolution': res}
 
 
 def init_ingestion_src_pvc(host=config.PVC_HANDLER_ROUTE, create_api=config.PVC_CLONE_SOURCE,
@@ -178,9 +185,9 @@ def init_ingestion_src_pvc(host=config.PVC_HANDLER_ROUTE, create_api=config.PVC_
             raise Exception(
                 f'Failed access pvc on source data cloning with error: [{resp.text}] and status: [{resp.status_code}]')
         msg = json.loads(resp.text)
-        new_dir = msg['newDestination']
+        new_dir = msg['newDesination']
         _log.info(
-            f'[{resp.status_code}]: New test running directory was created from source data: {msg["source"]} into {msg["newDestination"]}')
+            f'[{resp.status_code}]: New test running directory was created from source data: {msg["source"]} into {msg["newDesination"]}')
     except Exception as e:
         raise Exception(f'Failed access pvc on source data cloning with error: [{str(e)}]')
 
@@ -198,7 +205,6 @@ def init_ingestion_src_pvc(host=config.PVC_HANDLER_ROUTE, create_api=config.PVC_
 
     if config.PVC_UPDATE_ZOOM:
         try:
-            print()
             resp = azure_pvc_api.change_max_zoom_tfw(host=host, api=update_tfw_url)
             if resp.status_code == config.ResponseCode.Ok.value:
                 _log.info(f'Max resolution changed successfully: [{json.loads(resp.text)["json_data"][0]["reason"]}]')
@@ -206,7 +212,7 @@ def init_ingestion_src_pvc(host=config.PVC_HANDLER_ROUTE, create_api=config.PVC_
                 raise Exception(
                     f'Failed on updating zoom level with error: [{json.loads(resp.text)["message"]} | {json.loads(resp.text)["json_data"]}]')
         except Exception as e:
-            pass
+            raise IOError(f'Failed updating zoom max level with error: [{str(e)}]')
     return {'ingestion_dir': new_dir, 'resource_name': resource_name}
 
 
@@ -390,10 +396,10 @@ def validate_pycsw2(source_json_metadata, product_id=None, product_version=None)
         return {'validation': False, 'reason': f'Records of [{product_id}] not found'}
     links = {}
     for record in pycsw_records:
-        links[record['mcraster:productType']] = {
-            record['mcraster:links'][0]['@scheme']: record['mcraster:links'][0]['#text'],
-            record['mcraster:links'][1]['@scheme']: record['mcraster:links'][1]['#text'],
-            record['mcraster:links'][2]['@scheme']: record['mcraster:links'][2]['#text']
+        links[record['mc:productType']] = {
+            record['mc:links'][0]['@scheme']: record['mc:links'][0]['#text'],
+            record['mc:links'][1]['@scheme']: record['mc:links'][1]['#text'],
+            record['mc:links'][2]['@scheme']: record['mc:links'][2]['#text']
         }
 
     return res_dict, pycsw_records, links
@@ -409,7 +415,7 @@ def validate_pycsw(gqk=config.GQK_URL, product_id=None, source_data=None):
 
     # TODO -> this is old records getting by pycsw -> should stay as mark on code and use the new getting directly from pycsw
     res_dict = {'validation': True, 'reason': ""}
-    pycsw_record = gql_wrapper.get_pycsw_record(host=gqk, product_id=product_id)
+    # pycsw_record = gql_wrapper.get_pycsw_record(host=gqk, product_id=product_id)
     if not pycsw_record['data']['search']:
         return {'validation': False, 'reason': f'Record of [{product_id}] not found'}
 
@@ -486,36 +492,73 @@ def validate_pycsw(gqk=config.GQK_URL, product_id=None, source_data=None):
     return res_dict, pycsw_record
 
 
-def validate_new_discrete(pycsw_record, product_id, product_version):
+def validate_new_discrete(pycsw_records, product_id, product_version):
     """
     This method will validate access and data on mapproxy
     :return:
     """
-    layer_full_name = "-".join([product_id, product_version])
-    links = {
-        pycsw_record['data']['search'][0]['links'][0]['protocol']: pycsw_record['data']['search'][0]['links'][0]['url'],
-        pycsw_record['data']['search'][0]['links'][1]['protocol']: pycsw_record['data']['search'][0]['links'][1]['url'],
-        pycsw_record['data']['search'][0]['links'][2]['protocol']: pycsw_record['data']['search'][0]['links'][2]['url']}
 
-    # validate WMS capabilities:
-    wms_capabilities = common.get_xml_as_dict(links[config.WMS])
-    wms_layers = wms_capabilities['WMS_Capabilities']['Capability']['Layer']['Layer']
-    wms_layers_name = [layer['Name'] for layer in wms_layers]
-    wms_layer_exists = layer_full_name in wms_layers_name
+    links = {}
+    for record in pycsw_records:
+        links[record['mc:productType']] = {
+            record['mc:links'][0]['@scheme']: record['mc:links'][0]['#text'],
+            record['mc:links'][1]['@scheme']: record['mc:links'][1]['#text'],
+            record['mc:links'][2]['@scheme']: record['mc:links'][2]['#text']
+        }
 
-    # validate WMTS capabilities:
-    wmts_capabilities = common.get_xml_as_dict(links[config.WMTS])
-    wmts_layers = wmts_capabilities['Capabilities']['Contents']['Layer']
-    wmts_layers_name = [layer['ows:Identifier'] for layer in wmts_layers]
-    wmts_layer_exists = layer_full_name in wmts_layers_name
+    results = dict.fromkeys(list(links.keys()), dict())
+    for link_group in list(links.keys()):
+        results[link_group] = {k: v for k, v in links[link_group].items()}
 
-    if wms_layer_exists and wmts_layer_exists:
-        return {'validation': True, 'reason': 'Layer was added into capabilities'}
+    for group in results.keys():
+        if group == 'Orthophoto':
+            layer_name = "-".join([product_id, group])
+        elif group == 'OrthophotoHistory':
+            layer_name = "-".join([product_id, product_version, group])  # layer name
+        else:
+            raise ValueError(f'records type on recognize as OrthophotoHistory or Orthophoto')
 
-    else:
-        return {'validation': False, 'reason': f'Layer not exists on several capabilities:\n'
-                                               f'wmts layers: {wmts_layers_name}\n'
-                                               f'wms layers: {wms_layers_name}'}
+        results[group]['is_valid'] = {}
+        # check that wms include the new layer on capabilities
+        wms_capabilities = common.get_xml_as_dict(results[group]['WMS'])
+        results[group]['is_valid']['WMS'] = layer_name in [layer['Name'] for layer in wms_capabilities['WMS_Capabilities']['Capability']['Layer']['Layer']]
+
+        # check that wmts include the new layer on capabilities
+        wmts_capabilities = common.get_xml_as_dict(results[group]['WMTS'])
+        results[group]['is_valid']['WMTS'] = layer_name in [layer['ows:Identifier'] for layer in wmts_capabilities['Capabilities']['Contents']['Layer']]
+        wmts_layer_properties = [layer for layer in wmts_capabilities['Capabilities']['Contents']['Layer'] if layer_name in layer['ows:Identifier']]
+
+        # check access to random tile by wmts_layer url
+        if config.TEST_ENV == config.EnvironmentTypes.QA.name or config.TEST_ENV == config.EnvironmentTypes.DEV.name:
+            s3_conn = s3.S3Client(config.S3_END_POINT, config.S3_ACCESS_KEY, config.S3_SECRET_KEY)
+            list_of_tiles = s3_conn.list_folder_content(config.S3_BUCKET_NAME, "/".join([product_id, product_version]))
+        elif config.TEST_ENV == config.EnvironmentTypes.PROD.name:
+            path = os.path.join(config.NFS_TILES_DIR, product_id, product_version)
+            list_of_tiles = []
+            # r=root, d=directories, f = files
+            for r, d, f in os.walk(path):
+                for file in f:
+                    if '.png' in file:
+                        list_of_tiles.append(os.path.join(r, file))
+        else:
+            raise Exception(f'Illegal environment value type: {config.TEST_ENV}')
+
+        zxy = list_of_tiles[len(list_of_tiles)-1].split('/')[-3:]
+        zxy[2] = zxy[2].split('.')[0]
+        tile_matrix_set = wmts_layer_properties[0]['TileMatrixSetLink']['TileMatrixSet']
+        wmts_layers_url = results[group]['WMTS_LAYER']
+        wmts_layers_url = wmts_layers_url.format(TileMatrixSet=tile_matrix_set, TileMatrix=zxy[0], TileCol=zxy[1], TileRow=zxy[2])  # formatted url for testing
+        resp = base_requests.send_get_request(wmts_layers_url)
+        results[group]['is_valid']['WMTS_LAYER'] = resp.status_code == config.ResponseCode.Ok.value
+
+    # validation iteration -> check if all URL's state is True
+    validation = True
+    for group_name, value in results.items():
+        if not all(val for key, val in value['is_valid'].items()):
+            validation = False
+            break
+    return {'validation': validation, 'reason': results}
+
 
 
 def get_json_schema(path_to_schema):
