@@ -18,6 +18,7 @@ from mc_automation_tools import common as common
 from mc_automation_tools import shape_convertor, base_requests
 from mc_automation_tools import s3storage as s3
 from discrete_kit.functions import metadata_convertor
+
 _log = logging.getLogger('server_automation.function.executors')
 
 
@@ -166,7 +167,9 @@ def init_ingestion_src_fs(src, dst, watch=False):
         raise e
 
     if config.PVC_UPDATE_ZOOM:
-        res = metadata_convertor.replace_discrete_resolution(dst, str(config.zoom_level_dict[config.MAX_ZOOM_TO_CHANGE]), 'tfw')
+        res = metadata_convertor.replace_discrete_resolution(dst,
+                                                             str(config.zoom_level_dict[config.MAX_ZOOM_TO_CHANGE]),
+                                                             'tfw')
 
     return {'ingestion_dir': dst, 'resource_name': source_name, 'max_resolution': res}
 
@@ -391,7 +394,7 @@ def validate_pycsw2(source_json_metadata, product_id=None, product_version=None)
     res_dict = {'validation': True, 'reason': ""}
     pycsw_records = pycsw_handler.get_record_by_id(product_id, product_version, host=config.PYCSW_URL,
                                                    params=config.PYCSW_GET_RECORD_PARAMS)
-    validate_pycsw_with_shape_json(pycsw_records, source_json_metadata)
+
     if not pycsw_records:
         return {'validation': False, 'reason': f'Records of [{product_id}] not found'}
     links = {}
@@ -401,7 +404,9 @@ def validate_pycsw2(source_json_metadata, product_id=None, product_version=None)
             record['mc:links'][1]['@scheme']: record['mc:links'][1]['#text'],
             record['mc:links'][2]['@scheme']: record['mc:links'][2]['#text']
         }
-
+    validation_flag, err_dict = validate_pycsw_with_shape_json(pycsw_records, source_json_metadata)
+    res_dict['validation'] = validation_flag
+    res_dict['reason'] = err_dict
     return res_dict, pycsw_records, links
 
 
@@ -521,12 +526,16 @@ def validate_new_discrete(pycsw_records, product_id, product_version):
         results[group]['is_valid'] = {}
         # check that wms include the new layer on capabilities
         wms_capabilities = common.get_xml_as_dict(results[group]['WMS'])
-        results[group]['is_valid']['WMS'] = layer_name in [layer['Name'] for layer in wms_capabilities['WMS_Capabilities']['Capability']['Layer']['Layer']]
+        results[group]['is_valid']['WMS'] = layer_name in [layer['Name'] for layer in
+                                                           wms_capabilities['WMS_Capabilities']['Capability']['Layer'][
+                                                               'Layer']]
 
         # check that wmts include the new layer on capabilities
         wmts_capabilities = common.get_xml_as_dict(results[group]['WMTS'])
-        results[group]['is_valid']['WMTS'] = layer_name in [layer['ows:Identifier'] for layer in wmts_capabilities['Capabilities']['Contents']['Layer']]
-        wmts_layer_properties = [layer for layer in wmts_capabilities['Capabilities']['Contents']['Layer'] if layer_name in layer['ows:Identifier']]
+        results[group]['is_valid']['WMTS'] = layer_name in [layer['ows:Identifier'] for layer in
+                                                            wmts_capabilities['Capabilities']['Contents']['Layer']]
+        wmts_layer_properties = [layer for layer in wmts_capabilities['Capabilities']['Contents']['Layer'] if
+                                 layer_name in layer['ows:Identifier']]
 
         # check access to random tile by wmts_layer url
         if config.TEST_ENV == config.EnvironmentTypes.QA.name or config.TEST_ENV == config.EnvironmentTypes.DEV.name:
@@ -543,11 +552,12 @@ def validate_new_discrete(pycsw_records, product_id, product_version):
         else:
             raise Exception(f'Illegal environment value type: {config.TEST_ENV}')
 
-        zxy = list_of_tiles[len(list_of_tiles)-1].split('/')[-3:]
+        zxy = list_of_tiles[len(list_of_tiles) - 1].split('/')[-3:]
         zxy[2] = zxy[2].split('.')[0]
         tile_matrix_set = wmts_layer_properties[0]['TileMatrixSetLink']['TileMatrixSet']
         wmts_layers_url = results[group]['WMTS_LAYER']
-        wmts_layers_url = wmts_layers_url.format(TileMatrixSet=tile_matrix_set, TileMatrix=zxy[0], TileCol=zxy[1], TileRow=zxy[2])  # formatted url for testing
+        wmts_layers_url = wmts_layers_url.format(TileMatrixSet=tile_matrix_set, TileMatrix=zxy[0], TileCol=zxy[1],
+                                                 TileRow=zxy[2])  # formatted url for testing
         resp = base_requests.send_get_request(wmts_layers_url)
         results[group]['is_valid']['WMTS_LAYER'] = resp.status_code == config.ResponseCode.Ok.value
 
@@ -560,7 +570,6 @@ def validate_new_discrete(pycsw_records, product_id, product_version):
     return {'validation': validation, 'reason': results}
 
 
-
 def get_json_schema(path_to_schema):
     """This function loads the given schema available"""
     try:
@@ -569,3 +578,9 @@ def get_json_schema(path_to_schema):
     except IOError:
         return None
     return schema
+
+
+def get_folder_path_by_name(path, name):
+    p_walker = [x[0] for x in os.walk(path)]
+    path = ("\n".join(s for s in p_walker if name.lower() in s.lower()))
+    return path

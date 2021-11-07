@@ -9,6 +9,7 @@ from server_automation.functions import executors
 from server_automation.postgress import postgress_adapter
 from discrete_kit.validator.json_compare_pycsw import *
 from server_automation.functions.executors import *
+from discrete_kit.functions.shape_functions import ShapeToJSON
 
 _log = logging.getLogger('server_automation.tests.test_ingestion_discrete')
 
@@ -134,23 +135,27 @@ def test_watch_discrete_ingest():
 
     time.sleep(config.SYSTEM_DELAY)  # validate generation of new job
     # validating following and completion of ingestion job
-    try:
-        ingestion_follow_state = executors.follow_running_task(product_id, product_version)
-        resp = (ingestion_follow_state['status'] == config.JobStatus.Completed.name)
-        error_msg = ingestion_follow_state['message']
-
-    except Exception as e:
-        resp = None
-        error_msg = str(e)
-    assert resp, \
-        f'Test: [{test_watch_discrete_ingest.__name__}] Failed: on following ingestion process [{error_msg}]'
-
-    time.sleep(config.FOLLOW_TIMEOUT) # this timeout is for mapproxy updating time of new layer on configuration
+    # ToDo: Uncomment this try catch
+    # try:
+    #     ingestion_follow_state = executors.follow_running_task(product_id, product_version)
+    #     resp = (ingestion_follow_state['status'] == config.JobStatus.Completed.name)
+    #     error_msg = ingestion_follow_state['message']
+    #
+    # except Exception as e:
+    #     resp = None
+    #     error_msg = str(e)
+    # assert resp, \
+    #     f'Test: [{test_watch_discrete_ingest.__name__}] Failed: on following ingestion process [{error_msg}]'
+    # ToDo: Remove Comment for sleep
+    # time.sleep(config.FOLLOW_TIMEOUT)  # this timeout is for mapproxy updating time of new layer on configuration
 
     # validate new discrete on pycsw records
     try:
         # todo -> danny, this is new function of validation with new csw records getter
-        resp, pycsw_record, links = executors.validate_pycsw2(product_id, product_version)
+        shape_folder_path = executors.get_folder_path_by_name(source_directory, 'Shape')
+        read_json_from_shape_file = ShapeToJSON(shape_folder_path)
+        resp, pycsw_record, links = executors.validate_pycsw2(read_json_from_shape_file.created_json, product_id,
+                                                              product_version)
         # todo this is legacy records validator based graphql -> for future needs mabye
         # resp, pycsw_record = executors.validate_pycsw(config.GQK_URL, product_id, source_data)
         # resp, pycsw_record, links = executors.validate_pycsw2(source_data, product_id, product_version)
