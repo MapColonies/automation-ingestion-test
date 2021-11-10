@@ -143,6 +143,7 @@ def test_watch_discrete_ingest():
     assert resp, \
         f'Test: [{test_watch_discrete_ingest.__name__}] Failed: on following ingestion process [{error_msg}]'
     # validate new discrete on pycsw records
+    time.sleep(config.FOLLOW_TIMEOUT)
     try:
         # todo -> danny, this is new function of validation with new csw records getter
         resp, pycsw_record, links = executors.validate_pycsw2(product_id, product_version)
