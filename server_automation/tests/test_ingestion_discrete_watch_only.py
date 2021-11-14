@@ -17,7 +17,10 @@ def test_watch_discrete_ingest():
     """
 
     # config.TEST_ENV = 'PROD'
-    # stop watching folder as prerequisites
+
+    """
+    stop watching folder as prerequisites
+    """
     try:
         resp = executors.stop_watch()
         state = resp['state']
@@ -28,6 +31,12 @@ def test_watch_discrete_ingest():
     assert state, \
         f'Test: [{test_watch_discrete_ingest.__name__}] Failed: on stop agent watch [{error_msg}]'
 
+    """
+    Init Ingestion:
+    1) Create ingestion folder for watch
+    2) Rename the source
+    3) Change resolution if needed.
+    """
     try:
         resp = executors.init_watch_ingestion_src(config.TEST_ENV)
         error_msg = None
@@ -44,6 +53,12 @@ def test_watch_discrete_ingest():
     source_directory = resp['ingestion_dir']
     _log.info(f'{product_id} {product_version}')
 
+    """
+    Start watch ingestion:
+    1) Validate source directory
+    2) Create and return Shapefile JSON object
+    
+    """
     try:
         state, content, source_data = executors.start_watch_ingestion(source_directory, config.TEST_ENV)
     except Exception as e:
@@ -55,21 +70,27 @@ def test_watch_discrete_ingest():
 
     time.sleep(config.SYSTEM_DELAY)  # validate generation of new job
     # validating following and completion of ingestion job
-    try:
-        ingestion_follow_state = executors.follow_running_task(product_id, product_version)
-        resp = (ingestion_follow_state['status'] == config.JobStatus.Completed.name)
-        error_msg = ingestion_follow_state['message']
-
-    except Exception as e:
-        resp = None
-        error_msg = str(e)
-    assert resp, \
-        f'Test: [{test_watch_discrete_ingest.__name__}] Failed: on following ingestion process [{error_msg}]'
-    # validate new discrete on pycsw records
-    time.sleep(config.FOLLOW_TIMEOUT)
+    # ToDo: Uncomment
+    # try:
+    #     ingestion_follow_state = executors.follow_running_task(product_id, product_version)
+    #     resp = (ingestion_follow_state['status'] == config.JobStatus.Completed.name)
+    #     error_msg = ingestion_follow_state['message']
+    #
+    # except Exception as e:
+    #     resp = None
+    #     error_msg = str(e)
+    # assert resp, \
+    #     f'Test: [{test_watch_discrete_ingest.__name__}] Failed: on following ingestion process [{error_msg}]'
+    # # validate new discrete on pycsw records
+    # time.sleep(config.FOLLOW_TIMEOUT)
+    """
+    PYCSW Validation:
+    1) Get record from pycsw.
+    2) Validation pycsw with shapefile json and returns assertion 
+    """
     try:
         # todo -> danny, this is new function of validation with new csw records getter
-        resp, pycsw_record, links = executors.validate_pycsw2(product_id, product_version)
+        resp, pycsw_record, links = executors.validate_pycsw2(source_data, product_id, product_version)
         # todo this is legacy records validator based graphql -> for future needs mabye
         # resp, pycsw_record = executors.validate_pycsw(config.GQK_URL, product_id, source_data)
         state = resp['validation']

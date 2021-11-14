@@ -80,13 +80,13 @@ def validate_source_directory(path):
                              discrete_kit.configuration.config.JSON_NAME)
     schema_file = open(full_path, 'r')
     schema_data_to_comp = json.load(schema_file)
-    try:
-        if validate_json_types(schema_data_to_comp,
-                               json_object_res.get_json_output()) is None:
-            return True, json_object_res.created_json
-    except Exception as e:
-        return False, e
-
+    # try:
+    #     if validate_json_types(schema_data_to_comp,
+    #                            json_object_res.get_json_output()) is None:
+    #         return True, json_object_res.created_json
+    # except Exception as e:
+    #     return False, e
+    return True, json_object_res.created_json
     # return True, res
 
 
