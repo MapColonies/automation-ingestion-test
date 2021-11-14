@@ -149,6 +149,7 @@ def test_watch_discrete_ingest():
     # time.sleep(config.FOLLOW_TIMEOUT)  # this timeout is for mapproxy updating time of new layer on configuration
 
     # validate new discrete on pycsw records
+    time.sleep(config.FOLLOW_TIMEOUT)
     try:
         # todo -> danny, this is new function of validation with new csw records getter
         shape_folder_path = executors.get_folder_path_by_name(source_directory, 'Shape')
