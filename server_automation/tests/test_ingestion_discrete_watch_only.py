@@ -16,7 +16,7 @@ def test_watch_discrete_ingest():
     This test ingestion by watching shared folder
     """
 
-    # config.TEST_ENV = 'PROD'
+    config.TEST_ENV = 'PROD'
 
     """
     stop watching folder as prerequisites
@@ -89,18 +89,19 @@ def test_watch_discrete_ingest():
     2) Validation pycsw with shapefile json and returns assertion 
     """
     try:
-        # todo -> danny, this is new function of validation with new csw records getter
         resp, pycsw_record, links = executors.validate_pycsw2(source_data, product_id, product_version)
-        # todo this is legacy records validator based graphql -> for future needs mabye
+        # todo this is legacy records validator based graphql -> for future needs maybe
         # resp, pycsw_record = executors.validate_pycsw(config.GQK_URL, product_id, source_data)
         state = resp['validation']
         error_msg = resp['reason']
     except Exception as e:
         state = False
         error_msg = str(e)
-    # assert state, f'Test: [{test_watch_discrete_ingest.__name__}] Failed: validation of pycsw record\n' \
-    #               f'related errors:\n' \
-    #               f'{error_msg}'
+
+    # ToDo: Uncomment before merge
+    assert state, f'Test: [{test_watch_discrete_ingest.__name__}] Failed: validation of pycsw record\n' \
+                  f'related errors:\n' \
+                  f'{error_msg}'
 
     # validating new discrete on mapproxy
     try:

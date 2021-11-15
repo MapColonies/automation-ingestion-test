@@ -65,7 +65,7 @@ def validate_source_directory(path):
             if not ret_extension_validation:
                 missing_set_files.append(missing)
     if missing_set_files:
-        return False, f'Path [{os.path.join(path, config.SHAPES_PATH)}] missing files:{set(missing_set_files)}'
+        return False, f'Path [{os.path.join(path, a_config.SHAPES_PATH)}] missing files:{set(missing_set_files)}'
 
     json_object_res = ShapeToJSON(ret_folder)
     try:
@@ -74,12 +74,12 @@ def validate_source_directory(path):
     except IOError:
         return False, "Cannot write json file to run validation on schema."
 
-    dir_name = os.path.dirname(__file__)
-    dir_name = Path(Path(dir_name).resolve()).parent
-    full_path = os.path.join(dir_name, discrete_kit.configuration.config.SCHEMA_FOLDER,
-                             discrete_kit.configuration.config.JSON_NAME)
-    schema_file = open(full_path, 'r')
-    schema_data_to_comp = json.load(schema_file)
+    # dir_name = os.path.dirname(__file__)
+    # dir_name = Path(Path(dir_name).resolve()).parent
+    # full_path = os.path.join(dir_name, discrete_kit.configuration.config.SCHEMA_FOLDER,
+    #                          discrete_kit.configuration.config.JSON_NAME)
+    # schema_file = open(full_path, 'r')
+    # schema_data_to_comp = json.load(schema_file)
     # try:
     #     if validate_json_types(schema_data_to_comp,
     #                            json_object_res.get_json_output()) is None:

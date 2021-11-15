@@ -158,7 +158,9 @@ def init_ingestion_src_fs(src, dst, watch=False):
         raise e2
 
     try:
-        file = os.path.join(dst, config.SHAPES_PATH, config.SHAPE_METADATA_FILE)
+        # file = os.path.join(dst, config.SHAPES_PATH, config.SHAPE_METADATA_FILE)
+        file = os.path.join(discrete_directory_loader.get_folder_path_by_name(dst, config.SHAPES_PATH),
+                            config.SHAPE_METADATA_FILE)
         source_name = update_shape_fs(file)
         _log.info(
             f'[{file}]:was changed resource name: {source_name}')
@@ -387,7 +389,6 @@ def test_cleanup(product_id, product_version, initial_mapproxy_config):
 
 
 def validate_pycsw2(source_json_metadata, product_id=None, product_version=None):
-    # todo -> implement full function
     """
     :return: dict of result validation
     """
@@ -414,11 +415,9 @@ def validate_pycsw(gqk=config.GQK_URL, product_id=None, source_data=None):
     """
     :return: dict of result validation
     """
-    # Todo -> refactoring records getting with Danny's validator
     pycsw_record = pycsw_handler.get_record_by_id(source_data, product_id, host=config.PYCSW_URL,
                                                   params=config.PYCSW_GET_RECORD_PARAMS)
 
-    # TODO -> this is old records getting by pycsw -> should stay as mark on code and use the new getting directly from pycsw
     res_dict = {'validation': True, 'reason': ""}
     # pycsw_record = gql_wrapper.get_pycsw_record(host=gqk, product_id=product_id)
     if not pycsw_record['data']['search']:

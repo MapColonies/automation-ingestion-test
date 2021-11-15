@@ -58,7 +58,6 @@ def test_manual_discrete_ingest():
         resp = None
         error_msg = str(e)
 
-    # ToDo : add validation by pycsw and json object created  source_data
     # result, err = validate_pycsw_with_shape_json(get_json_schema('pycsw.json'), source_data)
 
     assert resp, \
@@ -68,7 +67,6 @@ def test_manual_discrete_ingest():
 
     # validate new discrete on pycsw records
     try:
-        # todo -> danny, this is new function of validation with new csw records getter
         resp, pycsw_record, links = executors.validate_pycsw2(product_id, product_version)
         # todo this is legacy records validator based graphql -> for future needs mabye
         # resp, pycsw_record = executors.validate_pycsw(config.GQK_URL, product_id, source_data)
@@ -130,7 +128,6 @@ def test_watch_discrete_ingest():
     ValueStorage.discrete_list.append({'product_id': product_id, 'product_version': product_version})
     source_directory = resp['ingestion_dir']
     _log.info(f'{product_id} {product_version}')
-    # ToDo: uncomment to get shapemetadata + pass it to pycsw2 with sourc_edata and return relevant assert
 
     time.sleep(config.SYSTEM_DELAY)  # validate generation of new job
     # validating following and completion of ingestion job
@@ -151,7 +148,6 @@ def test_watch_discrete_ingest():
     # validate new discrete on pycsw records
     time.sleep(config.FOLLOW_TIMEOUT)
     try:
-        # todo -> danny, this is new function of validation with new csw records getter
         shape_folder_path = executors.get_folder_path_by_name(source_directory, 'Shape')
         read_json_from_shape_file = ShapeToJSON(shape_folder_path)
         resp, pycsw_record, links = executors.validate_pycsw2(read_json_from_shape_file.created_json, product_id,
