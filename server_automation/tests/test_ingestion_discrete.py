@@ -8,15 +8,14 @@ from server_automation.postgress import postgress_adapter
 
 _log = logging.getLogger('server_automation.tests.test_ingestion_discrete')
 
-initial_mapproxy_config = postgress_adapter.get_mapproxy_configs()
+if config.DEBUG_MODE_LOCAL:
+    initial_mapproxy_config = postgress_adapter.get_mapproxy_configs()
 
 
 def test_manuel_discrete_ingest():
     """
     This test will test full e2e discrete ingestion
     """
-    # config.TEST_ENV = 'PROD'
-    config.PVC_UPDATE_ZOOM = False
     # prepare test data
     try:
         resp = executors.init_ingestion_src(config.TEST_ENV)
@@ -55,9 +54,9 @@ def test_manuel_discrete_ingest():
         error_msg = str(e)
     assert resp, \
         f'Test: [{test_manuel_discrete_ingest.__name__}] Failed: on following ingestion process [{error_msg}]'
-    
-    time.sleep(config.FOLLOW_TIMEOUT) # this timeout is for mapproxy updating time of new layer on configuration
-    
+
+    time.sleep(config.SYSTEM_DELAY)  # this timeout is for mapproxy updating time of new layer on configuration
+
     # validate new discrete on pycsw records
     try:
         # todo -> danny, this is new function of validation with new csw records getter
@@ -144,9 +143,9 @@ def test_watch_discrete_ingest():
         error_msg = str(e)
     assert resp, \
         f'Test: [{test_watch_discrete_ingest.__name__}] Failed: on following ingestion process [{error_msg}]'
-    
-    time.sleep(config.FOLLOW_TIMEOUT) # this timeout is for mapproxy updating time of new layer on configuration
-    
+
+    time.sleep(config.FOLLOW_TIMEOUT)  # this timeout is for mapproxy updating time of new layer on configuration
+
     # validate new discrete on pycsw records
     time.sleep(config.FOLLOW_TIMEOUT)
     try:
@@ -197,8 +196,8 @@ if config.DEBUG_MODE_LOCAL:
     config.PVC_UPDATE_ZOOM = True
     config.MAX_ZOOM_TO_CHANGE = 4
 
-    # test_manuel_discrete_ingest()
-    test_watch_discrete_ingest()
+    test_manuel_discrete_ingest()
+    # test_watch_discrete_ingest()
 
 # from server_automation.pycsw import pycsw_handler
 # res = pycsw_handler.get_record_by_id('2021_10_26T11_03_39Z_MAS_6_ORT_247993', '1.0', host=config.PYCSW_URL, params=config.PYCSW_GET_RECORD_PARAMS)

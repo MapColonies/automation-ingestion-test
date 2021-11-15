@@ -330,13 +330,33 @@ def test_cleanup(product_id, product_version, initial_mapproxy_config):
         """This method will clean all created test data"""
         job_id = postgress_adapter.get_current_job_id(product_id, product_version)
         postgress_adapter.clean_job_task(job_id)
-        s3_conn = s3.S3Client(config.S3_END_POINT, config.S3_ACCESS_KEY, config.S3_SECRET_KEY)
-        s3_conn.delete_folder(config.S3_BUCKET_NAME, product_id)
+        if config.TEST_ENV == config.EnvironmentTypes.QA.name or config.TEST_ENV == config.EnvironmentTypes.DEV.name:
+            s3_conn = s3.S3Client(config.S3_END_POINT, config.S3_ACCESS_KEY, config.S3_SECRET_KEY)
+            s3_conn.delete_folder(config.S3_BUCKET_NAME, product_id)
+        elif config.TEST_ENV == config.EnvironmentTypes.PROD.name:
+            path = os.path.join(config.NFS_TILES_DIR, product_id, product_version)
+
+            try:
+                if os.path.exists(path):
+                    command = f'rm -rf {path}'
+                    os.system(command)
+                else:
+                    # todo mabye on future add it with exception and test step assertion
+                    _log.error(f'Directory of tiles [{path}] not exists on File System')
+
+            except Exception as e:
+                _log.error(f'Failed deleting from File System the dir: [{str(path)}] with error: [{str(e)}]')
+
+        else:
+            raise ValueError(f'Wrong \ not given "TEST_ENV" configuration: [{config.TEST_ENV}]')
         current_config_mapproxy = postgress_adapter.get_mapproxy_configs(table_name='config',
                                                                          db_name=config.PG_MAPPROXY_CONFIG)
         postgress_adapter.clean_pycsw_record(product_id)
         if len(current_config_mapproxy) > len(initial_mapproxy_config):
-            postgress_adapter.delete_config_mapproxy('id', current_config_mapproxy[0]['id'])
+            if current_config_mapproxy[0]['id'] != '1':
+                postgress_adapter.delete_config_mapproxy('id', current_config_mapproxy[0]['id'])
+            if current_config_mapproxy[1]['id'] != '1':
+                postgress_adapter.delete_config_mapproxy('id', current_config_mapproxy[1]['id'])
         postgress_adapter.delete_agent_path("layerId", product_id)
         postgress_adapter.delete_pycsw_record('product_id', product_id)
 
@@ -467,12 +487,14 @@ def validate_new_discrete(pycsw_records, product_id, product_version):
     """
 
     links = {}
-    for record in pycsw_records:
-        links[record['mc:productType']] = {
-            record['mc:links'][0]['@scheme']: record['mc:links'][0]['#text'],
-            record['mc:links'][1]['@scheme']: record['mc:links'][1]['#text'],
-            record['mc:links'][2]['@scheme']: record['mc:links'][2]['#text']
-        }
+    # for record in pycsw_records:
+    #     links[record['mc:productType']] = {
+    #         record['mc:links'][0]['@scheme']: record['mc:links'][0]['#text'],
+    #         record['mc:links'][1]['@scheme']: record['mc:links'][1]['#text'],
+    #         record['mc:links'][2]['@scheme']: record['mc:links'][2]['#text']
+    #     }
+    for records in pycsw_records:
+        links[records['mc:productType']] = {link['@scheme']: link['#text'] for link in records['mc:links']}
 
     results = dict.fromkeys(list(links.keys()), dict())
     for link_group in list(links.keys()):

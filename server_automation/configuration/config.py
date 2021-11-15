@@ -39,7 +39,7 @@ class JobStatus(enum.Enum):
 CLEAN_UP = common.get_environment_variable('CLEAN_UP', False)  # If should clean running data from env at the end
 DEBUG_MODE_LOCAL = common.get_environment_variable('DEBUG_MODE_LOCAL', False)  # for multiple debug option on dev
 FOLLOW_TIMEOUT = 60 * common.get_environment_variable('FOLLOW_TIMEOUT', 10)
-SYSTEM_DELAY = common.get_environment_variable('SYSTEM_DELAY', 50)
+SYSTEM_DELAY = common.get_environment_variable('SYSTEM_DELAY', 120)
 TEST_ENV = common.get_environment_variable('TEST_ENV', EnvironmentTypes.QA.name)  # compatibility to azure + prod env
 
 ORIG_DISCRETE_PATH = common.get_environment_variable('ORIG_DISCRETE_PATH',
