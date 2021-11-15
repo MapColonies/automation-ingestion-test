@@ -12,15 +12,14 @@ from discrete_kit.functions.shape_functions import ShapeToJSON
 
 _log = logging.getLogger('server_automation.tests.test_ingestion_discrete')
 
-initial_mapproxy_config = postgress_adapter.get_mapproxy_configs()
+if config.DEBUG_MODE_LOCAL:
+    initial_mapproxy_config = postgress_adapter.get_mapproxy_configs()
 
 
 def test_manual_discrete_ingest():
     """
     This test will test full e2e discrete ingestion
     """
-    # config.TEST_ENV = 'PROD'
-    config.PVC_UPDATE_ZOOM = False
     # prepare test data
     try:
         resp = executors.init_ingestion_src(config.TEST_ENV)
@@ -57,9 +56,6 @@ def test_manual_discrete_ingest():
     except Exception as e:
         resp = None
         error_msg = str(e)
-
-    # result, err = validate_pycsw_with_shape_json(get_json_schema('pycsw.json'), source_data)
-
     assert resp, \
         f'Test: [{test_manual_discrete_ingest.__name__}] Failed: on following ingestion process [{error_msg}]'
 
@@ -67,6 +63,7 @@ def test_manual_discrete_ingest():
 
     # validate new discrete on pycsw records
     try:
+        # todo -> danny, this is new function of validation with new csw records getter
         resp, pycsw_record, links = executors.validate_pycsw2(product_id, product_version)
         # todo this is legacy records validator based graphql -> for future needs mabye
         # resp, pycsw_record = executors.validate_pycsw(config.GQK_URL, product_id, source_data)
@@ -129,22 +126,30 @@ def test_watch_discrete_ingest():
     source_directory = resp['ingestion_dir']
     _log.info(f'{product_id} {product_version}')
 
+    try:
+        state, content, source_data = executors.start_watch_ingestion(source_directory, config.TEST_ENV)
+    except Exception as e:
+        status_code = 'unknown'
+        content = str(e)
+    assert state, \
+        f'Test: [{test_watch_discrete_ingest.__name__}] Failed: Trigger ingest process from watch agent: [{status_code}]\n' \
+        f'details: [{content}]'
+
     time.sleep(config.SYSTEM_DELAY)  # validate generation of new job
     # validating following and completion of ingestion job
-    # ToDo: Uncomment this try catch
-    # try:
-    #     ingestion_follow_state = executors.follow_running_task(product_id, product_version)
-    #     resp = (ingestion_follow_state['status'] == config.JobStatus.Completed.name)
-    #     error_msg = ingestion_follow_state['message']
-    #
-    # except Exception as e:
-    #     resp = None
-    #     error_msg = str(e)
-    # assert resp, \
-    #     f'Test: [{test_watch_discrete_ingest.__name__}] Failed: on following ingestion process [{error_msg}]'
-    # ToDo: Remove Comment for sleep
-    # time.sleep(config.FOLLOW_TIMEOUT)  # this timeout is for mapproxy updating time of new layer on configuration
+    try:
+        ingestion_follow_state = executors.follow_running_task(product_id, product_version)
+        resp = (ingestion_follow_state['status'] == config.JobStatus.Completed.name)
+        error_msg = ingestion_follow_state['message']
 
+    except Exception as e:
+        resp = None
+        error_msg = str(e)
+    assert resp, \
+        f'Test: [{test_watch_discrete_ingest.__name__}] Failed: on following ingestion process [{error_msg}]'
+    
+    time.sleep(config.FOLLOW_TIMEOUT) # this timeout is for mapproxy updating time of new layer on configuration
+    
     # validate new discrete on pycsw records
     time.sleep(config.FOLLOW_TIMEOUT)
     try:
@@ -154,18 +159,11 @@ def test_watch_discrete_ingest():
                                                               product_version)
         # todo this is legacy records validator based graphql -> for future needs mabye
         # resp, pycsw_record = executors.validate_pycsw(config.GQK_URL, product_id, source_data)
-        # resp, pycsw_record, links = executors.validate_pycsw2(source_data, product_id, product_version)
-        # resp, pycsw_record = executors.validate_pycsw(config.GQK_URL, product_id, source_data)
         state = resp['validation']
         error_msg = resp['reason']
     except Exception as e:
         state = False
         error_msg = str(e)
-    # ToDo: Uncomment it before pushing
-    # assert state, f'Test: [{test_manual_discrete_ingest.__name__}] Failed: validation of pycsw record\n' \
-    #               f'related errors:\n' \
-    #               f'{error_msg}'
-
     # assert state, f'Test: [{test_watch_discrete_ingest.__name__}] Failed: validation of pycsw record\n' \
     #               f'related errors:\n' \
     #               f'{error_msg}'
