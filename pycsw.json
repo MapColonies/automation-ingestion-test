@@ -1,0 +1,136 @@
+{
+  "data": {
+    "search": [
+      {
+        "__typename": "LayerRasterRecord",
+        "productId": "2021_10_26T08_53_17Z_MAS_6_ORT_247993",
+        "productName": "O_arzi_mz_20cm",
+        "productType": "ORTHOPHOTO",
+        "sensorType": [
+          "UNDEFINED"
+        ],
+        "description": "\u05ea\u05e9\u05ea\u05d9\u05ea \u05d0\u05d5\u05e8\u05ea\u05d5\u05e4\u05d5\u05d8\u05d5 \u05d1\u05d9\u05e9\u05e8\u05d0\u05dc \u05e2\u05d3\u05db\u05e0\u05d9 \u05dc\u05d0\u05e4\u05e8\u05d9\u05dc 2019",
+        "scale": null,
+        "footprint": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                34.8468438649828,
+                32.0689996810298
+              ],
+              [
+                34.8637856279928,
+                32.0590059440186
+              ],
+              [
+                34.8773961450173,
+                32.0680478960404
+              ],
+              [
+                34.8804418550117,
+                32.0528193460686
+              ],
+              [
+                34.8786334639958,
+                32.0466327470143
+              ],
+              [
+                34.8605495609931,
+                32.0488218510146
+              ],
+              [
+                34.8468438649828,
+                32.0689996810298
+              ]
+            ]
+          ]
+        },
+        "layerPolygonParts": {
+          "bbox": [
+            34.8468438649828,
+            32.0466327470143,
+            34.8804418550117,
+            32.0689996810298
+          ],
+          "type": "FeatureCollection",
+          "features": [
+            {
+              "type": "Feature",
+              "geometry": {
+                "type": "Polygon",
+                "coordinates": [
+                  [
+                    [
+                      34.8468438649828,
+                      32.0689996810298
+                    ],
+                    [
+                      34.8637856279928,
+                      32.0590059440186
+                    ],
+                    [
+                      34.8773961450173,
+                      32.0680478960404
+                    ],
+                    [
+                      34.8804418550117,
+                      32.0528193460686
+                    ],
+                    [
+                      34.8786334639958,
+                      32.0466327470143
+                    ],
+                    [
+                      34.8605495609931,
+                      32.0488218510146
+                    ],
+                    [
+                      34.8468438649828,
+                      32.0689996810298
+                    ]
+                  ]
+                ]
+              },
+              "properties": {
+                "Dsc": "\u05ea\u05e9\u05ea\u05d9\u05ea \u05d0\u05d5\u05e8\u05ea\u05d5\u05e4\u05d5\u05d8\u05d5 \u05d1\u05d9\u05e9\u05e8\u05d0\u05dc \u05e2\u05d3\u05db\u05e0\u05d9 \u05dc\u05d0\u05e4\u05e8\u05d9\u05dc 2019",
+                "Rms": null,
+                "Ep90": "3",
+                "Scale": null,
+                "Source": "2021_10_26T08_53_17Z_MAS_6_ORT_247993-1.0",
+                "Resolution": "0.2",
+                "SensorType": "OTHER",
+                "SourceName": "O_arzi_mz_w84geo_Tiff_20cm",
+                "UpdateDate": "06/04/2019"
+              }
+            }
+          ]
+        },
+        "type": "RECORD_RASTER",
+        "id": "95b886c9-8ff6-4084-ab55-a0c574903819",
+        "accuracyCE90": 3,
+        "sourceDateEnd": null,
+        "links": [
+          {
+            "name": null,
+            "description": null,
+            "protocol": "WMS",
+            "url": "http://mapproxy-qa-map-proxy-map-proxy-route-raster.apps.v0h0bdx6.eastus.aroapp.io/service?REQUEST=GetCapabilities"
+          },
+          {
+            "name": null,
+            "description": null,
+            "protocol": "WMTS",
+            "url": "http://mapproxy-qa-map-proxy-map-proxy-route-raster.apps.v0h0bdx6.eastus.aroapp.io/wmts/1.0.0/WMTSCapabilities.xml"
+          },
+          {
+            "name": null,
+            "description": null,
+            "protocol": "WMTS_LAYER",
+            "url": "http://mapproxy-qa-map-proxy-map-proxy-route-raster.apps.v0h0bdx6.eastus.aroapp.io/wmts/2021_10_26T08_53_17Z_MAS_6_ORT_247993-Orthophoto/{TileMatrixSet}/{TileMatrix}/{TileCol}/{TileRow}.png"
+          }
+        ]
+      }
+    ]
+  }
+}

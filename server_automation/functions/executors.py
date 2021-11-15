@@ -3,6 +3,7 @@
 import logging
 import time
 import json
+import glob
 import os
 from shapely.geometry import Polygon
 from server_automation.configuration import config
@@ -11,10 +12,13 @@ from server_automation.postgress import postgress_adapter
 from server_automation.graphql import gql_wrapper
 from server_automation.pycsw import pycsw_handler
 
+from discrete_kit.validator.json_compare_pycsw import *
+
 from mc_automation_tools import common as common
 from mc_automation_tools import shape_convertor, base_requests
 from mc_automation_tools import s3storage as s3
 from discrete_kit.functions import metadata_convertor
+
 _log = logging.getLogger('server_automation.function.executors')
 
 
@@ -154,7 +158,9 @@ def init_ingestion_src_fs(src, dst, watch=False):
         raise e2
 
     try:
-        file = os.path.join(dst, config.SHAPES_PATH, config.SHAPE_METADATA_FILE)
+        # file = os.path.join(dst, config.SHAPES_PATH, config.SHAPE_METADATA_FILE)
+        file = os.path.join(discrete_directory_loader.get_folder_path_by_name(dst, config.SHAPES_PATH),
+                            config.SHAPE_METADATA_FILE)
         source_name = update_shape_fs(file)
         _log.info(
             f'[{file}]:was changed resource name: {source_name}')
@@ -163,7 +169,9 @@ def init_ingestion_src_fs(src, dst, watch=False):
         raise e
 
     if config.PVC_UPDATE_ZOOM:
-        res = metadata_convertor.replace_discrete_resolution(dst, str(config.zoom_level_dict[config.MAX_ZOOM_TO_CHANGE]), 'tfw')
+        res = metadata_convertor.replace_discrete_resolution(dst,
+                                                             str(config.zoom_level_dict[config.MAX_ZOOM_TO_CHANGE]),
+                                                             'tfw')
 
     return {'ingestion_dir': dst, 'resource_name': source_name, 'max_resolution': res}
 
@@ -227,17 +235,21 @@ def validate_source_directory(path=None, env=config.EnvironmentTypes.QA.name, wa
         else:
             resp = azure_pvc_api.validate_ingestion_directory()
         content = json.loads(resp.text)
+        if content.get('json_data'):
+            validation_tiff_dict, error_msg = validate_tiff_exists(path, content.get('json_data')['fileNames'])
+            assert all(validation_tiff_dict.values()) is True, f' Failed: on following ingestion process [{error_msg}]'
+            return not content['failure'], content['json_data']
 
-        return not content['failure'], content['json_data']
-
+        else:
+            return not content['failure'], content['message']
     elif env == config.EnvironmentTypes.PROD.name:
-        resp = discrete_directory_loader.validate_source_directory(path)
-        return resp[0], resp[1]
+        state, resp = discrete_directory_loader.validate_source_directory(path)
+        return state, resp
     else:
         raise Exception(f'illegal Environment name: [{env}]')
 
 
-def start_manuel_ingestion(path, env=config.EnvironmentTypes.QA.name):
+def start_manual_ingestion(path, env=config.EnvironmentTypes.QA.name):
     """This method will trigger new process of discrete ingestion by provided path"""
     # validate directory include all needed files and data
     source_ok, body = validate_source_directory(path, env)
@@ -325,6 +337,31 @@ def update_shape_fs(shp):
     return resp
 
 
+def validate_tiff_exists(path_name, tiff_list):
+    # path_name = '/tmp/ingestion/watch/test_data_automation/89b89916-dd38-44fb-8a86-a1ab2b606cd6'
+    # tiff_list = ['/X185_Y167.tiff']
+    err = ''
+    x = {}
+    text_files = glob.glob(path_name + "/**/*.tif", recursive=True)
+    for item in tiff_list:
+        if '.' in item:
+            item = item.split('.')[0]
+        if any(item in text for text in text_files):
+            x[item] = True
+        else:
+            x[item] = False
+            err = 'tiff files missing :' + item
+    if len(text_files) != len(tiff_list):
+        x['length_is_equal'] = False
+        err = 'tiff files length is not equal'
+    else:
+        x['length_is_equal'] = True
+    if err:
+        return x, err
+    else:
+        return x, ""
+
+
 def test_cleanup(product_id, product_version, initial_mapproxy_config):
     try:
         """This method will clean all created test data"""
@@ -371,8 +408,7 @@ def test_cleanup(product_id, product_version, initial_mapproxy_config):
         _log.error(f'Failed on cleanup with error: {str(e)}')
 
 
-def validate_pycsw2(product_id=None, product_version=None):
-    # todo -> implement full function
+def validate_pycsw2(source_json_metadata, product_id=None, product_version=None):
     """
     :return: dict of result validation
     """
@@ -389,7 +425,9 @@ def validate_pycsw2(product_id=None, product_version=None):
             record['mc:links'][1]['@scheme']: record['mc:links'][1]['#text'],
             record['mc:links'][2]['@scheme']: record['mc:links'][2]['#text']
         }
-
+    validation_flag, err_dict = validate_pycsw_with_shape_json(pycsw_records, source_json_metadata)
+    res_dict['validation'] = validation_flag
+    res_dict['reason'] = err_dict
     return res_dict, pycsw_records, links
 
 
@@ -397,11 +435,9 @@ def validate_pycsw(gqk=config.GQK_URL, product_id=None, source_data=None):
     """
     :return: dict of result validation
     """
-    # Todo -> refactoring records getting with Danny's validator
     pycsw_record = pycsw_handler.get_record_by_id(source_data, product_id, host=config.PYCSW_URL,
                                                   params=config.PYCSW_GET_RECORD_PARAMS)
 
-    # TODO -> this is old records getting by pycsw -> should stay as mark on code and use the new getting directly from pycsw
     res_dict = {'validation': True, 'reason': ""}
     # pycsw_record = gql_wrapper.get_pycsw_record(host=gqk, product_id=product_id)
     if not pycsw_record['data']['search']:
@@ -511,12 +547,16 @@ def validate_new_discrete(pycsw_records, product_id, product_version):
         results[group]['is_valid'] = {}
         # check that wms include the new layer on capabilities
         wms_capabilities = common.get_xml_as_dict(results[group]['WMS'])
-        results[group]['is_valid']['WMS'] = layer_name in [layer['Name'] for layer in wms_capabilities['WMS_Capabilities']['Capability']['Layer']['Layer']]
+        results[group]['is_valid']['WMS'] = layer_name in [layer['Name'] for layer in
+                                                           wms_capabilities['WMS_Capabilities']['Capability']['Layer'][
+                                                               'Layer']]
 
         # check that wmts include the new layer on capabilities
         wmts_capabilities = common.get_xml_as_dict(results[group]['WMTS'])
-        results[group]['is_valid']['WMTS'] = layer_name in [layer['ows:Identifier'] for layer in wmts_capabilities['Capabilities']['Contents']['Layer']]
-        wmts_layer_properties = [layer for layer in wmts_capabilities['Capabilities']['Contents']['Layer'] if layer_name in layer['ows:Identifier']]
+        results[group]['is_valid']['WMTS'] = layer_name in [layer['ows:Identifier'] for layer in
+                                                            wmts_capabilities['Capabilities']['Contents']['Layer']]
+        wmts_layer_properties = [layer for layer in wmts_capabilities['Capabilities']['Contents']['Layer'] if
+                                 layer_name in layer['ows:Identifier']]
 
         # check access to random tile by wmts_layer url
         if config.TEST_ENV == config.EnvironmentTypes.QA.name or config.TEST_ENV == config.EnvironmentTypes.DEV.name:
@@ -533,11 +573,12 @@ def validate_new_discrete(pycsw_records, product_id, product_version):
         else:
             raise Exception(f'Illegal environment value type: {config.TEST_ENV}')
 
-        zxy = list_of_tiles[len(list_of_tiles)-1].split('/')[-3:]
+        zxy = list_of_tiles[len(list_of_tiles) - 1].split('/')[-3:]
         zxy[2] = zxy[2].split('.')[0]
         tile_matrix_set = wmts_layer_properties[0]['TileMatrixSetLink']['TileMatrixSet']
         wmts_layers_url = results[group]['WMTS_LAYER']
-        wmts_layers_url = wmts_layers_url.format(TileMatrixSet=tile_matrix_set, TileMatrix=zxy[0], TileCol=zxy[1], TileRow=zxy[2])  # formatted url for testing
+        wmts_layers_url = wmts_layers_url.format(TileMatrixSet=tile_matrix_set, TileMatrix=zxy[0], TileCol=zxy[1],
+                                                 TileRow=zxy[2])  # formatted url for testing
         resp = base_requests.send_get_request(wmts_layers_url)
         results[group]['is_valid']['WMTS_LAYER'] = resp.status_code == config.ResponseCode.Ok.value
 
@@ -549,3 +590,18 @@ def validate_new_discrete(pycsw_records, product_id, product_version):
             break
     return {'validation': validation, 'reason': results}
 
+
+def get_json_schema(path_to_schema):
+    """This function loads the given schema available"""
+    try:
+        with open(path_to_schema, 'r') as file:
+            schema = json.load(file)
+    except IOError:
+        return None
+    return schema
+
+
+def get_folder_path_by_name(path, name):
+    p_walker = [x[0] for x in os.walk(path)]
+    path = ("\n".join(s for s in p_walker if name.lower() in s.lower()))
+    return path

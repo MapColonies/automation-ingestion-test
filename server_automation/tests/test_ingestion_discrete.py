@@ -1,10 +1,14 @@
 """This module provide multiple test of ingestion services"""
 import logging
-from conftest import ValueStorage
 import time
+import json
+from conftest import ValueStorage
 from server_automation.configuration import config
 from server_automation.functions import executors
 from server_automation.postgress import postgress_adapter
+from discrete_kit.validator.json_compare_pycsw import *
+from server_automation.functions.executors import *
+from discrete_kit.functions.shape_functions import ShapeToJSON
 
 _log = logging.getLogger('server_automation.tests.test_ingestion_discrete')
 
@@ -12,7 +16,7 @@ if config.DEBUG_MODE_LOCAL:
     initial_mapproxy_config = postgress_adapter.get_mapproxy_configs()
 
 
-def test_manuel_discrete_ingest():
+def test_manual_discrete_ingest():
     """
     This test will test full e2e discrete ingestion
     """
@@ -24,7 +28,7 @@ def test_manuel_discrete_ingest():
         resp = None
         error_msg = str(e)
     assert resp, \
-        f'Test: [{test_manuel_discrete_ingest.__name__}] Failed: on creating and updating layerSource folder [{error_msg}]'
+        f'Test: [{test_manual_discrete_ingest.__name__}] Failed: on creating and updating layerSource folder [{error_msg}]'
     _log.info(f'{resp}')
 
     # triggering and validate start of new manuel job
@@ -35,12 +39,12 @@ def test_manuel_discrete_ingest():
     time.sleep(5)
 
     try:
-        status_code, content, source_data = executors.start_manuel_ingestion(source_directory, config.TEST_ENV)
+        status_code, content, source_data = executors.start_manual_ingestion(source_directory, config.TEST_ENV)
     except Exception as e:
         status_code = 'unknown'
         content = str(e)
     assert status_code == config.ResponseCode.Ok.value, \
-        f'Test: [{test_manuel_discrete_ingest.__name__}] Failed: trigger new ingest with status code: [{status_code}]\n' \
+        f'Test: [{test_manual_discrete_ingest.__name__}] Failed: trigger new ingest with status code: [{status_code}]\n' \
         f'details: [{content}]'
 
     # validating following and completion of ingestion job
@@ -53,9 +57,9 @@ def test_manuel_discrete_ingest():
         resp = None
         error_msg = str(e)
     assert resp, \
-        f'Test: [{test_manuel_discrete_ingest.__name__}] Failed: on following ingestion process [{error_msg}]'
+        f'Test: [{test_manual_discrete_ingest.__name__}] Failed: on following ingestion process [{error_msg}]'
 
-    time.sleep(config.SYSTEM_DELAY)  # this timeout is for mapproxy updating time of new layer on configuration
+    time.sleep(config.FOLLOW_TIMEOUT)  # this timeout is for mapproxy updating time of new layer on configuration
 
     # validate new discrete on pycsw records
     try:
@@ -68,7 +72,7 @@ def test_manuel_discrete_ingest():
     except Exception as e:
         state = False
         error_msg = str(e)
-    assert state, f'Test: [{test_manuel_discrete_ingest.__name__}] Failed: validation of pycsw record\n' \
+    assert state, f'Test: [{test_manual_discrete_ingest.__name__}] Failed: validation of pycsw record\n' \
                   f'related errors:\n' \
                   f'{error_msg}'
 
@@ -81,7 +85,7 @@ def test_manuel_discrete_ingest():
         state = False
         error_msg = str(e)
 
-    assert state, f'Test: [{test_manuel_discrete_ingest.__name__}] Failed: validation of mapproxy layer\n' \
+    assert state, f'Test: [{test_manual_discrete_ingest.__name__}] Failed: validation of mapproxy layer\n' \
                   f'related errors:\n' \
                   f'{error_msg}'
 
@@ -143,14 +147,16 @@ def test_watch_discrete_ingest():
         error_msg = str(e)
     assert resp, \
         f'Test: [{test_watch_discrete_ingest.__name__}] Failed: on following ingestion process [{error_msg}]'
-
-    time.sleep(config.FOLLOW_TIMEOUT)  # this timeout is for mapproxy updating time of new layer on configuration
-
+    
+    time.sleep(config.FOLLOW_TIMEOUT) # this timeout is for mapproxy updating time of new layer on configuration
+    
     # validate new discrete on pycsw records
     time.sleep(config.FOLLOW_TIMEOUT)
     try:
-        # todo -> danny, this is new function of validation with new csw records getter
-        resp, pycsw_record, links = executors.validate_pycsw2(product_id, product_version)
+        shape_folder_path = executors.get_folder_path_by_name(source_directory, 'Shape')
+        read_json_from_shape_file = ShapeToJSON(shape_folder_path)
+        resp, pycsw_record, links = executors.validate_pycsw2(read_json_from_shape_file.created_json, product_id,
+                                                              product_version)
         # todo this is legacy records validator based graphql -> for future needs mabye
         # resp, pycsw_record = executors.validate_pycsw(config.GQK_URL, product_id, source_data)
         state = resp['validation']
@@ -196,8 +202,8 @@ if config.DEBUG_MODE_LOCAL:
     config.PVC_UPDATE_ZOOM = True
     config.MAX_ZOOM_TO_CHANGE = 4
 
-    test_manuel_discrete_ingest()
-    # test_watch_discrete_ingest()
+    # test_manuel_discrete_ingest()
+    test_watch_discrete_ingest()
 
 # from server_automation.pycsw import pycsw_handler
 # res = pycsw_handler.get_record_by_id('2021_10_26T11_03_39Z_MAS_6_ORT_247993', '1.0', host=config.PYCSW_URL, params=config.PYCSW_GET_RECORD_PARAMS)
