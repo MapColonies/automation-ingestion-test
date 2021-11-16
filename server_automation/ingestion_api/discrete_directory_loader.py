@@ -68,11 +68,11 @@ def validate_source_directory(path):
         return False, f'Path [{os.path.join(path, a_config.SHAPES_PATH)}] missing files:{set(missing_set_files)}'
 
     json_object_res = ShapeToJSON(ret_folder)
-    try:
-        with open(Path(Path(__file__).resolve()).parent.parent / 'jsons/shape_file.json', 'w', encoding='utf-8') as f:
-            json.dump(json.loads(json_object_res.get_json_output()), f, ensure_ascii=False)
-    except IOError:
-        return False, "Cannot write json file to run validation on schema."
+    # try:
+    #     with open(Path(Path(__file__).resolve()).parent.parent / 'jsons/shape_file.json', 'w', encoding='utf-8') as f:
+    #         json.dump(json.loads(json_object_res.get_json_output()), f, ensure_ascii=False)
+    # except IOError:
+    #     return False, "Cannot write json file to run validation on schema."
 
     # dir_name = os.path.dirname(__file__)
     # dir_name = Path(Path(dir_name).resolve()).parent

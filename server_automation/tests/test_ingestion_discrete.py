@@ -58,13 +58,13 @@ def test_manual_discrete_ingest():
         error_msg = str(e)
     assert resp, \
         f'Test: [{test_manual_discrete_ingest.__name__}] Failed: on following ingestion process [{error_msg}]'
-
-    time.sleep(config.FOLLOW_TIMEOUT)  # this timeout is for mapproxy updating time of new layer on configuration
+    # ToDo: uncomment
+    time.sleep(config.SYSTEM_DELAY)  # this timeout is for mapproxy updating time of new layer on configuration
 
     # validate new discrete on pycsw records
     try:
         # todo -> danny, this is new function of validation with new csw records getter
-        resp, pycsw_record, links = executors.validate_pycsw2(product_id, product_version)
+        resp, pycsw_record, links = executors.validate_pycsw2(source_data, product_id, product_version)
         # todo this is legacy records validator based graphql -> for future needs mabye
         # resp, pycsw_record = executors.validate_pycsw(config.GQK_URL, product_id, source_data)
         state = resp['validation']
@@ -147,11 +147,10 @@ def test_watch_discrete_ingest():
         error_msg = str(e)
     assert resp, \
         f'Test: [{test_watch_discrete_ingest.__name__}] Failed: on following ingestion process [{error_msg}]'
-    
-    time.sleep(config.FOLLOW_TIMEOUT) # this timeout is for mapproxy updating time of new layer on configuration
-    
+
+    time.sleep(config.SYSTEM_DELAY)  # this timeout is for mapproxy updating time of new layer on configuration
+
     # validate new discrete on pycsw records
-    time.sleep(config.FOLLOW_TIMEOUT)
     try:
         shape_folder_path = executors.get_folder_path_by_name(source_directory, 'Shape')
         read_json_from_shape_file = ShapeToJSON(shape_folder_path)
@@ -177,13 +176,12 @@ def test_watch_discrete_ingest():
         state = False
         error_msg = str(e)
 
-    ##### enable after new version of ingestion with mapproxy live update
-
     assert state, f'Test: [{test_watch_discrete_ingest.__name__}] Failed: validation of mapproxy layer\n' \
                   f'related errors:\n' \
                   f'{error_msg}'
     resp = executors.stop_watch()
     _log.info(f'Finish running watch ingestion. Watch status: [{resp["reason"]}]')
+
     if config.DEBUG_MODE_LOCAL:
         executors.test_cleanup(product_id, product_version, initial_mapproxy_config)
 
@@ -202,8 +200,8 @@ if config.DEBUG_MODE_LOCAL:
     config.PVC_UPDATE_ZOOM = True
     config.MAX_ZOOM_TO_CHANGE = 4
 
-    # test_manuel_discrete_ingest()
-    test_watch_discrete_ingest()
+    test_manual_discrete_ingest()
+    # test_watch_discrete_ingest()
 
 # from server_automation.pycsw import pycsw_handler
 # res = pycsw_handler.get_record_by_id('2021_10_26T11_03_39Z_MAS_6_ORT_247993', '1.0', host=config.PYCSW_URL, params=config.PYCSW_GET_RECORD_PARAMS)

@@ -235,16 +235,30 @@ def validate_source_directory(path=None, env=config.EnvironmentTypes.QA.name, wa
         else:
             resp = azure_pvc_api.validate_ingestion_directory()
         content = json.loads(resp.text)
+        # ToDo: Add to PVC
+        # if content.get('json_data'):
+        #     validation_tiff_dict, error_msg = validate_tiff_exists(path, content.get('json_data')['fileNames'])
+        #     assert all(validation_tiff_dict.values()) is True, f' Failed: on following ingestion process [{error_msg}]'
+        #     return not content['failure'], content['json_data']
+        #
+        # else:
+        #     return not content['failure'], content['message']
         if content.get('json_data'):
-            validation_tiff_dict, error_msg = validate_tiff_exists(path, content.get('json_data')['fileNames'])
-            assert all(validation_tiff_dict.values()) is True, f' Failed: on following ingestion process [{error_msg}]'
-            return not content['failure'], content['json_data']
-
+            return not content['failure'] , content['json_data']
         else:
-            return not content['failure'], content['message']
+            return content['failure'], "missing json data"
     elif env == config.EnvironmentTypes.PROD.name:
         state, resp = discrete_directory_loader.validate_source_directory(path)
-        return state, resp
+        content = ''
+        content = resp['metadata']
+        if content:
+            validation_tiff_dict, error_msg = validate_tiff_exists(path, resp['fileNames'])
+            assert all(validation_tiff_dict.values()) is True, f' Failed: on following ingestion process [{error_msg}]'
+            return True, content
+
+        else:
+            return False, "Failed on tiff validation"
+        # return state, resp
     else:
         raise Exception(f'illegal Environment name: [{env}]')
 
