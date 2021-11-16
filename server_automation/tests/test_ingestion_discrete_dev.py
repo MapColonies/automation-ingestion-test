@@ -82,7 +82,7 @@ def test_manuel_discrete_ingest():
     #               f'{error_msg}'
 
     if config.DEBUG_MODE_LOCAL:
-        executors.test_cleanup(product_id, product_version, initial_mapproxy_config)
+        executors.cleanup_env(product_id, product_version, initial_mapproxy_config)
 
 
 def test_watch_discrete_ingest():
@@ -168,7 +168,7 @@ def test_watch_discrete_ingest():
     #               f'{error_msg}'
     resp = executors.stop_watch()
     if config.DEBUG_MODE_LOCAL:
-        executors.test_cleanup(product_id, product_version, initial_mapproxy_config)
+        executors.cleanup_env(product_id, product_version, initial_mapproxy_config)
 
 
 def teardown_module(module):  # pylint: disable=unused-argument
@@ -177,7 +177,7 @@ def teardown_module(module):  # pylint: disable=unused-argument
     """
     if config.CLEAN_UP:
         for p in ValueStorage.discrete_list:
-            executors.test_cleanup(p['product_id'], p['product_version'], initial_mapproxy_config)
+            executors.cleanup_env(p['product_id'], p['product_version'], initial_mapproxy_config)
 
 
 

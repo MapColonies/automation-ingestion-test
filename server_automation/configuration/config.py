@@ -41,6 +41,7 @@ DEBUG_MODE_LOCAL = common.get_environment_variable('DEBUG_MODE_LOCAL', False)  #
 FOLLOW_TIMEOUT = 60 * common.get_environment_variable('FOLLOW_TIMEOUT', 10)
 SYSTEM_DELAY = common.get_environment_variable('SYSTEM_DELAY', 60)
 TEST_ENV = common.get_environment_variable('TEST_ENV', EnvironmentTypes.QA.name)  # compatibility to azure + prod env
+VALIDATION_SWITCH = common.get_environment_variable('VALIDATION_SWITCH', True) # if false -> will skip data validation scopes
 
 ORIG_DISCRETE_PATH = common.get_environment_variable('ORIG_DISCRETE_PATH',
                                                      '/home/ronenk1/dev/automation-server-test/shp/1')

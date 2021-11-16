@@ -120,7 +120,7 @@ def test_watch_discrete_ingest():
     resp = executors.stop_watch()
     _log.info(f'Finish running watch ingestion. Watch status: [{resp["reason"]}]')
     if config.DEBUG_MODE_LOCAL:
-        executors.test_cleanup(product_id, product_version, initial_mapproxy_config)
+        executors.cleanup_env(product_id, product_version, initial_mapproxy_config)
 
 
 def teardown_module(module):  # pylint: disable=unused-argument
@@ -130,7 +130,7 @@ def teardown_module(module):  # pylint: disable=unused-argument
     executors.stop_watch()
     if config.CLEAN_UP:
         for p in ValueStorage.discrete_list:
-            executors.test_cleanup(p['product_id'], p['product_version'], initial_mapproxy_config)
+            executors.cleanup_env(p['product_id'], p['product_version'], initial_mapproxy_config)
 
 
 if config.DEBUG_MODE_LOCAL:
