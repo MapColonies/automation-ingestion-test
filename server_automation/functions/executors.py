@@ -244,7 +244,7 @@ def validate_source_directory(path=None, env=config.EnvironmentTypes.QA.name, wa
         # else:
         #     return not content['failure'], content['message']
         if content.get('json_data'):
-            return not content['failure'] , content['json_data']
+            return not content['failure'], content['json_data']
         else:
             return content['failure'], "missing json data"
     elif env == config.EnvironmentTypes.PROD.name:
@@ -439,7 +439,12 @@ def validate_pycsw2(source_json_metadata, product_id=None, product_version=None)
             record['mc:links'][1]['@scheme']: record['mc:links'][1]['#text'],
             record['mc:links'][2]['@scheme']: record['mc:links'][2]['#text']
         }
-    validation_flag, err_dict = validate_pycsw_with_shape_json(pycsw_records, source_json_metadata)
+    if config.TEST_ENV == 'PROD':
+        source_json_metadata_dic = {}
+        source_json_metadata_dic['metadata'] = source_json_metadata
+        validation_flag, err_dict = validate_pycsw_with_shape_json(pycsw_records, source_json_metadata_dic)
+    else:
+        validation_flag, err_dict = validate_pycsw_with_shape_json(pycsw_records, source_json_metadata)
     res_dict['validation'] = validation_flag
     res_dict['reason'] = err_dict
     return res_dict, pycsw_records, links
