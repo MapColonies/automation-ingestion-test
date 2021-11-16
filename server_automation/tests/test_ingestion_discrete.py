@@ -152,9 +152,9 @@ def test_watch_discrete_ingest():
 
     # validate new discrete on pycsw records
     try:
-        shape_folder_path = executors.get_folder_path_by_name(source_directory, 'Shape')
-        read_json_from_shape_file = ShapeToJSON(shape_folder_path)
-        resp, pycsw_record, links = executors.validate_pycsw2(read_json_from_shape_file.created_json, product_id,
+        # shape_folder_path = executors.get_folder_path_by_name(source_directory, 'Shape')
+        # read_json_from_shape_file = ShapeToJSON(shape_folder_path)
+        resp, pycsw_record, links = executors.validate_pycsw2(source_data, product_id,
                                                               product_version)
         # todo this is legacy records validator based graphql -> for future needs mabye
         # resp, pycsw_record = executors.validate_pycsw(config.GQK_URL, product_id, source_data)
@@ -163,9 +163,10 @@ def test_watch_discrete_ingest():
     except Exception as e:
         state = False
         error_msg = str(e)
-    # assert state, f'Test: [{test_watch_discrete_ingest.__name__}] Failed: validation of pycsw record\n' \
-    #               f'related errors:\n' \
-    #               f'{error_msg}'
+    # ToDo : Fix it to validation state.
+    assert state, f'Test: [{test_watch_discrete_ingest.__name__}] Failed: validation of pycsw record\n' \
+                  f'related errors:\n' \
+                  f'{error_msg}'
 
     # validating new discrete on mapproxy
     try:
@@ -200,8 +201,8 @@ if config.DEBUG_MODE_LOCAL:
     config.PVC_UPDATE_ZOOM = True
     config.MAX_ZOOM_TO_CHANGE = 4
 
-    test_manual_discrete_ingest()
-    # test_watch_discrete_ingest()
+    # test_manual_discrete_ingest()
+    test_watch_discrete_ingest()
 
 # from server_automation.pycsw import pycsw_handler
 # res = pycsw_handler.get_record_by_id('2021_10_26T11_03_39Z_MAS_6_ORT_247993', '1.0', host=config.PYCSW_URL, params=config.PYCSW_GET_RECORD_PARAMS)
