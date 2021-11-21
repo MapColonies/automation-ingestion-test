@@ -99,7 +99,7 @@ PVC_CHANGE_WATCH_MAX_ZOOM = common.get_environment_variable('PVC_CHANGE_WATCH_MA
 MAX_ZOOM_TO_CHANGE = common.get_environment_variable('MAX_ZOOM_TO_CHANGE', 5)
 
 
-NFS_WATCH_ROOT_DIR = common.get_environment_variable('NFS_ROOT_DIR', '/tmp')
+NFS_WATCH_ROOT_DIR = common.get_environment_variable('NFS_WATCH_ROOT_DIR', '/tmp')
 NFS_WATCH_SOURCE_DIR = common.get_environment_variable('NFS_WATCH_SOURCE_DIR', 'ingestion/1')
 NFS_WATCH_BASE_DIR = common.get_environment_variable('NFS_WATCH_SOURCE_DIR', 'ingestion/1')
 NFS_WATCH_DEST_DIR = common.get_environment_variable('NFS_WATCH_DEST_DIR', 'watch')
