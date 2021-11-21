@@ -376,7 +376,7 @@ def validate_tiff_exists(path_name, tiff_list):
         return x, ""
 
 
-def test_cleanup(product_id, product_version, initial_mapproxy_config):
+def cleanup_env(product_id, product_version, initial_mapproxy_config):
     try:
         """This method will clean all created test data"""
         job_id = postgress_adapter.get_current_job_id(product_id, product_version)
@@ -594,6 +594,7 @@ def validate_new_discrete(pycsw_records, product_id, product_version):
 
         zxy = list_of_tiles[len(list_of_tiles) - 1].split('/')[-3:]
         zxy[2] = zxy[2].split('.')[0]
+        zxy[2]= str(2**int(zxy[0]) - 1 - int(zxy[2]))
         tile_matrix_set = wmts_layer_properties[0]['TileMatrixSetLink']['TileMatrixSet']
         wmts_layers_url = results[group]['WMTS_LAYER']
         wmts_layers_url = wmts_layers_url.format(TileMatrixSet=tile_matrix_set, TileMatrix=zxy[0], TileCol=zxy[1],
