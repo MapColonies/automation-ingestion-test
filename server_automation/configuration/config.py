@@ -116,8 +116,10 @@ S3_BUCKET_NAME = common.get_environment_variable('S3_BUCKET_NAME', None)
 S3_END_POINT = common.get_environment_variable('S3_END_POINT', None)
 
 ###################################################  gql & pycsw  ######################################################
+# PYCSW_URL = common.get_environment_variable('PYCSW_URL',
+#                                             "http://raster-qa-catalog-raster-catalog-pycsw-route-raster.apps.v0h0bdx6.eastus.aroapp.io")
 PYCSW_URL = common.get_environment_variable('PYCSW_URL',
-                                            "http://raster-qa-catalog-raster-catalog-pycsw-route-raster.apps.v0h0bdx6.eastus.aroapp.io")
+                                            "http://catalog-qa-raster-catalog-pycsw-route-raster.apps.v0h0bdx6.eastus.aroapp.io/")
 PYCSW_SERVICE = common.get_environment_variable("PYCSW_SERVICE", "CSW")
 PYCSW_VERSION = common.get_environment_variable("PYCSW_VERSION", "2.0.2")
 PYCSW_REQUEST_GET_RECORDS = common.get_environment_variable("PYCSW_REQUEST_GET_RECORDS", "GetRecords")
