@@ -23,7 +23,6 @@ def change_max_zoom_tfw(host=config.PVC_HANDLER_ROUTE, api=config.PVC_CHANGE_MAX
     return resp
 
 
-
 def make_unique_shapedata(host=config.PVC_HANDLER_ROUTE, api=config.PVC_CHANGE_METADATA):
     """
     This method will send http get request to pvc server and change shape metadata to unique running
@@ -43,6 +42,12 @@ def validate_ingestion_directory(host=config.PVC_HANDLER_ROUTE, api=config.PVC_V
     :param api: routing dir
     :return: (True , data json if) or (False, str->error reason)
     """
+    url = common.combine_url(host, api)
+    resp = base_requests.send_get_request(url)
+    return resp
+
+
+def delete_ingestion_directory(host=config.PVC_HANDLER_ROUTE, api=config.PVC_DELETE_DIR):
     url = common.combine_url(host, api)
     resp = base_requests.send_get_request(url)
     return resp

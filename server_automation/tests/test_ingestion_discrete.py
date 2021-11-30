@@ -1,5 +1,6 @@
 """This module provide multiple test of ingestion services"""
 import logging
+import shutil
 import time
 import json
 from conftest import ValueStorage
@@ -21,6 +22,10 @@ def test_manual_discrete_ingest():
     This test will test full e2e discrete ingestion
     """
     # prepare test data
+    # ToDo:  check if needed to stop watch.
+    # executors.stop_watch()
+
+    # ================================================================================================================ #
     try:
         resp = executors.init_ingestion_src(config.TEST_ENV)
         error_msg = None
@@ -38,6 +43,7 @@ def test_manual_discrete_ingest():
     _log.info(f'{product_id} {product_version}')
     time.sleep(5)
 
+    # ================================================================================================================ #
     try:
         status_code, content, source_data = executors.start_manual_ingestion(source_directory, config.TEST_ENV)
     except Exception as e:
@@ -47,6 +53,7 @@ def test_manual_discrete_ingest():
         f'Test: [{test_manual_discrete_ingest.__name__}] Failed: trigger new ingest with status code: [{status_code}]\n' \
         f'details: [{content}]'
 
+    # ================================================================================================================ #
     # validating following and completion of ingestion job
     try:
         ingestion_follow_state = executors.follow_running_task(product_id, product_version)
@@ -62,6 +69,8 @@ def test_manual_discrete_ingest():
     time.sleep(config.SYSTEM_DELAY)  # this timeout is for mapproxy updating time of new layer on configuration
 
     pycsw_record = None
+
+    # ================================================================================================================ #
     # validate new discrete on pycsw records
     try:
         # todo -> danny, this is new function of validation with new csw records getter
@@ -79,6 +88,7 @@ def test_manual_discrete_ingest():
                       f'related errors:\n' \
                       f'{error_msg}'
 
+    # ================================================================================================================ #
     # validating new discrete on mapproxy
     try:
         resp = executors.validate_new_discrete(pycsw_record, product_id, product_version)
@@ -199,6 +209,26 @@ def teardown_module(module):  # pylint: disable=unused-argument
     This method been executed after test running - env cleaning
     """
     executors.stop_watch()
+    if config.VALIDATION_SWITCH:
+        if config.TEST_ENV == config.EnvironmentTypes.QA.name or config.TEST_ENV == config.EnvironmentTypes.DEV.name:
+            # ToDo : Handle PVC
+            try:
+                resp = azure_pvc_api.delete_ingestion_directory(api=config.PVC_DELETE_DIR)
+            except Exception as e:
+                resp = None
+                error_msg = str(e)
+            assert resp, \
+                f'Test: [{test_watch_discrete_ingest.__name__}] Failed: on following ingestion process (Folder delete) :  [{error_msg}]'
+        elif config.TEST_ENV == config.EnvironmentTypes.PROD.name:
+            # ToDo: Handle NFS
+            if os.path.exists(config.NFS_ROOT_DIR_DEST):
+                shutil.rmtree(config.NFS_ROOT_DIR_DEST)
+            else:
+                raise NotADirectoryError(
+                    f'Failed to delete directory because it doesnt exists: [{config.NFS_ROOT_DIR_DEST}]')
+            pass
+        else:
+            raise ValueError(f'Illegal environment value type: {config.TEST_ENV}')
     if config.CLEAN_UP and config.DEBUG_MODE_LOCAL:
         for p in ValueStorage.discrete_list:
             executors.cleanup_env(p['product_id'], p['product_version'], initial_mapproxy_config)
@@ -206,9 +236,7 @@ def teardown_module(module):  # pylint: disable=unused-argument
 
 if config.DEBUG_MODE_LOCAL:
     config.PVC_UPDATE_ZOOM = True
-    config.MAX_ZOOM_TO_CHANGE = 4
+    config.MAX_ZOOM_TO_CHANGE = 1  # 4
 
-    # test_manual_discrete_ingest()
-    test_watch_discrete_ingest()
-
-
+    test_manual_discrete_ingest()
+    # test_watch_discrete_ingest()

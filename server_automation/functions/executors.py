@@ -107,11 +107,12 @@ def init_ingestion_src(env=config.EnvironmentTypes.QA.name):
     :return:dict with ingestion_dir and resource_name
     """
     if env == config.EnvironmentTypes.QA.name or env == config.EnvironmentTypes.DEV.name:
+        # ToDo: Handle PVC failure tests (Same name)
         res = init_ingestion_src_pvc()
         return res
     elif env == config.EnvironmentTypes.PROD.name:
         src = os.path.join(config.NFS_ROOT_DIR, config.NFS_SOURCE_DIR)
-        dst = os.path.join(config.NFS_ROOT_DIR, config.NFS_DEST_DIR)
+        dst = os.path.join(config.NFS_ROOT_DIR_DEST, config.NFS_DEST_DIR)
         try:
             res = init_ingestion_src_fs(src, dst)
             return res
@@ -161,7 +162,10 @@ def init_ingestion_src_fs(src, dst, watch=False):
         # file = os.path.join(dst, config.SHAPES_PATH, config.SHAPE_METADATA_FILE)
         file = os.path.join(discrete_directory_loader.get_folder_path_by_name(dst, config.SHAPES_PATH),
                             config.SHAPE_METADATA_FILE)
-        source_name = update_shape_fs(file)
+        if config.FAILURE_FLAG:
+            source_name = update_shape_fs_to_failure(file)
+        else:
+            source_name = update_shape_fs(file)
         _log.info(
             f'[{file}]:was changed resource name: {source_name}')
     except Exception as e:
@@ -351,9 +355,12 @@ def update_shape_fs(shp):
     return resp
 
 
+def update_shape_fs_to_failure(shp):
+    resp = shape_convertor.add_ext_source_name(shp, 'duplication')
+    return resp
+
+
 def validate_tiff_exists(path_name, tiff_list):
-    # path_name = '/tmp/ingestion/watch/test_data_automation/89b89916-dd38-44fb-8a86-a1ab2b606cd6'
-    # tiff_list = ['/X185_Y167.tiff']
     err = ''
     x = {}
     text_files = glob.glob(path_name + "/**/*.tif", recursive=True)
@@ -594,7 +601,7 @@ def validate_new_discrete(pycsw_records, product_id, product_version):
 
         zxy = list_of_tiles[len(list_of_tiles) - 1].split('/')[-3:]
         zxy[2] = zxy[2].split('.')[0]
-        zxy[2]= str(2**int(zxy[0]) - 1 - int(zxy[2]))
+        zxy[2] = str(2 ** int(zxy[0]) - 1 - int(zxy[2]))
         tile_matrix_set = wmts_layer_properties[0]['TileMatrixSetLink']['TileMatrixSet']
         wmts_layers_url = results[group]['WMTS_LAYER']
         wmts_layers_url = wmts_layers_url.format(TileMatrixSet=tile_matrix_set, TileMatrix=zxy[0], TileCol=zxy[1],

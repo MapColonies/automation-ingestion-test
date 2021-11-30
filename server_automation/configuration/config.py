@@ -41,8 +41,10 @@ DEBUG_MODE_LOCAL = common.get_environment_variable('DEBUG_MODE_LOCAL', False)  #
 FOLLOW_TIMEOUT = 60 * common.get_environment_variable('FOLLOW_TIMEOUT', 10)
 SYSTEM_DELAY = common.get_environment_variable('SYSTEM_DELAY', 60)
 TEST_ENV = common.get_environment_variable('TEST_ENV', EnvironmentTypes.QA.name)  # compatibility to azure + prod env
-VALIDATION_SWITCH = common.get_environment_variable('VALIDATION_SWITCH', True) # if false -> will skip data validation scopes
+VALIDATION_SWITCH = common.get_environment_variable('VALIDATION_SWITCH',
+                                                    True)  # if false -> will skip data validation scopes
 
+FAILURE_FLAG = common.get_environment_variable('FAILURE_FLAG', False)
 ORIG_DISCRETE_PATH = common.get_environment_variable('ORIG_DISCRETE_PATH',
                                                      '/home/ronenk1/dev/automation-server-test/shp/1')
 SHAPES_PATH = common.get_environment_variable('SHAPES_PATH', 'Shapes')
@@ -79,6 +81,8 @@ PVC_VALIDATE_METADATA = common.get_environment_variable('PVC_VALIDATE_METADATA',
 PVC_ROOT_DIR = common.get_environment_variable('PVC_ROOT_DIR', None)
 
 NFS_ROOT_DIR = common.get_environment_variable('NFS_ROOT_DIR', '/tmp')
+NFS_ROOT_DIR_DEST = common.get_environment_variable('NFS_ROOT_DIR_DEST', '/tmp')
+
 NFS_SOURCE_DIR = common.get_environment_variable('NFS_SOURCE_DIR', 'ingestion/1')
 NFS_DEST_DIR = common.get_environment_variable('NFS_DEST_DIR', 'test_data')
 NFS_TILES_DIR = common.get_environment_variable('NFS_TILES_DIR', '/tmp')
@@ -88,7 +92,8 @@ PVC_CLONE_SOURCE = common.get_environment_variable('PVC_CLONE_SOURCE', 'createTe
 PVC_CHANGE_METADATA = common.get_environment_variable('PVC_CHANGE_METADATA', 'updateShape')
 PVC_CHANGE_WATCH_METADATA = common.get_environment_variable('PVC_CHANGE_WATCH_METADATA', 'updateWatchShape')
 PVC_VALIDATE_METADATA = common.get_environment_variable('PVC_VALIDATE_METADATA', 'validatePath')
-PVC_ROOT_DIR = common.get_environment_variable('PVC_ROOT_DIR', '/layerSources')
+PVC_ROOT_DIR = common.get_environment_variable('PVC_ROOT_DIR', '/layerSources/watch')
+PVC_DELETE_DIR = common.get_environment_variable('PVC_DELETE_DIR', 'deleteTestDir')
 
 PVC_WATCH_CREATE_DIR = common.get_environment_variable('PVC_WATCH_CREATE_DIR', 'createWatchDir')
 PVC_WATCH_UPDATE_SHAPE = common.get_environment_variable('PVC_WATCH_UPDATE_SHAPE', 'updateWatchShape')
@@ -98,7 +103,6 @@ PVC_UPDATE_ZOOM = common.get_environment_variable('PVC_UPDATE_ZOOM', None)  # de
 PVC_CHANGE_MAX_ZOOM = common.get_environment_variable('PVC_CHANGE_MAX_ZOOM', 'changeMaxZoom')
 PVC_CHANGE_WATCH_MAX_ZOOM = common.get_environment_variable('PVC_CHANGE_WATCH_MAX_ZOOM', 'changeWatchMaxZoom')
 MAX_ZOOM_TO_CHANGE = common.get_environment_variable('MAX_ZOOM_TO_CHANGE', 5)
-
 
 NFS_WATCH_ROOT_DIR = common.get_environment_variable('NFS_WATCH_ROOT_DIR', '/tmp')
 NFS_WATCH_SOURCE_DIR = common.get_environment_variable('NFS_WATCH_SOURCE_DIR', 'ingestion/1')
@@ -112,7 +116,8 @@ S3_BUCKET_NAME = common.get_environment_variable('S3_BUCKET_NAME', None)
 S3_END_POINT = common.get_environment_variable('S3_END_POINT', None)
 
 ###################################################  gql & pycsw  ######################################################
-PYCSW_URL = common.get_environment_variable('PYCSW_URL',"http://raster-qa-catalog-raster-catalog-pycsw-route-raster.apps.v0h0bdx6.eastus.aroapp.io")
+PYCSW_URL = common.get_environment_variable('PYCSW_URL',
+                                            "http://raster-qa-catalog-raster-catalog-pycsw-route-raster.apps.v0h0bdx6.eastus.aroapp.io")
 PYCSW_SERVICE = common.get_environment_variable("PYCSW_SERVICE", "CSW")
 PYCSW_VERSION = common.get_environment_variable("PYCSW_VERSION", "2.0.2")
 PYCSW_REQUEST_GET_RECORDS = common.get_environment_variable("PYCSW_REQUEST_GET_RECORDS", "GetRecords")
