@@ -102,8 +102,8 @@ class JobsTasksManager:
         :return: json\ dict of the job
         """
         url = common.combine_url(self.__end_point_url, self.__jobs_api, uuid)
-        params = json.dumps({'shouldReturnTasks': return_tasks})
-        resp = base_requests.send_get_request2(url, params)
+        params = json.dumps({'shouldReturnTasks': str(return_tasks).lower()})
+        resp = base_requests.send_get_request(url, params)
         if resp.status_code != config.ResponseCode.Ok.value:
             raise Exception(
                 f'[get_job_by_id]:failed retrieve job, return with error:[{resp.status_code}]:error msg:[{str(resp.content)}]')
