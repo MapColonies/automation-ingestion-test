@@ -54,17 +54,17 @@ def test_manual_discrete_ingest():
 
     # ================================================================================================================ #
     # validating following and completion of ingestion job
-    # try:
-    #     ingestion_follow_state = follow_running_task(product_id, product_version)
-    #     resp = (ingestion_follow_state['status'] == config.JobStatus.Completed.name)
-    #     error_msg = ingestion_follow_state['message']
-    #
-    # except Exception as e:
-    #     resp = None
-    #     error_msg = str(e)
-    # assert resp, \
-    #     f'Test: [{test_manual_discrete_ingest.__name__}] Failed: on following ingestion process [{error_msg}]'
-    # _log.info(f'manual ingestion following task response: {resp}')
+    try:
+        ingestion_follow_state = follow_running_task(product_id, product_version)
+        resp = (ingestion_follow_state['status'] == config.JobStatus.Completed.name)
+        error_msg = ingestion_follow_state['message']
+
+    except Exception as e:
+        resp = None
+        error_msg = str(e)
+    assert resp, \
+        f'Test: [{test_manual_discrete_ingest.__name__}] Failed: on following ingestion process [{error_msg}]'
+    _log.info(f'manual ingestion following task response: {resp}')
 
     sleep(config.SYSTEM_DELAY)  # this timeout is for mapproxy updating time of new layer on configuration
     pycsw_record = None
@@ -252,4 +252,4 @@ if config.DEBUG_MODE_LOCAL:
     config.MAX_ZOOM_TO_CHANGE = 4  # 4
 
     test_manual_discrete_ingest()
-    # test_watch_discrete_ingest()
+    test_watch_discrete_ingest()

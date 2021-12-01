@@ -149,7 +149,7 @@ PYCSW_GET_CAPABILITIES_PARAMS = {
 }
 
 GQK_URL = common.get_environment_variable('GQK_URL',
-                                          'https://https-bff-raster.apps.v0h0bdx6.eastus.aroapp.io/graphql')
+                                          'http://catalog-client-qa-discrete-layer-client-bff-route-raster.apps.v0h0bdx6.eastus.aroapp.io/graphql')
 # GQK_URL = common.get_environment_variable('GQK_URL',
 #                                           'http://discrete-layer-client-qa-bff-route-raster.apps.v0h0bdx6.eastus.aroapp.io/graphql')
 
