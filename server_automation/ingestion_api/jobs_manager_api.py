@@ -102,7 +102,7 @@ class JobsTasksManager:
         :return: json\ dict of the job
         """
         url = common.combine_url(self.__end_point_url, self.__jobs_api, uuid)
-        params = json.dumps({'shouldReturnTasks': str(return_tasks).lower()})
+        params = {'shouldReturnTasks': str(return_tasks).lower()}
         resp = base_requests.send_get_request(url, params)
         if resp.status_code != config.ResponseCode.Ok.value:
             raise Exception(
