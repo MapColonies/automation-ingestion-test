@@ -168,7 +168,7 @@ class JobsTasksManager:
 
         return json.loads(resp.content)
 
-    def resettable(self, uuid):
+    def reset(self, uuid):
         """
         This method reset a resettable job
         :param uuid: str -> unique id of job provided on creation

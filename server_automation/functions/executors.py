@@ -403,6 +403,7 @@ def follow_running_job_manager(product_id, product_version, timeout=config.FOLLO
             return {'status': status, 'message': " ".join(['Failed: ', 'got timeout while following job running']),
                     'job_id': job_id}
 
+
 def update_shape_fs(shp):
     current_time_str = common.generate_datatime_zulu().replace('-', '_').replace(':', '_')
     resp = shape_convertor.add_ext_source_name(shp, current_time_str)
