@@ -149,10 +149,9 @@ PYCSW_GET_CAPABILITIES_PARAMS = {
 }
 
 GQK_URL = common.get_environment_variable('GQK_URL',
-                                          'http://catalog-client-qa-discrete-layer-client-bff-route-raster.apps.v0h0bdx6.eastus.aroapp.io/graphql')
-# GQK_URL = common.get_environment_variable('GQK_URL',
-#                                           'http://discrete-layer-client-qa-bff-route-raster.apps.v0h0bdx6.eastus.aroapp.io/graphql')
-
+                                          'https://https-bff-raster.apps.v0h0bdx6.eastus.aroapp.io/graphql')
+JOB_MANAGER_URL = common.get_environment_variable('JOB_MANAGER_URL', 'https://job-manager-qa-job-manager-route-raster.apps.v0h0bdx6.eastus.aroapp.io')
+FOLLOW_JOB_BY_MANAGER = common.get_environment_variable('FOLLOW_JOB_BY_MANAGER', True)
 
 PYCSW_QUERY_BY_PRODUCTID = {
     'query':

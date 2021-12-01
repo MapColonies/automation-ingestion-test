@@ -55,7 +55,11 @@ def test_manual_discrete_ingest():
     # ================================================================================================================ #
     # validating following and completion of ingestion job
     try:
-        ingestion_follow_state = follow_running_task(product_id, product_version)
+        if config.FOLLOW_JOB_BY_MANAGER:  # following based on job manager api
+            _log.info('Start following job-tasks based on job manager api')
+            ingestion_follow_state = follow_running_job_manager(product_id, product_version)
+        else:  # following based on bff service
+            ingestion_follow_state = follow_running_task(product_id, product_version)
         resp = (ingestion_follow_state['status'] == config.JobStatus.Completed.name)
         error_msg = ingestion_follow_state['message']
 
@@ -159,7 +163,12 @@ def test_watch_discrete_ingest():
     sleep(config.SYSTEM_DELAY)  # validate generation of new job
     # validating following and completion of ingestion job
     try:
-        ingestion_follow_state = follow_running_task(product_id, product_version)
+        if config.FOLLOW_JOB_BY_MANAGER:  # following based on job manager api
+            _log.info('Start following job-tasks based on job manager api')
+            ingestion_follow_state = follow_running_job_manager(product_id, product_version)
+        else:  # following based on bff service
+            ingestion_follow_state = follow_running_task(product_id, product_version)
+            _log.info('Start following job-tasks based on bff api')
         resp = (ingestion_follow_state['status'] == config.JobStatus.Completed.name)
         error_msg = ingestion_follow_state['message']
 

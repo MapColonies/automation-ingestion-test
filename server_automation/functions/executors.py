@@ -5,9 +5,11 @@ import time
 import json
 import glob
 import os
+
+import xmltodict
 from shapely.geometry import Polygon
 from server_automation.configuration import config
-from server_automation.ingestion_api import discrete_agent_api, discrete_directory_loader, azure_pvc_api
+from server_automation.ingestion_api import discrete_agent_api, discrete_directory_loader, azure_pvc_api, jobs_manager_api
 from server_automation.postgress import postgress_adapter
 from server_automation.graphql import gql_wrapper
 from server_automation.pycsw import pycsw_handler
@@ -326,6 +328,59 @@ def follow_running_task(product_id, product_version, timeout=config.FOLLOW_TIMEO
     while running:
         time.sleep(config.SYSTEM_DELAY // 4)
         job = gql_wrapper.get_job_by_product(product_id, product_version, host=config.GQK_URL)
+        job_id = job['id']
+        status = job['status']
+        reason = job['reason']
+        tasks = job['tasks']
+
+        completed_task = sum(1 for task in tasks if task['status'] == config.JobStatus.Completed.name)
+        _log.info(f'\nIngestion status of job for resource: {product_id}:{product_version} is [{status}]\n'
+                  f'finished tasks for current job: {completed_task} / {len(tasks)}')
+
+        if status == config.JobStatus.Completed.name:
+            return {'status': status, 'message': " ".join(['OK', reason]), 'job_id': job_id}
+        elif status == config.JobStatus.Failed.name:
+            return {'status': status, 'message': " ".join(['Failed: ', reason]), 'job_id': job_id}
+
+        current_time = time.time()
+
+        if t_end < current_time:
+            return {'status': status, 'message': " ".join(['Failed: ', 'got timeout while following job running']),
+                    'job_id': job_id}
+
+
+def follow_running_job_manager(product_id, product_version, timeout=config.FOLLOW_TIMEOUT):
+    """This method will follow running ingestion task and return results on finish"""
+
+    t_end = time.time() + timeout
+    running = True
+    job_task_handler = jobs_manager_api.JobsTasksManager(config.JOB_MANAGER_URL)  # deal with job task api's
+    find_job_params = {
+                        'resourceId': product_id,
+                        'version': product_version,
+                        'shouldReturnTasks': str(True).lower(), # example to make it compatible to query params
+                        'type': 'Discrete-Tiling'
+                      }
+    resp = job_task_handler.find_jobs_by_criteria(find_job_params)[0]
+    if not resp:
+        raise Exception(f'Job for {product_id}:{product_version} not found')
+    _log.info(f'Found job with details:\n'
+              f'id: [{resp["id"]}]\n'
+              f'resourceId (product id): [{resp["resourceId"]}]\n'
+              f'version: [{resp["version"]}]\n'
+              f'parameters: [{resp["parameters"]}]\n'
+              f'status: [{resp["status"]}]\n'
+              f'percentage: [{resp["percentage"]}]\n'
+              f'reason: [{resp["reason"]}]\n'
+              f'isCleaned: [{resp["isCleaned"]}]\n'
+              f'priority: [{resp["priority"]}]\n'
+              f'Num of tasks related to job: [{len(resp["tasks"])}]')
+    job = resp
+
+    while running:
+        time.sleep(config.SYSTEM_DELAY // 4)
+        job_id = job['id']
+        job = job_task_handler.get_job_by_id(job_id)  # now getting job info by unique job id
 
         job_id = job['id']
 
@@ -347,7 +402,6 @@ def follow_running_task(product_id, product_version, timeout=config.FOLLOW_TIMEO
         if t_end < current_time:
             return {'status': status, 'message': " ".join(['Failed: ', 'got timeout while following job running']),
                     'job_id': job_id}
-
 
 def update_shape_fs(shp):
     current_time_str = common.generate_datatime_zulu().replace('-', '_').replace(':', '_')
@@ -547,7 +601,8 @@ def validate_new_discrete(pycsw_records, product_id, product_version):
     This method will validate access and data on mapproxy
     :return:
     """
-
+    if not pycsw_records:
+        raise ValueError(f'input pycsw is empty: [{pycsw_records}]')
     links = {}
     # for record in pycsw_records:
     #     links[record['mc:productType']] = {
@@ -573,6 +628,7 @@ def validate_new_discrete(pycsw_records, product_id, product_version):
         results[group]['is_valid'] = {}
         # check that wms include the new layer on capabilities
         wms_capabilities = common.get_xml_as_dict(results[group]['WMS'])
+        # wms_capabilities = get_xml_as_dict(results[group]['WMS'])
         results[group]['is_valid']['WMS'] = layer_name in [layer['Name'] for layer in
                                                            wms_capabilities['WMS_Capabilities']['Capability']['Layer'][
                                                                'Layer']]
@@ -632,3 +688,22 @@ def get_folder_path_by_name(path, name):
     p_walker = [x[0] for x in os.walk(path)]
     path = ("\n".join(s for s in p_walker if name.lower() in s.lower()))
     return path
+
+
+def get_xml_as_dict(url):
+    """
+    This method request xml and return response as dict [ordered]
+    """
+    try:
+        # cert_dir = common.get_environment_variable('CERT_DIR', False)
+        # if cert_dir:
+        #     response = base_requests.get(url, verify=cert_dir, timeout=120)
+        # else:
+        #     response = requests.get(url)
+        response = base_requests.send_get_request(url)
+        dict_data = xmltodict.parse(response.content)
+        return dict_data
+
+    except Exception as e:
+        _log.error(f'Failed getting xml object from url [{url}] with error: {str(e)}')
+        raise Exception(f'Failed getting xml object from url [{url}] with error: {str(e)}')
