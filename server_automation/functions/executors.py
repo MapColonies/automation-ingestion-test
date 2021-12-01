@@ -9,7 +9,7 @@ import os
 import xmltodict
 from shapely.geometry import Polygon
 from server_automation.configuration import config
-from server_automation.ingestion_api import discrete_agent_api, discrete_directory_loader, azure_pvc_api, jobs_manager_api
+from server_automation.ingestion_api import discrete_agent_api, discrete_directory_loader, azure_pvc_api
 from server_automation.postgress import postgress_adapter
 from server_automation.graphql import gql_wrapper
 from server_automation.pycsw import pycsw_handler
@@ -19,6 +19,7 @@ from discrete_kit.validator.json_compare_pycsw import *
 from mc_automation_tools import common as common
 from mc_automation_tools import shape_convertor, base_requests
 from mc_automation_tools import s3storage as s3
+from mc_automation_tools.ingestion_api import job_manager_api
 from discrete_kit.functions import metadata_convertor
 
 _log = logging.getLogger('server_automation.function.executors')
@@ -354,7 +355,7 @@ def follow_running_job_manager(product_id, product_version, timeout=config.FOLLO
 
     t_end = time.time() + timeout
     running = True
-    job_task_handler = jobs_manager_api.JobsTasksManager(config.JOB_MANAGER_URL)  # deal with job task api's
+    job_task_handler = job_manager_api.JobsTasksManager(config.JOB_MANAGER_URL)  # deal with job task api's
     find_job_params = {
                         'resourceId': product_id,
                         'version': product_version,
