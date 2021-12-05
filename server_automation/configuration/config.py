@@ -39,6 +39,7 @@ class JobStatus(enum.Enum):
 CLEAN_UP = common.get_environment_variable('CLEAN_UP', False)  # If should clean running data from env at the end
 DEBUG_MODE_LOCAL = common.get_environment_variable('DEBUG_MODE_LOCAL', False)  # for multiple debug option on dev
 FOLLOW_TIMEOUT = 60 * common.get_environment_variable('FOLLOW_TIMEOUT', 10)
+PROGRESS_TASK_DELAY = common.get_environment_variable('PROGRESS_TASK_DELAY', 20)
 SYSTEM_DELAY = common.get_environment_variable('SYSTEM_DELAY', 60)
 TEST_ENV = common.get_environment_variable('TEST_ENV', EnvironmentTypes.QA.name)  # compatibility to azure + prod env
 VALIDATION_SWITCH = common.get_environment_variable('VALIDATION_SWITCH',
@@ -104,6 +105,8 @@ PVC_CHANGE_MAX_ZOOM = common.get_environment_variable('PVC_CHANGE_MAX_ZOOM', 'ch
 PVC_CHANGE_WATCH_MAX_ZOOM = common.get_environment_variable('PVC_CHANGE_WATCH_MAX_ZOOM', 'changeWatchMaxZoom')
 MAX_ZOOM_TO_CHANGE = common.get_environment_variable('MAX_ZOOM_TO_CHANGE', 5)
 
+AMOUNT_OF_WORKERS = common.get_environment_variable('AMOUNT_OF_WORKERS', 1)
+
 NFS_WATCH_ROOT_DIR = common.get_environment_variable('NFS_WATCH_ROOT_DIR', '/tmp')
 NFS_WATCH_SOURCE_DIR = common.get_environment_variable('NFS_WATCH_SOURCE_DIR', 'ingestion/1')
 NFS_WATCH_BASE_DIR = common.get_environment_variable('NFS_WATCH_SOURCE_DIR', 'ingestion/1')
@@ -150,7 +153,8 @@ PYCSW_GET_CAPABILITIES_PARAMS = {
 
 GQK_URL = common.get_environment_variable('GQK_URL',
                                           'https://https-bff-raster.apps.v0h0bdx6.eastus.aroapp.io/graphql')
-JOB_MANAGER_URL = common.get_environment_variable('JOB_MANAGER_URL', 'https://job-manager-qa-job-manager-route-raster.apps.v0h0bdx6.eastus.aroapp.io')
+JOB_MANAGER_URL = common.get_environment_variable('JOB_MANAGER_URL',
+                                                  'https://job-manager-qa-job-manager-route-raster.apps.v0h0bdx6.eastus.aroapp.io')
 FOLLOW_JOB_BY_MANAGER = common.get_environment_variable('FOLLOW_JOB_BY_MANAGER', True)
 
 PYCSW_QUERY_BY_PRODUCTID = {

@@ -357,11 +357,11 @@ def follow_running_job_manager(product_id, product_version, timeout=config.FOLLO
     running = True
     job_task_handler = job_manager_api.JobsTasksManager(config.JOB_MANAGER_URL)  # deal with job task api's
     find_job_params = {
-                        'resourceId': product_id,
-                        'version': product_version,
-                        'shouldReturnTasks': str(True).lower(), # example to make it compatible to query params
-                        'type': 'Discrete-Tiling'
-                      }
+        'resourceId': product_id,
+        'version': product_version,
+        'shouldReturnTasks': str(True).lower(),  # example to make it compatible to query params
+        'type': 'Discrete-Tiling'
+    }
     resp = job_task_handler.find_jobs_by_criteria(find_job_params)[0]
     if not resp:
         raise Exception(f'Job for {product_id}:{product_version} not found')
@@ -403,6 +403,98 @@ def follow_running_job_manager(product_id, product_version, timeout=config.FOLLO
         if t_end < current_time:
             return {'status': status, 'message': " ".join(['Failed: ', 'got timeout while following job running']),
                     'job_id': job_id}
+
+
+def follow_parallel_running_tasks(product_id, product_version, timeout=config.FOLLOW_TIMEOUT):
+    """This method will follow running ingestion task and return results on finish"""
+
+    t_end = time.time() + timeout
+    running = True
+    job_task_handler = job_manager_api.JobsTasksManager(config.JOB_MANAGER_URL)  # deal with job task api's
+    find_job_params = {
+        'resourceId': product_id,
+        'version': product_version,
+        'shouldReturnTasks': str(True).lower(),  # example to make it compatible to query params
+        'type': 'Discrete-Tiling'
+    }
+    resp = job_task_handler.find_jobs_by_criteria(find_job_params)[0]
+    received_tasks = job_task_handler.tasks(resp['id'])
+    task_counter = 0
+    for task_k in received_tasks:
+        if task_k['status'] == 'In-Progress':
+            task_counter += 1
+
+    if not resp:
+        raise Exception(f'Job for {product_id}:{product_version} not found')
+    _log.info(f'Found job with details:\n'
+              f'id: [{resp["id"]}]\n'
+              f'resourceId (product id): [{resp["resourceId"]}]\n'
+              f'version: [{resp["version"]}]\n'
+              f'parameters: [{resp["parameters"]}]\n'
+              f'status: [{resp["status"]}]\n'
+              f'percentage: [{resp["percentage"]}]\n'
+              f'reason: [{resp["reason"]}]\n'
+              f'isCleaned: [{resp["isCleaned"]}]\n'
+              f'priority: [{resp["priority"]}]\n'
+              f'Num of tasks related to job: [{len(resp["tasks"])}]')
+    job = resp
+
+    job_id = resp['id']
+
+    while running:
+        time.sleep(config.SYSTEM_DELAY // 4)
+        job_id = job['id']
+        job = job_task_handler.get_job_by_id(job_id)  # now getting job info by unique job id
+
+        job_id = job['id']
+
+        status = job['status']
+        reason = job['reason']
+        tasks = job['tasks']
+
+        completed_task = sum(1 for task in tasks if task['status'] == config.JobStatus.Completed.name)
+        _log.info(f'\nIngestion status of job for resource: {product_id}:{product_version} is [{status}]\n'
+                  f'finished tasks for current job: {completed_task} / {len(tasks)}')
+
+        if status == config.JobStatus.Completed.name:
+            return {'status': status, 'message': " ".join(['OK', reason]), 'job_id': job_id,
+                    "in_progress_tasks": task_counter}
+        elif status == config.JobStatus.Failed.name:
+            return {'status': status, 'message': " ".join(['Failed: ', reason]), 'job_id': job_id,
+                    "in_progress_tasks": task_counter}
+
+        current_time = time.time()
+
+        if t_end < current_time:
+            return {'status': status, 'message': " ".join(['Failed: ', 'got timeout while following job running']),
+                    'job_id': job_id}
+    return
+    #
+    # while running:
+    #     time.sleep(config.SYSTEM_DELAY // 4)
+    #     job_id = job['id']
+    #     job = job_task_handler.get_job_by_id(job_id)  # now getting job info by unique job id
+    #
+    #     job_id = job['id']
+    #
+    #     status = job['status']
+    #     reason = job['reason']
+    #     tasks = job['tasks']
+    #
+    #     completed_task = sum(1 for task in tasks if task['status'] == config.JobStatus.Completed.name)
+    #     _log.info(f'\nIngestion status of job for resource: {product_id}:{product_version} is [{status}]\n'
+    #               f'finished tasks for current job: {completed_task} / {len(tasks)}')
+    #
+    #     if status == config.JobStatus.Completed.name:
+    #         return {'status': status, 'message': " ".join(['OK', reason]), 'job_id': job_id}
+    #     elif status == config.JobStatus.Failed.name:
+    #         return {'status': status, 'message': " ".join(['Failed: ', reason]), 'job_id': job_id}
+    #
+    #     current_time = time.time()
+    #
+    #     if t_end < current_time:
+    #         return {'status': status, 'message': " ".join(['Failed: ', 'got timeout while following job running']),
+    #                 'job_id': job_id}
 
 
 def update_shape_fs(shp):

@@ -1,4 +1,4 @@
-#!/bin/bash
+0#!/bin/bash
 
 
 if [ -d "docker_images" ]
