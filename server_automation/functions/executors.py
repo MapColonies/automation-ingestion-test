@@ -697,12 +697,6 @@ def validate_new_discrete(pycsw_records, product_id, product_version):
     if not pycsw_records:
         raise ValueError(f'input pycsw is empty: [{pycsw_records}]')
     links = {}
-    # for record in pycsw_records:
-    #     links[record['mc:productType']] = {
-    #         record['mc:links'][0]['@scheme']: record['mc:links'][0]['#text'],
-    #         record['mc:links'][1]['@scheme']: record['mc:links'][1]['#text'],
-    #         record['mc:links'][2]['@scheme']: record['mc:links'][2]['#text']
-    #     }
     for records in pycsw_records:
         links[records['mc:productType']] = {link['@scheme']: link['#text'] for link in records['mc:links']}
 
@@ -721,7 +715,6 @@ def validate_new_discrete(pycsw_records, product_id, product_version):
         results[group]['is_valid'] = {}
         # check that wms include the new layer on capabilities
         wms_capabilities = common.get_xml_as_dict(results[group]['WMS'])
-        # wms_capabilities = get_xml_as_dict(results[group]['WMS'])
         results[group]['is_valid']['WMS'] = layer_name in [layer['Name'] for layer in
                                                            wms_capabilities['WMS_Capabilities']['Capability']['Layer'][
                                                                'Layer']]
@@ -764,6 +757,8 @@ def validate_new_discrete(pycsw_records, product_id, product_version):
         if not all(val for key, val in value['is_valid'].items()):
             validation = False
             break
+    _log.info(f'validation of discrete layers on mapproxy status:\n'
+              f'{results}')
     return {'validation': validation, 'reason': results}
 
 
@@ -788,11 +783,6 @@ def get_xml_as_dict(url):
     This method request xml and return response as dict [ordered]
     """
     try:
-        # cert_dir = common.get_environment_variable('CERT_DIR', False)
-        # if cert_dir:
-        #     response = base_requests.get(url, verify=cert_dir, timeout=120)
-        # else:
-        #     response = requests.get(url)
         response = base_requests.send_get_request(url)
         dict_data = xmltodict.parse(response.content)
         return dict_data
