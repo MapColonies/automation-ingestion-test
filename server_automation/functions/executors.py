@@ -110,7 +110,6 @@ def init_ingestion_src(env=config.EnvironmentTypes.QA.name):
     :return:dict with ingestion_dir and resource_name
     """
     if env == config.EnvironmentTypes.QA.name or env == config.EnvironmentTypes.DEV.name:
-        # ToDo: Handle PVC failure tests (Same name)
         res = init_ingestion_src_pvc()
         return res
     elif env == config.EnvironmentTypes.PROD.name:

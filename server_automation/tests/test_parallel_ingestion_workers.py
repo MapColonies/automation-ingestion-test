@@ -1,4 +1,5 @@
 import logging
+import shutil
 from server_automation.configuration import config
 from server_automation.functions.executors import *
 from conftest import ValueStorage
@@ -43,7 +44,7 @@ def test_parallel_ingestion():
     try:
         if config.FOLLOW_JOB_BY_MANAGER:  # following based on job manager api
             _log.info('Start following job-tasks based on job manager api')
-            sleep(config. flow)
+            sleep(config.PROGRESS_TASK_DELAY)
             ingestion_in_progress_state = follow_parallel_running_tasks(product_id, product_version)
 
     except Exception as e:
@@ -65,8 +66,39 @@ def test_parallel_ingestion():
     _log.info(f'finished parallel test for : {config.AMOUNT_OF_WORKERS} workers (tasks number in parallel)')
     sleep(config.SYSTEM_DELAY)  # this timeout is for mapproxy updating time of new layer on configuration
 
-    if config.DEBUG_MODE_LOCAL:
-        cleanup_env(product_id, product_version, initial_mapproxy_config)
+
+def teardown_module(module):  # pylint: disable=unused-argument
+    """
+    This method been executed after test running - env cleaning
+    """
+    stop_watch()
+    if config.VALIDATION_SWITCH:
+        if config.TEST_ENV == config.EnvironmentTypes.QA.name or config.TEST_ENV == config.EnvironmentTypes.DEV.name:
+            # ToDo : Handle PVC - test it
+            try:
+                resp = azure_pvc_api.delete_ingestion_directory(api=config.PVC_DELETE_DIR)
+            except Exception as e:
+                resp = None
+                error_msg = str(e)
+            assert resp, \
+                f'Test: [{test_parallel_ingestion.__name__}] Failed: on following ingestion process (Folder delete) :  [{error_msg}]'
+            _log.info(f'Teardown - Finish PVC folder deletion')
+
+        elif config.TEST_ENV == config.EnvironmentTypes.PROD.name:
+            if os.path.exists(config.NFS_ROOT_DIR_DEST):
+                shutil.rmtree(config.NFS_ROOT_DIR_DEST)
+                _log.info(f'Teardown - Finish NFS folder deletion')
+
+            else:
+                raise NotADirectoryError(
+                    f'Failed to delete directory because it doesnt exists: [{config.NFS_ROOT_DIR_DEST}]')
+        else:
+            raise ValueError(f'Illegal environment value type: {config.TEST_ENV}')
+
+        """ Clean up """
+    if config.CLEAN_UP and config.DEBUG_MODE_LOCAL:
+        for p in ValueStorage.discrete_list:
+            cleanup_env(p['product_id'], p['product_version'], initial_mapproxy_config)
 
 
 if config.DEBUG_MODE_LOCAL:

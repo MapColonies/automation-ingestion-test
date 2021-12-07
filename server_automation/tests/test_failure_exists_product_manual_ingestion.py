@@ -3,6 +3,7 @@ from server_automation.configuration import config
 from server_automation.functions.executors import *
 from conftest import ValueStorage
 from time import sleep
+import shutil
 
 _log = logging.getLogger('server_automation.tests.test_ingestion_discrete')
 
@@ -72,13 +73,44 @@ def test_exists_product_manual_ingestion():
     _log.info(f'manual ingestion - content: {content}')
     _log.info(f'manual ingestion - status code: {status_code}')
 
-    """ Clean up """
+
+def teardown_module(module):  # pylint: disable=unused-argument
+    """
+    This method been executed after test running - env cleaning
+    """
+    stop_watch()
+    if config.VALIDATION_SWITCH:
+        if config.TEST_ENV == config.EnvironmentTypes.QA.name or config.TEST_ENV == config.EnvironmentTypes.DEV.name:
+            # ToDo : Handle PVC - test it
+            try:
+                resp = azure_pvc_api.delete_ingestion_directory(api=config.PVC_DELETE_DIR)
+            except Exception as e:
+                resp = None
+                error_msg = str(e)
+            assert resp, \
+                f'Test: [{test_exists_product_manual_ingestion.__name__}] Failed: on following ingestion process (Folder delete) :  [{error_msg}]'
+            _log.info(f'Teardown - Finish PVC folder deletion')
+
+        elif config.TEST_ENV == config.EnvironmentTypes.PROD.name:
+            if os.path.exists(config.NFS_ROOT_DIR_DEST):
+                shutil.rmtree(config.NFS_ROOT_DIR_DEST)
+                _log.info(f'Teardown - Finish NFS folder deletion')
+
+            else:
+                raise NotADirectoryError(
+                    f'Failed to delete directory because it doesnt exists: [{config.NFS_ROOT_DIR_DEST}]')
+        else:
+            raise ValueError(f'Illegal environment value type: {config.TEST_ENV}')
+
+        """ Clean up """
+    # if config.CLEAN_UP and config.DEBUG_MODE_LOCAL:
     if config.DEBUG_MODE_LOCAL:
-        cleanup_env(product_id, product_version, initial_mapproxy_config)
+        for p in ValueStorage.discrete_list:
+            cleanup_env(p['product_id'], p['product_version'], initial_mapproxy_config)
 
 
 if config.DEBUG_MODE_LOCAL:
     config.PVC_UPDATE_ZOOM = True
-    config.MAX_ZOOM_TO_CHANGE = 14  # 4
+    config.MAX_ZOOM_TO_CHANGE = 4  # 4
 
 test_exists_product_manual_ingestion()

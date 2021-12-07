@@ -20,8 +20,7 @@ def test_manual_discrete_ingest():
     """
     This test will test full e2e discrete ingestion
     """
-    # ToDo:  check if needed to stop watch.
-    # executors.stop_watch()
+    stop_watch()
     # ================================================================================================================ #
     try:
         resp = init_ingestion_src(config.TEST_ENV)
@@ -75,7 +74,6 @@ def test_manual_discrete_ingest():
     # ================================================================================================================ #
     # validate new discrete on pycsw records
     try:
-        # todo -> danny, this is new function of validation with new csw records getter
         resp, pycsw_record, links = validate_pycsw2(source_data, product_id, product_version)
         # todo this is legacy records validator based graphql -> for future needs maybe
         # resp, pycsw_record = executors.validate_pycsw(config.GQK_URL, product_id, source_data)
@@ -230,7 +228,7 @@ def teardown_module(module):  # pylint: disable=unused-argument
     stop_watch()
     if config.VALIDATION_SWITCH:
         if config.TEST_ENV == config.EnvironmentTypes.QA.name or config.TEST_ENV == config.EnvironmentTypes.DEV.name:
-            # ToDo : Handle PVC
+            # ToDo : Handle PVC - test it
             try:
                 resp = azure_pvc_api.delete_ingestion_directory(api=config.PVC_DELETE_DIR)
             except Exception as e:
@@ -241,7 +239,6 @@ def teardown_module(module):  # pylint: disable=unused-argument
             _log.info(f'Teardown - Finish PVC folder deletion')
 
         elif config.TEST_ENV == config.EnvironmentTypes.PROD.name:
-            # ToDo: Handle NFS
             if os.path.exists(config.NFS_ROOT_DIR_DEST):
                 shutil.rmtree(config.NFS_ROOT_DIR_DEST)
                 _log.info(f'Teardown - Finish NFS folder deletion')
