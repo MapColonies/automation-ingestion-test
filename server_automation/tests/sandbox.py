@@ -1,39 +1,9 @@
-# from capabilities import report
+# from server_automation.functions.executors import *
 #
-# @report.utils.feature('Test reports')
-# def test_foo():
-#     boo()
-#
-# @report.utils.step('Test step 1')
-# def boo():
-#     print('I am step 1')
-#     boo1()
-#     assert True
-#
-#
-# @report.utils.step('Test step 2')
-# def boo1():
-#     print('I am step 2')
-#     assert False
-
-
-
-
-
-# import yaml
-#
-# x = yaml.loa
-# print(x)
-
-
-
-
-# from server_automation.functions import executors as e
-#
-#
-#
-# # e.init_ingestion_src_pvc()
-# e.init_ingestion_src()
-# e.update_shape_fs('/tmp/ingestion/2/Shapes/ShapeMetadata.shp')
-# # e.init_ingestion_src()
+# cleanup_states = {}
+# # cleanup_states = {"job_folder_cleanup": job_folder_cleanup()}
+# cleanup_states = {"db_cleanup": db_cleanup('2021_12_09T11_44_22Z_MAS_6_ORT_247557','4.0')}
+# # cleanup_states = {"tiles_cleanup": tiles_cleanup()}
+# # cleanup_states = {"db_cleanup": tiles_cleanup()}
+# # cleanup_states = {"restore_watch_state": restore_watch_state()}
 #

@@ -535,6 +535,8 @@ def cleanup_env(product_id, product_version, initial_mapproxy_config):
         """This method will clean all created test data"""
         job_id = postgress_adapter.get_current_job_id(product_id, product_version)
         postgress_adapter.clean_job_task(job_id)
+        # postgress_adapter.clean_layer_history(product_id)
+        # postgress_adapter.clean_pycsw_record(product_id)
         if config.TEST_ENV == config.EnvironmentTypes.QA.name or config.TEST_ENV == config.EnvironmentTypes.DEV.name:
             s3_conn = s3.S3Client(config.S3_END_POINT, config.S3_ACCESS_KEY, config.S3_SECRET_KEY)
             s3_conn.delete_folder(config.S3_BUCKET_NAME, product_id)
@@ -594,8 +596,7 @@ def validate_pycsw2(source_json_metadata, product_id=None, product_version=None)
             record['mc:links'][2]['@scheme']: record['mc:links'][2]['#text']
         }
     if config.TEST_ENV == 'PROD':
-        source_json_metadata_dic = {}
-        source_json_metadata_dic['metadata'] = source_json_metadata
+        source_json_metadata_dic = {'metadata': source_json_metadata}
         validation_flag, err_dict = validate_pycsw_with_shape_json(pycsw_records, source_json_metadata_dic)
     else:
         validation_flag, err_dict = validate_pycsw_with_shape_json(pycsw_records, source_json_metadata)

@@ -47,7 +47,9 @@ def validate_ingestion_directory(host=config.PVC_HANDLER_ROUTE, api=config.PVC_V
     return resp
 
 
-def delete_ingestion_directory(host=config.PVC_HANDLER_ROUTE, api=config.PVC_DELETE_DIR):
+def delete_ingestion_directory(host=config.PVC_HANDLER_ROUTE, api=config.PVC_DELETE_DIR, folder_param=None):
+    if folder_param is not None:
+        api = api + '?' + folder_param
     url = common.combine_url(host, api)
     resp = base_requests.send_get_request(url)
     return resp

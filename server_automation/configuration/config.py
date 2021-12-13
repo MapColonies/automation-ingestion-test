@@ -73,6 +73,7 @@ PG_RECORD_PYCSW_DB = common.get_environment_variable('PG_RECORD_PYCSW_DB', None)
 PG_MAPPROXY_CONFIG = common.get_environment_variable('PG_MAPPROXY_CONFIG', None)
 PG_PYCSW_RECORD = common.get_environment_variable('PG_PYCSW_RECORD', None)
 PG_AGENT = common.get_environment_variable('PG_AGENT', None)
+PG_LAYER_HISTORY_DB = common.get_environment_variable('PG_LAYER_HISTORY_DB', None)
 
 ####################################################  environment  #####################################################
 PVC_HANDLER_ROUTE = common.get_environment_variable('PVC_HANDLER_ROUTE', None)

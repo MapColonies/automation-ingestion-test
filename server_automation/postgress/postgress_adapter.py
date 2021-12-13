@@ -32,13 +32,26 @@ def get_tasks_by_job(job_id, db_name=config.PG_JOB_TASK_DB_NAME):
     return res
 
 
+def clean_layer_history(job_id, db_name=config.PG_LAYER_HISTORY_DB):
+    """This will directly clean job and related task from db"""
+    deletion_command = f"""DELETE FROM "layer_history" WHERE "layerId"='{job_id}';"""
+    client = postgres.PGClass(config.PG_HOST, db_name, config.PG_USER, config.PG_PASS)
+    try:
+        client.command_execute([deletion_command])
+        _log.info(f'Cleaned up successfully (layer_history) - from [{config.PG_LAYER_HISTORY_DB}] , job: [{job_id}]')
+        return {'status': "OK", 'message': f'deleted ok {job_id}'}
+
+    except Exception as e:
+        return {'status': "Failed", 'message': f'deleted Failed: [{str(e)}]'}
+
+
 def clean_job_task(job_id, db_name=config.PG_JOB_TASK_DB_NAME):
     """This will directly clean job and related task from db"""
     deletion_command = f"""DELETE FROM "Task" WHERE "jobId"='{job_id}';DELETE FROM "Job" WHERE "id"='{job_id}';"""
     client = postgres.PGClass(config.PG_HOST, db_name, config.PG_USER, config.PG_PASS)
     try:
         client.command_execute([deletion_command])
-        _log.info(f'Cleaned up successfully job: [{job_id}]')
+        _log.info(f'Cleaned up successfully (job + task)- [{config.PG_JOB_TASK_DB_NAME}] job: [{job_id}]')
         return {'status': "OK", 'message': f'deleted ok {job_id}'}
 
     except Exception as e:
@@ -51,11 +64,13 @@ def clean_pycsw_record(product_id, db_name=config.PG_RECORD_PYCSW_DB):
     client = postgres.PGClass(config.PG_HOST, db_name, config.PG_USER, config.PG_PASS)
     try:
         client.command_execute([deletion_command])
-        _log.info(f'Cleaned up successfully records: [{product_id}]')
+        _log.info(
+            f'Cleaned up successfully (record pycsw) - from [{config.PG_RECORD_PYCSW_DB}] , records: [{product_id}]')
         return {'status': "OK", 'message': f'deleted ok {product_id}'}
 
     except Exception as e:
         return {'status': "Failed", 'message': f'deleted Failed: [{str(e)}]'}
+
 
 def get_mapproxy_config(db_name=config.PG_MAPPROXY_CONFIG):
     """will get mapproxy-config data"""
@@ -73,7 +88,8 @@ def get_mapproxy_config(db_name=config.PG_MAPPROXY_CONFIG):
 def get_mapproxy_configs(table_name='config', db_name=config.PG_MAPPROXY_CONFIG):
     """This method query and return uuid of current ingestion job according keys: productId and productVersion"""
     client = postgres.PGClass(config.PG_HOST, db_name, config.PG_USER, config.PG_PASS)
-    res = client.get_rows_by_order(table_name=table_name, order_key='updated_time', order_desc=True, return_as_dict=True)
+    res = client.get_rows_by_order(table_name=table_name, order_key='updated_time', order_desc=True,
+                                   return_as_dict=True)
     _log.info(f'Received {len(res)} of mapproxy config files')
     return res
 

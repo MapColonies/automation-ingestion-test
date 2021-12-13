@@ -13,7 +13,7 @@ from server_automation.functions.executors import *
 _log = logging.getLogger('server_automation.tests.test_ingestion_discrete')
 
 if config.DEBUG_MODE_LOCAL:
-    initial_mapproxy_config = postgress_adapter.get_mapproxy_configs()
+    initial_mapproxy_config = postgress_adapter.get_mapprsoxy_configs()
 
 
 def test_manual_discrete_ingest():
@@ -142,6 +142,7 @@ def test_watch_discrete_ingest():
     product_id, product_version = resp['resource_name'].split('-')
     ValueStorage.discrete_list.append({'product_id': product_id, 'product_version': product_version})
     source_directory = resp['ingestion_dir']
+    ValueStorage.folder_to_delete = source_directory.split('/watch/')[-1]
     _log.info(f'{product_id} {product_version}')
     _log.info(f'watch ingestion init - source_directory: {source_directory}')
 
@@ -232,7 +233,8 @@ def teardown_module(module):  # pylint: disable=unused-argument
                 # ToDo : Handle PVC - test it
                 try:
                     error_msg = None
-                    resp = azure_pvc_api.delete_ingestion_directory(api=config.PVC_DELETE_DIR)
+                    resp = azure_pvc_api.delete_ingestion_directory(api=config.PVC_DELETE_DIR,
+                                                                    folder_param=ValueStorage.folder_to_delete)
                 except Exception as e:
                     resp = None
                     error_msg = str(e)
