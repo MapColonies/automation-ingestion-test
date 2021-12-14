@@ -2,18 +2,18 @@
 import shutil
 from time import sleep
 from conftest import ValueStorage
-# # import logging
-# # import json
-# # from server_automation.configuration import config
-# # from server_automation.postgress import postgress_adapter
-# # from discrete_kit.validator.json_compare_pycsw import *
-# from discrete_kit.functions.shape_functions import ShapeToJSON
+import logging
+import json
+from server_automation.configuration import config
+from discrete_kit.validator.json_compare_pycsw import *
+from discrete_kit.functions.shape_functions import ShapeToJSON
 from server_automation.functions.executors import *
+from server_automation.postgress import postgress_adapter
 
 _log = logging.getLogger('server_automation.tests.test_ingestion_discrete')
 
 if config.DEBUG_MODE_LOCAL:
-    initial_mapproxy_config = postgress_adapter.get_mapprsoxy_configs()
+    initial_mapproxy_config = postgress_adapter.get_mapproxy_configs()
 
 
 def test_manual_discrete_ingest():
@@ -218,8 +218,8 @@ def test_watch_discrete_ingest():
         resp = stop_watch()
         _log.info(f'watch ingestion, Finish running watch ingestion. Watch status: [{resp["reason"]}]')
 
-    if config.DEBUG_MODE_LOCAL:
-        cleanup_env(product_id, product_version, initial_mapproxy_config)
+    # if config.DEBUG_MODE_LOCAL:
+    #     cleanup_env(product_id, product_version, initial_mapproxy_config)
 
 
 def teardown_module(module):  # pylint: disable=unused-argument

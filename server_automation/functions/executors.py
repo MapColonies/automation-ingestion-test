@@ -5,11 +5,12 @@ import time
 import json
 import glob
 import os
+import shutil
 
 import xmltodict
 from shapely.geometry import Polygon
 from server_automation.configuration import config
-from server_automation.ingestion_api import discrete_agent_api, discrete_directory_loader, azure_pvc_api
+from server_automation.ingestion_api import discrete_agent_api, discrete_directory_loader
 from server_automation.postgress import postgress_adapter
 from server_automation.graphql import gql_wrapper
 from server_automation.pycsw import pycsw_handler
@@ -21,6 +22,9 @@ from mc_automation_tools import shape_convertor, base_requests
 from mc_automation_tools import s3storage as s3
 from mc_automation_tools.ingestion_api import job_manager_api
 from discrete_kit.functions import metadata_convertor
+from mc_automation_tools.ingestion_api import azure_pvc_api
+
+# from importlib.resources import path
 
 _log = logging.getLogger('server_automation.function.executors')
 
@@ -53,7 +57,7 @@ def stop_watch():
 
 def start_watch():
     """
-    This method start and validate start \ status api of agent for watching
+    This method start and validate start \ status api agent for watching
     :return: result dict: {state: bool, reason: str}
     """
     try:
@@ -90,7 +94,7 @@ def init_watch_ingestion_src(env=config.EnvironmentTypes.QA.name):
         host = config.PVC_HANDLER_ROUTE
         api = config.PVC_WATCH_CREATE_DIR
         change_api = config.PVC_WATCH_UPDATE_SHAPE
-        res = init_ingestion_src_pvc(host, api, change_api, update_tfw_url=config.PVC_CHANGE_WATCH_MAX_ZOOM)
+        res = init_ingestion_src_pvc(True, host, api, change_api, update_tfw_url=config.PVC_CHANGE_WATCH_MAX_ZOOM)
         return res
     elif env == config.EnvironmentTypes.PROD.name:
         src = os.path.join(config.NFS_WATCH_ROOT_DIR, config.NFS_WATCH_SOURCE_DIR)
@@ -102,6 +106,29 @@ def init_watch_ingestion_src(env=config.EnvironmentTypes.QA.name):
         raise Exception(f'Illegal environment value type: {env}')
 
 
+def delete_file_from_folder(path_to_folder, file_to_delete, env):
+    pvc_handler = azure_pvc_api.PVCHandler(endpoint_url=config.PVC_HANDLER_ROUTE, watch=False)
+
+    if env == config.EnvironmentTypes.QA.name or env == config.EnvironmentTypes.DEV.name:
+        resp = pvc_handler.delete_file_from_folder(path_to_folder, file_to_delete)
+        # ToDo: Continue here
+        if not resp.status_code == config.ResponseCode.Ok.value:
+            raise Exception(
+                f'Failed access pvc on source data cloning with error: [{resp.text}] and status: [{resp.status_code}]')
+    elif env == config.EnvironmentTypes.PROD.name:
+        _log.info(f'Deleting file - {file_to_delete} from folder')
+        ret_folder = glob.glob(path_to_folder + "/**/" + file_to_delete, recursive=True)
+        if not ret_folder:
+            _log.error(f'{file_to_delete} not found in {path_to_folder}')
+            raise Exception(f'{file_to_delete} not found in {path_to_folder}')
+        try:
+            for folder in ret_folder:
+                os.remove(folder)
+                _log.info(f'{folder} have been deleted')
+        except OSError as e:
+            _log.error(f'error occurred , msg : {str(e)}')
+
+
 def init_ingestion_src(env=config.EnvironmentTypes.QA.name):
     """
     This module will init new ingestion source folder.
@@ -110,7 +137,7 @@ def init_ingestion_src(env=config.EnvironmentTypes.QA.name):
     :return:dict with ingestion_dir and resource_name
     """
     if env == config.EnvironmentTypes.QA.name or env == config.EnvironmentTypes.DEV.name:
-        res = init_ingestion_src_pvc()
+        res = init_ingestion_src_pvc(False)
         return res
     elif env == config.EnvironmentTypes.PROD.name:
         src = os.path.join(config.NFS_ROOT_DIR, config.NFS_SOURCE_DIR)
@@ -182,7 +209,7 @@ def init_ingestion_src_fs(src, dst, watch=False):
     return {'ingestion_dir': dst, 'resource_name': source_name, 'max_resolution': res}
 
 
-def init_ingestion_src_pvc(host=config.PVC_HANDLER_ROUTE, create_api=config.PVC_CLONE_SOURCE,
+def init_ingestion_src_pvc(watch, host=config.PVC_HANDLER_ROUTE, create_api=config.PVC_CLONE_SOURCE,
                            change_api=config.PVC_CHANGE_METADATA, update_tfw_url=config.PVC_CHANGE_MAX_ZOOM):
     """
     This module will init new ingestion source folder inside pvc - only on azure.
@@ -190,8 +217,11 @@ def init_ingestion_src_pvc(host=config.PVC_HANDLER_ROUTE, create_api=config.PVC_
     The method will duplicate and rename metadata shape file to unique running name
     :return:dict with ingestion_dir and resource_name
     """
+    pvc_handler = azure_pvc_api.PVCHandler(endpoint_url=config.PVC_HANDLER_ROUTE, watch=watch)
+
     try:
-        resp = azure_pvc_api.create_new_ingestion_dir(host, create_api)
+        # resp = azure_pvc_api.create_new_ingestion_dir(host, create_api)
+        resp = pvc_handler.create_new_ingestion_dir()
         if not resp.status_code == config.ResponseCode.ChangeOk.value:
             raise Exception(
                 f'Failed access pvc on source data cloning with error: [{resp.text}] and status: [{resp.status_code}]')
@@ -203,7 +233,7 @@ def init_ingestion_src_pvc(host=config.PVC_HANDLER_ROUTE, create_api=config.PVC_
         raise Exception(f'Failed access pvc on source data cloning with error: [{str(e)}]')
 
     try:
-        resp = azure_pvc_api.make_unique_shapedata(host=host, api=change_api)
+        resp = pvc_handler.make_unique_shapedata()
         if not resp.status_code == config.ResponseCode.ChangeOk.value:
             raise Exception(
                 f'Failed access pvc on source data updating metadata.shp with error: [{resp.text}] and status: [{resp.status_code}]')
@@ -216,7 +246,7 @@ def init_ingestion_src_pvc(host=config.PVC_HANDLER_ROUTE, create_api=config.PVC_
 
     if config.PVC_UPDATE_ZOOM:
         try:
-            resp = azure_pvc_api.change_max_zoom_tfw(host=host, api=update_tfw_url)
+            resp = pvc_handler.change_max_zoom_tfw()
             if resp.status_code == config.ResponseCode.Ok.value:
                 _log.info(f'Max resolution changed successfully: [{json.loads(resp.text)["json_data"][0]["reason"]}]')
             else:
@@ -234,12 +264,15 @@ def validate_source_directory(path=None, env=config.EnvironmentTypes.QA.name, wa
     :param env: default qa for azure running with pvc
     :return: True \ False + response json
     """
+    pvc_handler = azure_pvc_api.PVCHandler(endpoint_url=config.PVC_HANDLER_ROUTE, watch=watch)
 
     if env == config.EnvironmentTypes.QA.name or env == config.EnvironmentTypes.DEV.name:
-        if watch:
-            resp = azure_pvc_api.validate_ingestion_directory(api=config.PVC_WATCH_VALIDATE)
-        else:
-            resp = azure_pvc_api.validate_ingestion_directory()
+        # if watch:
+        # resp = azure_pvc_api.validate_ingestion_directory(api=config.PVC_WATCH_VALIDATE)
+
+        # else:
+        # resp = azure_pvc_api.validate_ingestion_directory()
+        resp = pvc_handler.validate_ingestion_directory()
         content = json.loads(resp.text)
         # ToDo: Add to PVC
         # if content.get('json_data'):
@@ -269,12 +302,13 @@ def validate_source_directory(path=None, env=config.EnvironmentTypes.QA.name, wa
         raise Exception(f'illegal Environment name: [{env}]')
 
 
-def start_manual_ingestion(path, env=config.EnvironmentTypes.QA.name):
+def start_manual_ingestion(path, env=config.EnvironmentTypes.QA.name, validation=True):
     """This method will trigger new process of discrete ingestion by provided path"""
     # validate directory include all needed files and data
-    source_ok, body = validate_source_directory(path, env)
-    if not source_ok:
-        raise FileNotFoundError(f'Directory [{path}] with missing files / errors msg: [{body}]')
+    if validation:
+        source_ok, body = validate_source_directory(path, env)
+        if not source_ok:
+            raise FileNotFoundError(f'Directory [{path}] with missing files / errors msg: [{body}]')
 
     _log.info(f'Send ingestion request for dir: {path}')
     if env == config.EnvironmentTypes.QA.name or env == config.EnvironmentTypes.DEV.name:
@@ -286,7 +320,8 @@ def start_manual_ingestion(path, env=config.EnvironmentTypes.QA.name):
     status_code = resp.status_code
     content = resp.text
     _log.info(f'receive from agent - manual: status code [{status_code}] and message: [{content}]')
-
+    if not validation:
+        return status_code, content, "empty"
     return status_code, content, body
 
 
@@ -548,7 +583,7 @@ def cleanup_env(product_id, product_version, initial_mapproxy_config):
                     command = f'rm -rf {path}'
                     os.system(command)
                 else:
-                    # todo mabye on future add it with exception and test step assertion
+                    # todo maybe on future add it with exception and test step assertion
                     _log.error(f'Directory of tiles [{path}] not exists on File System')
 
             except Exception as e:
