@@ -43,5 +43,6 @@ def get_record_by_id(product_name, product_id, host=config.PYCSW_URL, params=con
     :return: list of records [orthophoto and orthophotoHistory]
     """
     res = get_raster_records(host, params)
-    records_list = [record for record in res if (record['mc:productId'] == product_name and record['mc:productVersion'] == product_id)]
+    records_list = [record for record in res if
+                    (record['mc:productId'] == product_name and record['mc:productVersion'] == product_id)]
     return records_list

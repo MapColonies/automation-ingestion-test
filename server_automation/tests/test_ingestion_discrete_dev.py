@@ -180,7 +180,6 @@ def teardown_module(module):  # pylint: disable=unused-argument
             executors.cleanup_env(p['product_id'], p['product_version'], initial_mapproxy_config)
 
 
-
 if config.DEBUG_MODE_LOCAL:
     test_manuel_discrete_ingest()
     # test_watch_discrete_ingest()

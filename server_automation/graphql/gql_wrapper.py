@@ -16,7 +16,8 @@ def get_jobs_task(host=config.GQK_URL):
 
 def get_job_by_product(product_id, product_version, host=config.GQK_URL):
     all_jobs = get_jobs_task(host=host)
-    job = [element for element in all_jobs if element['resourceId'] == product_id and element['version'] == product_version]
+    job = [element for element in all_jobs if
+           element['resourceId'] == product_id and element['version'] == product_version]
     if not job:
         raise Exception(f'job not found for {product_id}:{product_version}')
     return job[0]

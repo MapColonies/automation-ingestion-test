@@ -12,7 +12,6 @@ log_output_path = os.environ.get('LOGS_OUTPUT', '/opt/logs')
 logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)
 
-
 ch = logging.StreamHandler()
 
 if not log_mode:
