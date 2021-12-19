@@ -32,13 +32,13 @@ def get_tasks_by_job(job_id, db_name=config.PG_JOB_TASK_DB_NAME):
     return res
 
 
-def clean_layer_history(job_id, db_name=config.PG_LAYER_HISTORY_DB):
+def clean_layer_history(job_id, db_name=config.PG_AGENT):
     """This will directly clean job and related task from db"""
     deletion_command = f"""DELETE FROM "layer_history" WHERE "layerId"='{job_id}';"""
     client = postgres.PGClass(config.PG_HOST, db_name, config.PG_USER, config.PG_PASS)
     try:
         client.command_execute([deletion_command])
-        _log.info(f'Cleaned up successfully (layer_history) - from [{config.PG_LAYER_HISTORY_DB}] , job: [{job_id}]')
+        _log.info(f'Cleaned up successfully (layer_history) - from [{config.PG_AGENT}] , job: [{job_id}]')
         return {'status': "OK", 'message': f'deleted ok {job_id}'}
 
     except Exception as e:

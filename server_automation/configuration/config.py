@@ -1,6 +1,7 @@
 """ configuration for running ingestion tests"""
-from mc_automation_tools import common
 import enum
+import json
+from mc_automation_tools import common
 
 
 class EnvironmentTypes(enum.Enum):
@@ -35,105 +36,125 @@ class JobStatus(enum.Enum):
     Pending = 'Pending'
 
 
-############################################  general running environment  #############################################
-CLEAN_UP = common.get_environment_variable('CLEAN_UP', False)  # If should clean running data from env at the end
-DEBUG_MODE_LOCAL = common.get_environment_variable('DEBUG_MODE_LOCAL', False)  # for multiple debug option on dev
-FOLLOW_TIMEOUT = 60 * common.get_environment_variable('FOLLOW_TIMEOUT', 5)
-PROGRESS_TASK_DELAY = common.get_environment_variable('PROGRESS_TASK_DELAY', 20)
-SYSTEM_DELAY = common.get_environment_variable('SYSTEM_DELAY', 60)
-TEST_ENV = common.get_environment_variable('TEST_ENV', EnvironmentTypes.QA.name)  # compatibility to azure + prod env
-VALIDATION_SWITCH = common.get_environment_variable('VALIDATION_SWITCH',
-                                                    True)  # if false -> will skip data validation scopes
+CONF_FILE = common.get_environment_variable('CONF_FILE', None)
+if not CONF_FILE:
+    raise EnvironmentError('Should provide path for CONF_FILE')
+try:
+    with open(CONF_FILE, 'r') as fp:
+        conf = json.load(fp)
+except Exception as e:
+    raise EnvironmentError("Failed to load JSON for configuration")
 
-FAILURE_FLAG = common.get_environment_variable('FAILURE_FLAG', False)
+_api_route = conf.get('api_routes')
+############################################  general running environment  #############################################
+environment = conf.get('environment')
+TEST_ENV = environment.get('name', EnvironmentTypes.QA.name)  # compatibility to azure + prod env
+SHAPES_PATH = environment.get('shapes_path_name', 'Shapes')
+TIFF_PATH = environment.get('tiff_path_name', 'tiff')
+SHAPE_METADATA_FILE = environment.get('shape_metadata_file_name', 'ShapeMetadata.shp')
+DEBUG_MODE_LOCAL = environment.get('debug', False)
+CLEAN_UP = environment.get('clean_up', False)  # If should clean running data from env at the end
+VALIDATION_SWITCH = environment.get('validation_switch', True)  # if false -> will skip data validation scopes
+SYSTEM_DELAY = environment.get('system_delay', 60)
+PROGRESS_TASK_DELAY = environment.get('progress_task_delay', 20)
+FOLLOW_TIMEOUT = 60 * environment.get('follow_timeout', 5)
+############################################  follow  #############################################
+_job_manager_params = conf.get('job_manager_params')
+AMOUNT_OF_WORKERS = _job_manager_params.get('amount_of_workers', 1)
+FOLLOW_JOB_BY_MANAGER = _job_manager_params.get('FOLLOW_JOB_BY_MANAGER', True)
+JOB_MANAGER_URL = _job_manager_params.get('job_manager_url', None)
+
 ORIG_DISCRETE_PATH = common.get_environment_variable('ORIG_DISCRETE_PATH',
                                                      '/home/ronenk1/dev/automation-server-test/shp/1')
-SHAPES_PATH = common.get_environment_variable('SHAPES_PATH', 'Shapes')
-TIFF_PATH = common.get_environment_variable('TIFF_PATH', 'tiff')
-# SHAPE_FILE_LIST = ['Files.dbf', 'Product.shp', 'Product.dbf', 'ShapeMetadata.shp', 'ShapeMetadata.dbf']
 SHAPE_FILE_LIST = ['Files.shp', 'Files.dbf', 'Product.shp', 'Product.dbf', 'ShapeMetadata.shp', 'ShapeMetadata.dbf']
-SHAPE_METADATA_FILE = common.get_environment_variable('SHAPE_METADATA_FILE', 'ShapeMetadata.shp')
 ##########################################  Ingestion API's sub urls & API's  ##########################################
-INGESTION_MANUAL_TRIGGER = 'trigger'
-INGESTION_WATCHER_STATUS = 'status'
-INGESTION_START_WATCHER = 'start'
-INGESTION_STOP_WATCHER = 'stop'
-INGESTION_AGENT_URL = common.get_environment_variable('INGESTION_AGENT_URL',
-                                                      'https://discrete-agent-dev-agent-route-raster-dev.apps.v0h0bdx6.eastus.aroapp.io')
+# ToDo : Done
+_ingestion_sub_url_api = conf.get('ingestion_sub_url_api')
+INGESTION_MANUAL_TRIGGER = _ingestion_sub_url_api.get('ingestion_trigger', 'trigger')
+INGESTION_WATCHER_STATUS = _ingestion_sub_url_api.get('ingestion_watch_status', 'status')
+INGESTION_START_WATCHER = _ingestion_sub_url_api.get('ingestion_start_watch', 'start')
+INGESTION_STOP_WATCHER = _ingestion_sub_url_api.get('ingestion_stop_watch', 'stop')
+INGESTION_AGENT_URL = _ingestion_sub_url_api.get('ingestion_agent_url', None)
 ################################################  MAPPROXY VARIABELS  ##################################################
-WMS = 'WMS'
-WMTS = 'WMTS'
-WMTS_LAYER = 'WMTS_LAYER'
+# ToDo: Done
+_mapproxy_vars = conf.get('mapproxy_variables')
+WMS = _mapproxy_vars.get('wms')
+WMTS = _mapproxy_vars.get('wmts')
+WMTS_LAYER = _mapproxy_vars.get('wmts_layer')
 ###############################################  POSTGRESS CREDENTIALS  ################################################
-PG_USER = common.get_environment_variable('PG_USER', None)
-PG_PASS = common.get_environment_variable('PG_PASS', None)
-PG_HOST = common.get_environment_variable('PG_HOST', None)
-PG_JOB_TASK_DB_NAME = common.get_environment_variable('PG_JOB_TASK_DB_NAME', None)
-PG_RECORD_PYCSW_DB = common.get_environment_variable('PG_RECORD_PYCSW_DB', None)
-PG_MAPPROXY_CONFIG = common.get_environment_variable('PG_MAPPROXY_CONFIG', None)
-PG_PYCSW_RECORD = common.get_environment_variable('PG_PYCSW_RECORD', None)
-PG_AGENT = common.get_environment_variable('PG_AGENT', None)
-PG_LAYER_HISTORY_DB = common.get_environment_variable('PG_LAYER_HISTORY_DB', None)
-
-####################################################  environment  #####################################################
-PVC_HANDLER_ROUTE = common.get_environment_variable('PVC_HANDLER_ROUTE', None)
-PVC_CLONE_SOURCE = common.get_environment_variable('PVC_CLONE_SOURCE', None)
-PVC_CHANGE_METADATA = common.get_environment_variable('PVC_CHANGE_METADATA', None)
-PVC_VALIDATE_METADATA = common.get_environment_variable('PVC_VALIDATE_METADATA', None)
-PVC_ROOT_DIR = common.get_environment_variable('PVC_ROOT_DIR', None)
-
-NFS_ROOT_DIR = common.get_environment_variable('NFS_ROOT_DIR', '/tmp')
-NFS_ROOT_DIR_DEST = common.get_environment_variable('NFS_ROOT_DIR_DEST', '/tmp')
-
-NFS_SOURCE_DIR = common.get_environment_variable('NFS_SOURCE_DIR', 'ingestion/1')
-NFS_DEST_DIR = common.get_environment_variable('NFS_DEST_DIR', 'test_data')
-NFS_TILES_DIR = common.get_environment_variable('NFS_TILES_DIR', '/tmp')
-
-PVC_HANDLER_ROUTE = common.get_environment_variable('PVC_HANDLER_ROUTE', None)
-PVC_CLONE_SOURCE = common.get_environment_variable('PVC_CLONE_SOURCE', 'createTestDir')
-PVC_CHANGE_METADATA = common.get_environment_variable('PVC_CHANGE_METADATA', 'updateShape')
-PVC_CHANGE_WATCH_METADATA = common.get_environment_variable('PVC_CHANGE_WATCH_METADATA', 'updateWatchShape')
-PVC_VALIDATE_METADATA = common.get_environment_variable('PVC_VALIDATE_METADATA', 'validatePath')
-PVC_ROOT_DIR = common.get_environment_variable('PVC_ROOT_DIR', '/layerSources/watch')
-PVC_DELETE_DIR = common.get_environment_variable('PVC_DELETE_DIR', 'deleteTestDir')
-
-PVC_WATCH_CREATE_DIR = common.get_environment_variable('PVC_WATCH_CREATE_DIR', 'createWatchDir')
-PVC_WATCH_UPDATE_SHAPE = common.get_environment_variable('PVC_WATCH_UPDATE_SHAPE', 'updateWatchShape')
-PVC_WATCH_VALIDATE = common.get_environment_variable('PVC_WATCH_VALIDATE', 'validateWatchPath')
-
-PVC_UPDATE_ZOOM = common.get_environment_variable('PVC_UPDATE_ZOOM', None)  # default not change max zoom
-PVC_CHANGE_MAX_ZOOM = common.get_environment_variable('PVC_CHANGE_MAX_ZOOM', 'changeMaxZoom')
-PVC_CHANGE_WATCH_MAX_ZOOM = common.get_environment_variable('PVC_CHANGE_WATCH_MAX_ZOOM', 'changeWatchMaxZoom')
-MAX_ZOOM_TO_CHANGE = common.get_environment_variable('MAX_ZOOM_TO_CHANGE', 5)
-
-AMOUNT_OF_WORKERS = common.get_environment_variable('AMOUNT_OF_WORKERS', 1)
-
-NFS_WATCH_ROOT_DIR = common.get_environment_variable('NFS_WATCH_ROOT_DIR', '/tmp')
-NFS_WATCH_SOURCE_DIR = common.get_environment_variable('NFS_WATCH_SOURCE_DIR', 'ingestion/1')
-NFS_WATCH_BASE_DIR = common.get_environment_variable('NFS_WATCH_SOURCE_DIR', 'ingestion/1')
-NFS_WATCH_DEST_DIR = common.get_environment_variable('NFS_WATCH_DEST_DIR', 'watch')
-
+# ToDo: Done
+_pg_credentials = conf.get('pg_credential')
+PG_USER = _pg_credentials.get('pg_user', None)
+PG_PASS = _pg_credentials.get('pg_pass', None)
+PG_HOST = _pg_credentials.get('pg_host', None)
+PG_JOB_TASK_DB_NAME = _pg_credentials.get('pg_job_task_table', None)
+PG_RECORD_PYCSW_DB = _pg_credentials.get('pg_pycsw_record_table', None)
+PG_MAPPROXY_CONFIG = _pg_credentials.get('pg_mapproxy_table', None)
+PG_AGENT = _pg_credentials.get('pg_agent_table', None)
+# PG_PYCSW_RECORD = common.get_environment_variable('PG_PYCSW_RECORD', None)
+####################################################  NFS Directories  #####################################################
+# ToDo : Done
+_nfs_directories = conf.get('nfs_directories')
+NFS_ROOT_DIR = _nfs_directories.get('nfs_root_directory', '/tmp')
+NFS_ROOT_DIR_DEST = _nfs_directories.get('nfs_root_directory_destination', '/tmp')
+NFS_SOURCE_DIR = _nfs_directories.get('nfs_source_directory', 'ingestion/1')
+NFS_DEST_DIR = _nfs_directories.get('nfs_destination_directory', 'test_data')
+NFS_TILES_DIR = _nfs_directories.get('nfs_tiles_directory', '/tmp')
+NFS_WATCH_ROOT_DIR = _nfs_directories.get('nfs_watch_root_directory', '/tmp')
+NFS_WATCH_SOURCE_DIR = _nfs_directories.get('nfs_watch_source_directory', 'ingestion/1')
+NFS_WATCH_BASE_DIR = _nfs_directories.get('nfs_watch_base_direcotry', 'ingestion/1')
+NFS_WATCH_DEST_DIR = _nfs_directories.get('nfs_watch_destination_directory', 'watch')
+####################################################  PVC ROUTES  #####################################################
+# ToDo: Done
+_pvc_routes = conf.get('pvc_routes')
+PVC_CLONE_SOURCE = _pvc_routes.get('pvc_create_test_dir', 'createTestDir')
+PVC_CHANGE_METADATA = _pvc_routes.get('pvc_update_shape_metadata', 'updateShape')
+PVC_CHANGE_WATCH_METADATA = _pvc_routes.get('pvc_update_watch_shape_metadata', 'updateWatchShape')
+PVC_VALIDATE_METADATA = _pvc_routes.get('pvc_validate_metadata', 'validatePath')
+PVC_DELETE_DIR = _pvc_routes.get('pvc_delete_directory', 'deleteTestDir')
+PVC_WATCH_CREATE_DIR = _pvc_routes.get('pvc_watch_create_directory', 'createWatchDir')
+PVC_WATCH_UPDATE_SHAPE = _pvc_routes.get('pvc_watch_update_shape_metadata', 'updateWatchShape')
+PVC_WATCH_VALIDATE = _pvc_routes.get('pvc_watch_validate_metdata', 'validateWatchPath')
+PVC_CHANGE_MAX_ZOOM = _pvc_routes.get('pvc_change_max_zoom', 'changeMaxZoom')
+PVC_CHANGE_WATCH_MAX_ZOOM = _pvc_routes.get('pvc_change_watch_max_zoom', 'changeWatchMaxZoom')
+PVC_ROOT_DIR = _pvc_routes.get('pvc_root_directory', '/layerSources/watch')
 ########################################################  s3  ##########################################################
-S3_ACCESS_KEY = common.get_environment_variable('S3_ACCESS_KEY', None)
-S3_SECRET_KEY = common.get_environment_variable('S3_SECRET_KEY', None)
-S3_BUCKET_NAME = common.get_environment_variable('S3_BUCKET_NAME', None)
-S3_END_POINT = common.get_environment_variable('S3_END_POINT', None)
-
+# ToDo: Done
+_s3_credentials = conf.get('s3_credential')
+S3_ENDPOINT_URL = _s3_credentials.get('s3_endpoint_url', 'https://')
+S3_ACCESS_KEY = _s3_credentials.get('s3_access_key', None)
+S3_SECRET_KEY = _s3_credentials.get('s3_secret_key', None)
+S3_BUCKET_NAME = _s3_credentials.get('s3_bucket_name', 'UNKNOWN')
+S3_END_POINT = _s3_credentials.get('s3_end_point', None)
 ###################################################  gql & pycsw  ######################################################
-# PYCSW_URL = common.get_environment_variable('PYCSW_URL',
-#                                             "http://raster-qa-catalog-raster-catalog-pycsw-route-raster.apps.v0h0bdx6.eastus.aroapp.io")
-PYCSW_URL = common.get_environment_variable('PYCSW_URL',
-                                            "http://catalog-qa-raster-catalog-pycsw-route-raster.apps.v0h0bdx6.eastus.aroapp.io/")
-PYCSW_SERVICE = common.get_environment_variable("PYCSW_SERVICE", "CSW")
-PYCSW_VERSION = common.get_environment_variable("PYCSW_VERSION", "2.0.2")
-PYCSW_REQUEST_GET_RECORDS = common.get_environment_variable("PYCSW_REQUEST_GET_RECORDS", "GetRecords")
-PYCSW_TYPE_NAMES = common.get_environment_variable("PYCSW_TYPE_NAMES", "mc:MCRasterRecord")
-PYCSW_ElEMENT_SET_NAME = common.get_environment_variable("PYCSW_ElEMENT_SET_NAME", "full")
-PYCSW_OUTPUT_FORMAT = common.get_environment_variable("PYCSW_OUTPUT_FORMAT", "application/xml")
-PYCSW_RESULT_TYPE = common.get_environment_variable("PYCSW_RESULT_TYPE", "results")
-PYCSW_OUTPUT_SCHEMA = common.get_environment_variable("PYCSW_OUTPUT_SCHEMA", "http://schema.mapcolonies.com/raster")
-
-PYCSW_REQUEST_GET_CAPABILITIES = common.get_environment_variable("PYCSW_REQUEST_RECORDS", "GetCapabilities")
+_endpoints_discrete_ingestion = conf.get('discrete_ingestion_credential')
+PYCSW_URL = _api_route.get('pycsw_url', None)
+MAX_ZOOM_TO_CHANGE = _endpoints_discrete_ingestion.get('max_zoom_level', 5)
+FAILURE_FLAG = _endpoints_discrete_ingestion.get('failure_tag', False)
+PVC_UPDATE_ZOOM = _endpoints_discrete_ingestion.get('change_max_zoom_level', True)
+PVC_HANDLER_ROUTE = _endpoints_discrete_ingestion.get('pvc_handler_url', None)
+# DISCRETE_JOB_MANAGER_URL = _endpoints_discrete_ingestion.get('agent_url', 'https://')
+# PVC_HANDLER_URL = _endpoints_discrete_ingestion.get('pvc_handler_url', 'https://')
+# DISCRETE_RAW_ROOT_DIR = _endpoints_discrete_ingestion.get('discrete_raw_root_dir', '/tmp')
+# DISCRETE_RAW_SRC_DIR = _endpoints_discrete_ingestion.get('discrete_raw_src_dir', 'ingestion/1')
+# DISCRETE_RAW_DST_DIR = _endpoints_discrete_ingestion.get('discrete_raw_dst_dir', 'ingestion/2')
+# NFS_RAW_ROOT_DIR = _endpoints_discrete_ingestion.get('nfs_raw_root_dir', '/tmp')
+# NFS_RAW_SRC_DIR = _endpoints_discrete_ingestion.get('nfs_raw_src_dir', 'ingestion/1')
+# NFS_RAW_DST_DIR = _endpoints_discrete_ingestion.get('nfs_raw_dst_dir', 'ingestion/2')
+# INGESTION_TIMEOUT = _endpoints_discrete_ingestion.get('ingestion_timeout', 300)
+# BUFFER_TIMEOUT = _endpoints_discrete_ingestion.get('buffer_timeout', 70)
+###################################################  pycsw record params  ######################################################
+# ToDo: Done
+_pycsw_records_params = conf.get('pycsw_records_params')
+PYCSW_SERVICE = _pycsw_records_params.get("pycsw_service", "CSW")
+PYCSW_VERSION = _pycsw_records_params.get("pycsw_version", "2.0.2")
+PYCSW_REQUEST_GET_RECORDS = _pycsw_records_params.get("pycsw_request_get_records", "GetRecords")
+PYCSW_TYPE_NAMES = _pycsw_records_params.get("pycsw_type_names", "mc:MCRasterRecord")
+PYCSW_ElEMENT_SET_NAME = _pycsw_records_params.get("pycsw_element_set_name", "full")
+PYCSW_OUTPUT_FORMAT = _pycsw_records_params.get("pycsw_output_format", "application/xml")
+PYCSW_RESULT_TYPE = _pycsw_records_params.get("pycsw_result_type", "results")
+PYCSW_OUTPUT_SCHEMA = _pycsw_records_params.get("pycsw_output_schema", None)
+PYCSW_REQUEST_GET_CAPABILITIES = _pycsw_records_params.get("pycsw_request_get_capabilities", "GetCapabilities")
 
 PYCSW_GET_RECORD_PARAMS = {
     'service': PYCSW_SERVICE,
@@ -152,11 +173,7 @@ PYCSW_GET_CAPABILITIES_PARAMS = {
     'request': PYCSW_REQUEST_GET_CAPABILITIES
 }
 
-GQK_URL = common.get_environment_variable('GQK_URL',
-                                          'https://https-bff-raster.apps.v0h0bdx6.eastus.aroapp.io/graphql')
-JOB_MANAGER_URL = common.get_environment_variable('JOB_MANAGER_URL',
-                                                  'https://job-manager-qa-job-manager-route-raster.apps.v0h0bdx6.eastus.aroapp.io')
-FOLLOW_JOB_BY_MANAGER = common.get_environment_variable('FOLLOW_JOB_BY_MANAGER', True)
+GQK_URL = _api_route.get('graphql', None)
 
 PYCSW_QUERY_BY_PRODUCTID = {
     'query':
