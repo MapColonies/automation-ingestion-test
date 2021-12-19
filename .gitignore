@@ -130,6 +130,6 @@ dmypy.json
 
 
 # Configuration JSON
-server_automation/configuration/.configuration.json
+server_automation/configuration/configuration.json
 .configuration.json
-configuration.json
+**/configuration.json
