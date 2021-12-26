@@ -56,7 +56,7 @@ DEBUG_MODE_LOCAL = environment.get('debug', False)
 CLEAN_UP = environment.get('clean_up', False)  # If should clean running data from env at the end
 VALIDATION_SWITCH = environment.get('validation_switch', True)  # if false -> will skip data validation scopes
 SYSTEM_DELAY = environment.get('system_delay', 60)
-PROGRESS_TASK_DELAY = environment.get('progress_task_delay', 20)
+PROGRESS_TASK_DELAY = environment.get('progress_task_delay', 50)
 FOLLOW_TIMEOUT = 60 * environment.get('follow_timeout', 5)
 ############################################  follow  #############################################
 _job_manager_params = conf.get('job_manager_params')
@@ -129,7 +129,7 @@ S3_END_POINT = _s3_credentials.get('s3_end_point', None)
 ###################################################  gql & pycsw  ######################################################
 _endpoints_discrete_ingestion = conf.get('discrete_ingestion_credential')
 PYCSW_URL = _api_route.get('pycsw_url', None)
-MAX_ZOOM_TO_CHANGE = _endpoints_discrete_ingestion.get('max_zoom_level', 5)
+MAX_ZOOM_TO_CHANGE = _endpoints_discrete_ingestion.get('max_zoom_level', 1)
 FAILURE_FLAG = _endpoints_discrete_ingestion.get('failure_tag', False)
 PVC_UPDATE_ZOOM = _endpoints_discrete_ingestion.get('change_max_zoom_level', True)
 PVC_HANDLER_ROUTE = _endpoints_discrete_ingestion.get('pvc_handler_url', None)

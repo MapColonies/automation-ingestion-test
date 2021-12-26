@@ -5,6 +5,22 @@ from server_automation.functions.executors import *
 from conftest import ValueStorage
 from time import sleep
 
+"""
+  For 2 Workers:
+  discreteOverseer.env.TILING_ZOOM_GROUPS
+    0-5,6,7,8,9,10,11,12,13,14
+    
+    discreteWorker.replicaCount = 2
+    
+    zoom_level = 14
+   "amount_of_workers": 2
+    "system_delay": 250,
+    "progress_task_delay": 10,
+    "follow_timeout": 5
+  
+"""
+
+
 _log = logging.getLogger('server_automation.tests.test_parallel_ingestion_workers')
 
 if config.DEBUG_MODE_LOCAL:
@@ -27,6 +43,8 @@ def test_parallel_ingestion():
     source_directory = resp['ingestion_dir']
     _log.info(f'{product_id} {product_version}')
     sleep(5)
+    pvc_handler = azure_pvc_api.PVCHandler(endpoint_url=config.PVC_HANDLER_ROUTE, watch=False)
+    pvc_handler.change_max_zoom_tfw(14)
     # ================================================================================================================ #
     try:
         status_code, content, source_data = start_manual_ingestion(source_directory, config.TEST_ENV)
