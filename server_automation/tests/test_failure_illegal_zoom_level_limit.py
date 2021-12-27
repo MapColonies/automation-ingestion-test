@@ -37,7 +37,5 @@ def test_illegal_zoom():
         f'Test: [{test_illegal_zoom.__name__}] Failed: trigger new ingest with status code: [{status_code}]\n' \
         f'details: [{content}, expected :[{config.ResponseCode.ValidationErrors.value}]]'
 
-    pass
-
 
 test_illegal_zoom()

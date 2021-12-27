@@ -6,7 +6,7 @@ import json
 import glob
 import os
 import shutil
-
+from pathlib import Path
 import xmltodict
 from shapely.geometry import Polygon
 from server_automation.configuration import config
@@ -874,3 +874,15 @@ def get_xml_as_dict(url):
     except Exception as e:
         _log.error(f'Failed getting xml object from url [{url}] with error: {str(e)}')
         raise Exception(f'Failed getting xml object from url [{url}] with error: {str(e)}')
+
+
+def create_mock_file(path_to_folder, file_to_create):
+    ret_folder = glob.glob(path_to_folder + "/**/" + file_to_create, recursive=True)
+    if not ret_folder:
+        raise Exception(f'{file_to_create} not found in {path_to_folder}')
+    try:
+        for folder in ret_folder:
+            os.remove(folder)
+            Path(folder).touch()
+    except OSError as e:
+        raise Exception(f'error occurred , msg : {str(e)}')

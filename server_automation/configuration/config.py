@@ -58,6 +58,7 @@ VALIDATION_SWITCH = environment.get('validation_switch', True)  # if false -> wi
 SYSTEM_DELAY = environment.get('system_delay', 60)
 PROGRESS_TASK_DELAY = environment.get('progress_task_delay', 50)
 FOLLOW_TIMEOUT = 60 * environment.get('follow_timeout', 5)
+DIFFERENT_ZOOM_LEVEL_DELAY = environment.get('diff_zoom_level', 60)
 ############################################  follow  #############################################
 _job_manager_params = conf.get('job_manager_params')
 AMOUNT_OF_WORKERS = _job_manager_params.get('amount_of_workers', 1)
@@ -129,7 +130,7 @@ S3_END_POINT = _s3_credentials.get('s3_end_point', None)
 ###################################################  gql & pycsw  ######################################################
 _endpoints_discrete_ingestion = conf.get('discrete_ingestion_credential')
 PYCSW_URL = _api_route.get('pycsw_url', None)
-MAX_ZOOM_TO_CHANGE = _endpoints_discrete_ingestion.get('max_zoom_level', 1)
+MAX_ZOOM_TO_CHANGE = _endpoints_discrete_ingestion.get('max_zoom_level', 4)
 FAILURE_FLAG = _endpoints_discrete_ingestion.get('failure_tag', False)
 PVC_UPDATE_ZOOM = _endpoints_discrete_ingestion.get('change_max_zoom_level', True)
 PVC_HANDLER_ROUTE = _endpoints_discrete_ingestion.get('pvc_handler_url', None)
@@ -155,6 +156,12 @@ PYCSW_OUTPUT_FORMAT = _pycsw_records_params.get("pycsw_output_format", "applicat
 PYCSW_RESULT_TYPE = _pycsw_records_params.get("pycsw_result_type", "results")
 PYCSW_OUTPUT_SCHEMA = _pycsw_records_params.get("pycsw_output_schema", None)
 PYCSW_REQUEST_GET_CAPABILITIES = _pycsw_records_params.get("pycsw_request_get_capabilities", "GetCapabilities")
+
+###################################################  Mock Data params  ######################################################
+_mock_data = conf.get('mock_data')
+MOCK_IMAGERY_RAW_DATA_PATH = _mock_data.get('mock_imagery_data_path')
+MOCK_IMAGERY_RAW_DATA_FILE = _mock_data.get('mock_data_file')
+
 
 PYCSW_GET_RECORD_PARAMS = {
     'service': PYCSW_SERVICE,
