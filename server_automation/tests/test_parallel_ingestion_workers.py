@@ -44,7 +44,7 @@ def test_parallel_ingestion():
     _log.info(f'{product_id} {product_version}')
     sleep(5)
     pvc_handler = azure_pvc_api.PVCHandler(endpoint_url=config.PVC_HANDLER_ROUTE, watch=False)
-    pvc_handler.change_max_zoom_tfw(14)
+    pvc_handler.change_max_zoom_tfw(12)
     # ================================================================================================================ #
     try:
         status_code, content, source_data = start_manual_ingestion(source_directory, config.TEST_ENV)

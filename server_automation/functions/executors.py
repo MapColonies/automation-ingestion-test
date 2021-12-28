@@ -8,6 +8,14 @@ import os
 import shutil
 from pathlib import Path
 import xmltodict
+
+from mc_automation_tools import common as common
+from mc_automation_tools import shape_convertor, base_requests
+from mc_automation_tools import s3storage as s3
+from mc_automation_tools.ingestion_api import job_manager_api
+from discrete_kit.functions import metadata_convertor
+from mc_automation_tools.ingestion_api import azure_pvc_api
+
 from shapely.geometry import Polygon
 from server_automation.configuration import config
 from server_automation.ingestion_api import discrete_agent_api, discrete_directory_loader
@@ -16,13 +24,6 @@ from server_automation.graphql import gql_wrapper
 from server_automation.pycsw import pycsw_handler
 
 from discrete_kit.validator.json_compare_pycsw import *
-
-from mc_automation_tools import common as common
-from mc_automation_tools import shape_convertor, base_requests
-from mc_automation_tools import s3storage as s3
-from mc_automation_tools.ingestion_api import job_manager_api
-from discrete_kit.functions import metadata_convertor
-from mc_automation_tools.ingestion_api import azure_pvc_api
 
 # from importlib.resources import path
 
@@ -57,7 +58,7 @@ def stop_watch():
 
 def start_watch():
     """
-    This method start and validate start \ status api agent for watching
+    This method start and validate start or status api agent for watching
     :return: result dict: {state: bool, reason: str}
     """
     try:
@@ -207,54 +208,6 @@ def init_ingestion_src_fs(src, dst, watch=False):
                                                              'tfw')
 
     return {'ingestion_dir': dst, 'resource_name': source_name, 'max_resolution': res}
-
-
-def init_ingestion_src_pvc(watch, host=config.PVC_HANDLER_ROUTE, create_api=config.PVC_CLONE_SOURCE,
-                           change_api=config.PVC_CHANGE_METADATA, update_tfw_url=config.PVC_CHANGE_MAX_ZOOM):
-    """
-    This module will init new ingestion source folder inside pvc - only on azure.
-    The prerequisites must have source folder with suitable data and destination folder for new data
-    The method will duplicate and rename metadata shape file to unique running name
-    :return:dict with ingestion_dir and resource_name
-    """
-    pvc_handler = azure_pvc_api.PVCHandler(endpoint_url=config.PVC_HANDLER_ROUTE, watch=watch)
-
-    try:
-        # resp = azure_pvc_api.create_new_ingestion_dir(host, create_api)
-        resp = pvc_handler.create_new_ingestion_dir()
-        if not resp.status_code == config.ResponseCode.ChangeOk.value:
-            raise Exception(
-                f'Failed access pvc on source data cloning with error: [{resp.text}] and status: [{resp.status_code}]')
-        msg = json.loads(resp.text)
-        new_dir = msg['newDesination']
-        _log.info(
-            f'[{resp.status_code}]: New test running directory was created from source data: {msg["source"]} into {msg["newDesination"]}')
-    except Exception as e:
-        raise Exception(f'Failed access pvc on source data cloning with error: [{str(e)}]')
-
-    try:
-        resp = pvc_handler.make_unique_shapedata()
-        if not resp.status_code == config.ResponseCode.ChangeOk.value:
-            raise Exception(
-                f'Failed access pvc on source data updating metadata.shp with error: [{resp.text}] and status: [{resp.status_code}]')
-        resource_name = json.loads(resp.text)['source']
-        _log.info(
-            f'[{resp.status_code}]: metadata.shp was changed resource name: {resource_name}')
-
-    except Exception as e:
-        raise Exception(f'Failed access pvc on changing shape metadata: [{str(e)}]')
-
-    if config.PVC_UPDATE_ZOOM:
-        try:
-            resp = pvc_handler.change_max_zoom_tfw()
-            if resp.status_code == config.ResponseCode.Ok.value:
-                _log.info(f'Max resolution changed successfully: [{json.loads(resp.text)["json_data"][0]["reason"]}]')
-            else:
-                raise Exception(
-                    f'Failed on updating zoom level with error: [{json.loads(resp.text)["message"]} | {json.loads(resp.text)["json_data"]}]')
-        except Exception as e:
-            raise IOError(f'Failed updating zoom max level with error: [{str(e)}]')
-    return {'ingestion_dir': new_dir, 'resource_name': resource_name}
 
 
 def init_ingestion_src_pvc(watch, host=config.PVC_HANDLER_ROUTE, create_api=config.PVC_CLONE_SOURCE,

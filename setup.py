@@ -1,9 +1,9 @@
 import setuptools
 
-with open('requirements.txt') as f:
+with open('requirements.txt', encoding="utf-8") as f:
     requirements = f.read().splitlines()
 
-with open("README.md", "r") as fh:
+with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
 setuptools.setup(
@@ -22,5 +22,4 @@ setuptools.setup(
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ],
-    python_requires='>=3.6',
-)
+    python_requires='>=3.6')
