@@ -6,9 +6,9 @@ import logging
 import os
 import datetime
 
-log_mode = os.environ.get('DEBUG_LOGS', None)
-file_log = os.environ.get('FILE_LOGS', None)
-log_output_path = os.environ.get('LOGS_OUTPUT', '/opt/logs')
+log_mode = os.environ.get("DEBUG_LOGS", None)
+file_log = os.environ.get("FILE_LOGS", None)
+log_output_path = os.environ.get("LOGS_OUTPUT", "/opt/logs")
 logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)
 
@@ -20,10 +20,12 @@ else:
     ch.setLevel(logging.DEBUG)
 
 # create formatter and add it to the handlers
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 
 if file_log:
-    log_file_name = ".".join([str(datetime.datetime.utcnow()), 'log'])  # pylint: disable=invalid-name
+    log_file_name = ".".join(
+        [str(datetime.datetime.utcnow()), "log"]
+    )  # pylint: disable=invalid-name
     fh = logging.FileHandler(os.path.join(log_output_path, log_file_name))
     fh.setLevel(logging.DEBUG)
     fh.setFormatter(formatter)

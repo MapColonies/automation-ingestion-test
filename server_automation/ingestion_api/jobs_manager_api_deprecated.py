@@ -7,10 +7,10 @@ from mc_automation_tools import base_requests, common
 
 
 class JobsTasksManager:
-    __jobs_api = 'jobs'
-    __resettable = 'resettable'
-    __reset = 'reset'
-    __tasks = 'tasks'
+    __jobs_api = "jobs"
+    __resettable = "resettable"
+    __reset = "reset"
+    __tasks = "tasks"
 
     def __init__(self, end_point_url):
         self.__end_point_url = end_point_url
@@ -18,10 +18,10 @@ class JobsTasksManager:
     @property
     def get_class_params(self):
         params = {
-            'jobs_api': self.__jobs_api,
-            'resettable': self.__resettable,
-            'reset': self.__reset,
-            'tasks': self.__tasks
+            "jobs_api": self.__jobs_api,
+            "resettable": self.__resettable,
+            "reset": self.__reset,
+            "tasks": self.__tasks,
         }
         return params
 
@@ -49,7 +49,8 @@ class JobsTasksManager:
         resp = base_requests.send_get_request(url, params)
         if resp.status_code != config.ResponseCode.Ok.value:
             raise Exception(
-                f'[find_jobs_by_criteria]:failed retrieve jobs, return with error:[{resp.status_code}],error msg:[{str(resp.text)}]')
+                f"[find_jobs_by_criteria]:failed retrieve jobs, return with error:[{resp.status_code}],error msg:[{str(resp.text)}]"
+            )
 
         return json.loads(resp.content)
 
@@ -86,12 +87,13 @@ class JobsTasksManager:
         if isinstance(body, dict):
             body = json.dumps(body)
         elif not isinstance(body, str):
-            raise ValueError(f'params is not on valid params -> json or dict')
+            raise ValueError(f"params is not on valid params -> json or dict")
 
         resp = base_requests.send_post_request(url, body)
         if resp.status_code != config.ResponseCode.ChangeOk.value:
             raise Exception(
-                f'[create_new_job]:failed on creation new job, return with error:[{resp.status_code}],error msg:[{str(resp.content)}]')
+                f"[create_new_job]:failed on creation new job, return with error:[{resp.status_code}],error msg:[{str(resp.content)}]"
+            )
         return json.loads(resp.content)
 
     def get_job_by_id(self, uuid, return_tasks=True):
@@ -99,14 +101,15 @@ class JobsTasksManager:
         This method will query specific job according its uuid
         :param uuid: str -> unique id of job provided on creation
         :param return_tasks: bool -> Flag if provide with response also the tasks related
-        :return: json\ dict of the job
+        :return: json\\ dict of the job
         """
         url = common.combine_url(self.__end_point_url, self.__jobs_api, uuid)
-        params = {'shouldReturnTasks': str(return_tasks).lower()}
+        params = {"shouldReturnTasks": str(return_tasks).lower()}
         resp = base_requests.send_get_request(url, params)
         if resp.status_code != config.ResponseCode.Ok.value:
             raise Exception(
-                f'[get_job_by_id]:failed retrieve job, return with error:[{resp.status_code}]:error msg:[{str(resp.content)}]')
+                f"[get_job_by_id]:failed retrieve job, return with error:[{resp.status_code}]:error msg:[{str(resp.content)}]"
+            )
 
         return json.loads(resp.content)
 
@@ -131,11 +134,12 @@ class JobsTasksManager:
         if isinstance(body, dict):
             body = json.dumps(body)
         elif not isinstance(body, str):
-            raise ValueError(f'params is not on valid params -> json or dict')
+            raise ValueError(f"params is not on valid params -> json or dict")
         resp = base_requests.send_put_request(url, body)
         if resp.status_code != config.ResponseCode.Ok.value:
             raise Exception(
-                f'[get_job_by_id]:failed update job, return with error:[{resp.status_code}]:error msg:[{str(resp.content)}]')
+                f"[get_job_by_id]:failed update job, return with error:[{resp.status_code}]:error msg:[{str(resp.content)}]"
+            )
         return resp.text
 
     def delete_job(self, uuid, return_tasks=True):
@@ -146,11 +150,12 @@ class JobsTasksManager:
         :return: response state
         """
         url = common.combine_url(self.__end_point_url, self.__jobs_api, uuid)
-        params = json.dumps({'shouldReturnTasks': return_tasks})
+        params = json.dumps({"shouldReturnTasks": return_tasks})
         resp = base_requests.send_delete_request(url, params)
         if resp.status_code != config.ResponseCode.Ok.value:
             raise Exception(
-                f'[delete_job]:failed delete job, return with error:[{resp.status_code}]:error msg:[{str(resp.content)}]')
+                f"[delete_job]:failed delete job, return with error:[{resp.status_code}]:error msg:[{str(resp.content)}]"
+            )
 
         return json.loads(resp.content)
 
@@ -160,11 +165,14 @@ class JobsTasksManager:
         :param uuid: str -> unique id of job provided on creation
         :return: dict -> {jobId:str, isResettable:bool} on success
         """
-        url = common.combine_url(self.__end_point_url, self.__jobs_api, uuid, self.__resettable)
+        url = common.combine_url(
+            self.__end_point_url, self.__jobs_api, uuid, self.__resettable
+        )
         resp = base_requests.send_post_request(url)
         if resp.status_code != config.ResponseCode.Ok.value:
             raise Exception(
-                f'[resettable]:failed get resettable state for job, return with error:[{resp.status_code}]:error msg:[{str(resp.content)}]')
+                f"[resettable]:failed get resettable state for job, return with error:[{resp.status_code}]:error msg:[{str(resp.content)}]"
+            )
 
         return json.loads(resp.content)
 
@@ -174,11 +182,14 @@ class JobsTasksManager:
         :param uuid: str -> unique id of job provided on creation
         :return: dict -> {jobId:str, isResettable:bool} on success
         """
-        url = common.combine_url(self.__end_point_url, self.__jobs_api, uuid, self.__reset)
+        url = common.combine_url(
+            self.__end_point_url, self.__jobs_api, uuid, self.__reset
+        )
         resp = base_requests.send_post_request(url)
         if resp.status_code != config.ResponseCode.Ok.value:
             raise Exception(
-                f'[reset]:failed start reset on resettable job, return with error:[{resp.status_code}]:error msg:[{str(resp.content)}]')
+                f"[reset]:failed start reset on resettable job, return with error:[{resp.status_code}]:error msg:[{str(resp.content)}]"
+            )
 
         return str(resp.text)
 
@@ -188,11 +199,14 @@ class JobsTasksManager:
         :param uuid: str -> unique id of job provided on creation
         :return: list[dict] -> list of dicts representing all tasks under provided job
         """
-        url = common.combine_url(self.__end_point_url, self.__jobs_api, uuid, self.__tasks)
+        url = common.combine_url(
+            self.__end_point_url, self.__jobs_api, uuid, self.__tasks
+        )
         resp = base_requests.send_get_request2(url)
         if resp.status_code != config.ResponseCode.Ok.value:
             raise Exception(
-                f'[tasks]:failed get tasks of job, return with error:[{resp.status_code}]:error msg:[{str(resp.content)}]')
+                f"[tasks]:failed get tasks of job, return with error:[{resp.status_code}]:error msg:[{str(resp.content)}]"
+            )
 
         return json.loads(resp.content)
 
@@ -213,7 +227,9 @@ class JobsTasksManager:
         :param body: dict -> body contain of the fields to insert on new task
         :return: dict -> id: <new id of the created task>
         """
-        url = common.combine_url(self.__end_point_url, self.__jobs_api, uuid, self.__tasks)
+        url = common.combine_url(
+            self.__end_point_url, self.__jobs_api, uuid, self.__tasks
+        )
         # if isinstance(body, dict):
         #     body = json.dumps(body)
         # elif not isinstance(body, str):
@@ -221,6 +237,7 @@ class JobsTasksManager:
         resp = base_requests.send_post_request(url, body)
         if resp.status_code != config.ResponseCode.ChangeOk.value:
             raise Exception(
-                f'[create_task]:failed insert new task to job, return with error:[{resp.status_code}]:error msg:[{str(resp.content)}]')
+                f"[create_task]:failed insert new task to job, return with error:[{resp.status_code}]:error msg:[{str(resp.content)}]"
+            )
 
         return json.loads(resp.content)

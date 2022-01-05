@@ -8,7 +8,7 @@ from discrete_kit.functions.shape_functions import *
 from discrete_kit.validator.schema_validator import *
 from pathlib import Path
 
-_log = logging.getLogger('server_automation.ingestion_api.discrete_directory_loader')
+_log = logging.getLogger("server_automation.ingestion_api.discrete_directory_loader")
 
 
 #
@@ -46,26 +46,30 @@ def validate_source_directory(path):
     """This module validate source directory is valid for ingestion process"""
     missing_set_files = []
     if not os.path.exists(path):
-        _log.error(f'Path [{path}] not exists')
-        return False, f'Path [{path}] not exists'
+        _log.error(f"Path [{path}] not exists")
+        return False, f"Path [{path}] not exists"
 
     if not find_if_folder_exists(path, a_config.SHAPES_PATH):
-        _log.error(f'Path [{os.path.join(path, a_config.SHAPES_PATH)}] not exists')
-        return False, f'Path [{os.path.join(path, a_config.SHAPES_PATH)}] not exists'
+        _log.error(f"Path [{os.path.join(path, a_config.SHAPES_PATH)}] not exists")
+        return False, f"Path [{os.path.join(path, a_config.SHAPES_PATH)}] not exists"
 
     if not find_if_folder_exists(path, a_config.TIFF_PATH):
-        _log.error(f'Path [{os.path.join(path, a_config.TIFF_PATH)}] not exists')
-        return False, f'Path [{os.path.join(path, a_config.TIFF_PATH)}] not exists'
+        _log.error(f"Path [{os.path.join(path, a_config.TIFF_PATH)}] not exists")
+        return False, f"Path [{os.path.join(path, a_config.TIFF_PATH)}] not exists"
 
     ret_folder = get_folder_path_by_name(path, a_config.SHAPES_PATH)
     for file_name in cfg.files_names:
         for ext in cfg.files_extension_list:
             ret_extension_validation, missing = cfg.validate_ext_files_exists(
-                os.path.join(ret_folder, file_name), ext)
+                os.path.join(ret_folder, file_name), ext
+            )
             if not ret_extension_validation:
                 missing_set_files.append(missing)
     if missing_set_files:
-        return False, f'Path [{os.path.join(path, a_config.SHAPES_PATH)}] missing files:{set(missing_set_files)}'
+        return (
+            False,
+            f"Path [{os.path.join(path, a_config.SHAPES_PATH)}] missing files:{set(missing_set_files)}",
+        )
 
     json_object_res = ShapeToJSON(ret_folder)
     # try:
@@ -101,5 +105,5 @@ def find_if_folder_exists(directory, folder_to_check):
 
 def get_folder_path_by_name(path, name):
     p_walker = [x[0] for x in os.walk(path)]
-    path = ("\n".join(s for s in p_walker if name.lower() in s.lower()))
+    path = "\n".join(s for s in p_walker if name.lower() in s.lower())
     return path

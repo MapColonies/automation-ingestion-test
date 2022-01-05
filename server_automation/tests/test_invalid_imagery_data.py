@@ -7,7 +7,7 @@ from server_automation.functions.executors import *
 from server_automation.postgress import postgress_adapter
 from conftest import ValueStorage
 
-_log = logging.getLogger('server_automation.tests.test_invalid_imagery_data')
+_log = logging.getLogger("server_automation.tests.test_invalid_imagery_data")
 
 
 def test_invalid_data():
@@ -18,48 +18,70 @@ def test_invalid_data():
     except Exception as e:
         resp = None
         error_msg = str(e)
-    assert resp, \
-        f'Test: [{test_invalid_data.__name__}] Failed: on creating and updating layerSource folder [{error_msg}]'
-    _log.info(f'{resp}')
+    assert (
+        resp
+    ), f"Test: [{test_invalid_data.__name__}] Failed: on creating and updating layerSource folder [{error_msg}]"
+    _log.info(f"{resp}")
 
-    product_id, product_version = resp['resource_name'].split('-')
-    ValueStorage.discrete_list.append({'product_id': product_id, 'product_version': product_version})
-    source_directory = resp['ingestion_dir']
-    _log.info('%s %s', product_id, product_version)
+    product_id, product_version = resp["resource_name"].split("-")
+    ValueStorage.discrete_list.append(
+        {"product_id": product_id, "product_version": product_version}
+    )
+    source_directory = resp["ingestion_dir"]
+    _log.info("%s %s", product_id, product_version)
     sleep(5)
-    if config.TEST_ENV == config.EnvironmentTypes.QA.name or config.TEST_ENV == config.EnvironmentTypes.DEV.name:
-        pvc_handler = azure_pvc_api.PVCHandler(endpoint_url=config.PVC_HANDLER_ROUTE, watch=False)
-        pvc_handler.create_mock_file(config.MOCK_IMAGERY_RAW_DATA_PATH, config.MOCK_IMAGERY_RAW_DATA_FILE)
+    if (
+        config.TEST_ENV == config.EnvironmentTypes.QA.name
+        or config.TEST_ENV == config.EnvironmentTypes.DEV.name
+    ):
+        pvc_handler = azure_pvc_api.PVCHandler(
+            endpoint_url=config.PVC_HANDLER_ROUTE, watch=False
+        )
+        pvc_handler.create_mock_file(
+            config.MOCK_IMAGERY_RAW_DATA_PATH, config.MOCK_IMAGERY_RAW_DATA_FILE
+        )
     elif config.TEST_ENV == config.EnvironmentTypes.PROD.name:
-        create_mock_file(config.MOCK_IMAGERY_RAW_DATA_PATH, config.MOCK_IMAGERY_RAW_DATA_FILE)
+        create_mock_file(
+            config.MOCK_IMAGERY_RAW_DATA_PATH, config.MOCK_IMAGERY_RAW_DATA_FILE
+        )
     # ToDo : Change the source of .tif for NFS
 
     try:
-        status_code, content, source_data = start_manual_ingestion(source_directory, config.TEST_ENV)
+        status_code, content, source_data = start_manual_ingestion(
+            source_directory, config.TEST_ENV
+        )
     except Exception as e:
-        status_code = 'unknown'
+        status_code = "unknown"
         content = str(e)
-    assert status_code == config.ResponseCode.Ok.value, f'Test: [{test_invalid_data.__name__}] ' \
-                                                        f'Failed: trigger new ingest with status: [{status_code}]\n' \
-                                                        f'details: [{content}]'
-    _log.info('manual ingestion - source_data: %s', source_data)
-    _log.info('manual ingestion - content: %s', content)
-    _log.info('manual ingestion - status code: %s', status_code)
+    assert status_code == config.ResponseCode.Ok.value, (
+        f"Test: [{test_invalid_data.__name__}] "
+        f"Failed: trigger new ingest with status: [{status_code}]\n"
+        f"details: [{content}]"
+    )
+    _log.info("manual ingestion - source_data: %s", source_data)
+    _log.info("manual ingestion - content: %s", content)
+    _log.info("manual ingestion - status code: %s", status_code)
     sleep(config.SYSTEM_DELAY)
     try:
         if config.FOLLOW_JOB_BY_MANAGER:  # following based on job manager api
-            _log.info('Start following job-tasks based on job manager api')
-            ingestion_follow_state = follow_running_job_manager(product_id, product_version)
+            _log.info("Start following job-tasks based on job manager api")
+            ingestion_follow_state = follow_running_job_manager(
+                product_id, product_version
+            )
         else:  # following based on bff service
             ingestion_follow_state = follow_running_task(product_id, product_version)
-        resp = (ingestion_follow_state['status'] == config.JobStatus.Completed.name)
-        error_msg = ingestion_follow_state['message']
+        resp = ingestion_follow_state["status"] == config.JobStatus.Completed.name
+        error_msg = ingestion_follow_state["message"]
 
     except Exception as e:
         resp = None
         error_msg = str(e)
-    assert not resp, f'Test: [{test_invalid_data.__name__}] Failed: test should failed on generated tiles , msg :  [{error_msg}]'
-    _log.info(f'Finished the test with invalid data , msg agent return :  [{error_msg}]')
+    assert (
+        not resp
+    ), f"Test: [{test_invalid_data.__name__}] Failed: test should failed on generated tiles , msg :  [{error_msg}]"
+    _log.info(
+        f"Finished the test with invalid data , msg agent return :  [{error_msg}]"
+    )
 
 
 test_invalid_data()

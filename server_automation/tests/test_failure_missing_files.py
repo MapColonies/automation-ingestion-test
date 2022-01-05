@@ -3,9 +3,9 @@ from time import sleep
 from server_automation.functions.executors import *
 from conftest import ValueStorage
 
-_log = logging.getLogger('server_automation.tests.test_failure_missing_files')
+_log = logging.getLogger("server_automation.tests.test_failure_missing_files")
 
-list_of_missing_files = ['Files.shp', 'ShapeMetadata.shp', '*.tif', '*.tfw']
+list_of_missing_files = ["Files.shp", "ShapeMetadata.shp", "*.tif", "*.tfw"]
 
 
 def test_missing_files():
@@ -18,27 +18,34 @@ def test_missing_files():
         except Exception as e:
             resp = None
             error_msg = str(e)
-        assert resp, \
-            f'Test: [{test_missing_files.__name__}] Failed: on creating and updating layerSource folder [{error_msg}]'
-        _log.info(f'{resp}')
+        assert (
+            resp
+        ), f"Test: [{test_missing_files.__name__}] Failed: on creating and updating layerSource folder [{error_msg}]"
+        _log.info(f"{resp}")
 
-        product_id, product_version = resp['resource_name'].split('-')
-        ValueStorage.discrete_list.append({'product_id': product_id, 'product_version': product_version})
-        source_directory = resp['ingestion_dir']
-        _log.info(f'{product_id} {product_version}')
+        product_id, product_version = resp["resource_name"].split("-")
+        ValueStorage.discrete_list.append(
+            {"product_id": product_id, "product_version": product_version}
+        )
+        source_directory = resp["ingestion_dir"]
+        _log.info(f"{product_id} {product_version}")
         sleep(5)
 
         delete_file_from_folder(source_directory, missing_file, config.TEST_ENV)
 
         try:
-            status_code, content, source_data = start_manual_ingestion(source_directory, config.TEST_ENV, False)
+            status_code, content, source_data = start_manual_ingestion(
+                source_directory, config.TEST_ENV, False
+            )
         except Exception as e:
             content = str(e)
-        assert status_code == config.ResponseCode.ValidationErrors.value, \
-            f'Test: [{test_missing_files.__name__}] Failed: trigger new ingest with status code: [{status_code}]\n' \
-            f'details: [{content}, expected :[{config.ResponseCode.ValidationErrors.value}]]'
+        assert status_code == config.ResponseCode.ValidationErrors.value, (
+            f"Test: [{test_missing_files.__name__}] Failed: trigger new ingest with status code: [{status_code}]\n"
+            f"details: [{content}, expected :[{config.ResponseCode.ValidationErrors.value}]]"
+        )
 
-    # ToDo : Create new source data -> copy and edit origin discrete- unique product name
+    # ToDo : Create new source data -> copy and edit origin discrete- unique
+    # product name
 
     # ToDo : copy the data and remove tiff files
 
@@ -46,7 +53,8 @@ def test_missing_files():
 
     # ToDo : Check if Status 400 - bad request -> No(Test Failed)
 
-    # ToDo: copy full source data instead of previous - remove shapemetadata.shp files
+    # ToDo: copy full source data instead of previous - remove
+    # shapemetadata.shp files
 
     # ToDo : Start manual ingestion via manual post request [rest api]
 

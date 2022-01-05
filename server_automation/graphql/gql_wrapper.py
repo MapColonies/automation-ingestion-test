@@ -3,7 +3,7 @@ import logging
 from server_automation.configuration import config
 from mc_automation_tools import graphql, common
 
-_log = logging.getLogger('automation_tools.graphql.gql_wrapper')
+_log = logging.getLogger("automation_tools.graphql.gql_wrapper")
 
 
 def get_jobs_task(host=config.GQK_URL):
@@ -11,15 +11,18 @@ def get_jobs_task(host=config.GQK_URL):
 
     gql_client = graphql.GqlClient(host)
     res = gql_client.get_jobs_tasks()
-    return res['data']['jobs']
+    return res["data"]["jobs"]
 
 
 def get_job_by_product(product_id, product_version, host=config.GQK_URL):
     all_jobs = get_jobs_task(host=host)
-    job = [element for element in all_jobs if
-           element['resourceId'] == product_id and element['version'] == product_version]
+    job = [
+        element
+        for element in all_jobs
+        if element["resourceId"] == product_id and element["version"] == product_version
+    ]
     if not job:
-        raise Exception(f'job not found for {product_id}:{product_version}')
+        raise Exception(f"job not found for {product_id}:{product_version}")
     return job[0]
 
 
@@ -33,13 +36,13 @@ def get_pycsw_record(host, product_id):
     try:
         gql_client = graphql.GqlClient(host)
         pycsw_template_request = config.PYCSW_QUERY_BY_PRODUCTID
-        query = pycsw_template_request['query']
-        variables = pycsw_template_request['variables']
-        variables['opts']['filter'][1]['eq'] = product_id
+        query = pycsw_template_request["query"]
+        variables = pycsw_template_request["variables"]
+        variables["opts"]["filter"][1]["eq"] = product_id
         records = gql_client.execute_free_query(query, variables)
 
     except Exception as e:
-        _log.error(f'Failed on getting pycsw record with error: [{str(e)}]')
-        raise Exception(f'Failed on getting pycsw record with error: [{str(e)}]')
+        _log.error(f"Failed on getting pycsw record with error: [{str(e)}]")
+        raise Exception(f"Failed on getting pycsw record with error: [{str(e)}]")
 
     return records

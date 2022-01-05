@@ -17,13 +17,15 @@ def create_new_ingestion_dir(host, api):
 
 
 def change_max_zoom_tfw(host=config.PVC_HANDLER_ROUTE, api=config.PVC_CHANGE_MAX_ZOOM):
-    params = {'max_zoom': config.zoom_level_dict[config.MAX_ZOOM_TO_CHANGE]}
+    params = {"max_zoom": config.zoom_level_dict[config.MAX_ZOOM_TO_CHANGE]}
     url = common.combine_url(host, api)
     resp = base_requests.send_get_request(url, params)
     return resp
 
 
-def make_unique_shapedata(host=config.PVC_HANDLER_ROUTE, api=config.PVC_CHANGE_METADATA):
+def make_unique_shapedata(
+        host=config.PVC_HANDLER_ROUTE, api=config.PVC_CHANGE_METADATA
+):
     """
     This method will send http get request to pvc server and change shape metadata to unique running
     :param host: route address to service
@@ -35,7 +37,9 @@ def make_unique_shapedata(host=config.PVC_HANDLER_ROUTE, api=config.PVC_CHANGE_M
     return resp
 
 
-def validate_ingestion_directory(host=config.PVC_HANDLER_ROUTE, api=config.PVC_VALIDATE_METADATA):
+def validate_ingestion_directory(
+        host=config.PVC_HANDLER_ROUTE, api=config.PVC_VALIDATE_METADATA
+):
     """
     This method validate on pvc directory if directory include all needed files for new discrete
     :param host: route address to service
@@ -47,9 +51,11 @@ def validate_ingestion_directory(host=config.PVC_HANDLER_ROUTE, api=config.PVC_V
     return resp
 
 
-def delete_ingestion_directory(host=config.PVC_HANDLER_ROUTE, api=config.PVC_DELETE_DIR, folder_param=None):
+def delete_ingestion_directory(
+        host=config.PVC_HANDLER_ROUTE, api=config.PVC_DELETE_DIR, folder_param=None
+):
     if folder_param is not None:
-        api = api + '?' + folder_param
+        api = api + "?" + folder_param
     url = common.combine_url(host, api)
     resp = base_requests.send_get_request(url)
     return resp
