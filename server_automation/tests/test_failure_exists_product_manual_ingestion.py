@@ -29,6 +29,11 @@ def test_exists_product_manual_ingestion():
         {"product_id": product_id, "product_version": product_version}
     )
     source_directory = resp["ingestion_dir"]
+    ValueStorage.folder_to_delete = source_directory.split("/watch/")[-1]
+    write_text_to_file('//tmp//shlomo.txt',
+                       {'source_dir': source_directory, 'product_id_version': ValueStorage.discrete_list,
+                        'test_name': test_exists_product_manual_ingestion.__name__,
+                        'folder_to_delete': ValueStorage.folder_to_delete})
     _log.info(f"{product_id} {product_version}")
     sleep(5)
     # ================================================================================================================ #
@@ -92,16 +97,18 @@ def teardown_module(module):  # pylint: disable=unused-argument
     This method been executed after test running - env cleaning
     """
     stop_watch()
+    error_msg = ""
+    pvc_handler = azure_pvc_api.PVCHandler(
+        endpoint_url=config.PVC_HANDLER_ROUTE, watch=False
+    )
     if config.VALIDATION_SWITCH:
         if (
-            config.TEST_ENV == config.EnvironmentTypes.QA.name
-            or config.TEST_ENV == config.EnvironmentTypes.DEV.name
+                config.TEST_ENV == config.EnvironmentTypes.QA.name
+                or config.TEST_ENV == config.EnvironmentTypes.DEV.name
         ):
             # ToDo : Handle PVC - test it
             try:
-                resp = azure_pvc_api.delete_ingestion_directory(
-                    api=config.PVC_DELETE_DIR
-                )
+                resp = pvc_handler.delete_ingestion_directory(ValueStorage.folder_to_delete)
             except Exception as e:
                 resp = None
                 error_msg = str(e)
@@ -133,4 +140,4 @@ if config.DEBUG_MODE_LOCAL:
     config.PVC_UPDATE_ZOOM = True
     config.MAX_ZOOM_TO_CHANGE = 4  # 4
 
-test_exists_product_manual_ingestion()
+# test_exists_product_manual_ingestion()

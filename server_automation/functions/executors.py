@@ -1077,3 +1077,13 @@ def create_mock_file(path_to_folder, file_to_create):
             Path(folder).touch()
     except OSError as e:
         raise Exception(f"error occurred , msg : {str(e)}")
+
+
+def write_text_to_file(path_to_text, text_to_write):
+    if not path_to_text:
+        path_to_text = "//tmp//jobs_to_delete.txt"
+    try:
+        with open(path_to_text, "a") as f:
+            f.write(f"{text_to_write}\n")
+    except IOError as e:
+        raise Exception(f"Failed to write to {path_to_text} , with msg : {str(e)}")

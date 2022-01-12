@@ -7,6 +7,7 @@ from server_automation.functions.executors import (
     azure_pvc_api,
     start_manual_ingestion,
     s3,
+    write_text_to_file
 )
 from server_automation.postgress import postgress_adapter
 from conftest import ValueStorage
@@ -50,7 +51,9 @@ def test_zoom_level(zoom_lvl):
     source_directory = resp["ingestion_dir"]
     _log.info(f"{product_id} {product_version}")
     sleep(5)
-
+    write_text_to_file('//tmp//shlomo.txt',
+                       {'source_dir': source_directory, 'product_id_version': ValueStorage.discrete_list,
+                        'test_name': test_zoom_level.__name__})
     _log.info(f"changing zoom to level : {zoom_lvl}")
     pvc_handler = azure_pvc_api.PVCHandler(
         endpoint_url=config.PVC_HANDLER_ROUTE, watch=False

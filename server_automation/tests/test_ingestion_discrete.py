@@ -41,6 +41,10 @@ def test_manual_discrete_ingest():
     source_directory = resp["ingestion_dir"]
     _log.info(f"{product_id} {product_version}")
     sleep(5)
+    write_text_to_file('//tmp//shlomo.txt',
+                       {'source_dir': source_directory, 'product_id_version': ValueStorage.discrete_list,
+                        'test_name': test_manual_discrete_ingest.__name__,
+                        'folder_to_delete': ValueStorage.folder_to_delete})
     # ================================================================================================================ #
     try:
         status_code, content, source_data = start_manual_ingestion(
@@ -131,7 +135,6 @@ def test_watch_discrete_ingest():
     """
     This test ingestion by watching shared folder
     """
-
     # config.TEST_ENV = 'PROD'
     # stop watching folder as prerequisites
     try:
@@ -165,7 +168,10 @@ def test_watch_discrete_ingest():
     ValueStorage.folder_to_delete = source_directory.split("/watch/")[-1]
     _log.info(f"{product_id} {product_version}")
     _log.info(f"watch ingestion init - source_directory: {source_directory}")
-
+    write_text_to_file('//tmp//shlomo.txt',
+                       {'source_dir': source_directory, 'product_id_version': ValueStorage.discrete_list,
+                        'test_name': test_watch_discrete_ingest.__name__,
+                        'folder_to_delete': ValueStorage.folder_to_delete})
     try:
         state, content, source_data = start_watch_ingestion(
             source_directory, config.TEST_ENV
@@ -261,6 +267,9 @@ def teardown_module(module):  # pylint: disable=unused-argument
     This method been executed after test running - env cleaning
     """
     stop_watch()
+    pvc_handler = azure_pvc_api.PVCHandler(
+        endpoint_url=config.PVC_HANDLER_ROUTE, watch=False
+    )
     if config.CLEAN_UP:
         if config.VALIDATION_SWITCH:
             if (
@@ -270,10 +279,11 @@ def teardown_module(module):  # pylint: disable=unused-argument
                 # ToDo : Handle PVC - test it
                 try:
                     error_msg = None
-                    resp = azure_pvc_api.delete_ingestion_directory(
-                        api=config.PVC_DELETE_DIR,
-                        folder_param=ValueStorage.folder_to_delete,
+                    resp = pvc_handler.delete_ingestion_directory(
+                        api=config.PVC_DELETE_DIR
+
                     )
+                #     folder_param=ValueStorage.folder_to_delete,
                 except Exception as e:
                     resp = None
                     error_msg = str(e)
@@ -303,4 +313,4 @@ if config.DEBUG_MODE_LOCAL:
     config.MAX_ZOOM_TO_CHANGE = 4  # 4
 
     # test_manual_discrete_ingest()
-    test_watch_discrete_ingest()
+    # test_watch_discrete_ingest()

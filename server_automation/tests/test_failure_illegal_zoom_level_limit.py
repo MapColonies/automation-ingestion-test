@@ -29,7 +29,9 @@ def test_illegal_zoom():
     source_directory = resp["ingestion_dir"]
     _log.info(f"{product_id} {product_version}")
     sleep(5)
-
+    write_text_to_file('//tmp//shlomo.txt',
+                       {'source_dir': source_directory, 'product_id_version': ValueStorage.discrete_list,
+                        'test_name': test_illegal_zoom.__name__})
     config.PVC_UPDATE_ZOOM = True
     config.MAX_ZOOM_TO_CHANGE = 3  # 4
     pvc_handler = azure_pvc_api.PVCHandler(
@@ -47,5 +49,4 @@ def test_illegal_zoom():
         f"details: [{content}, expected :[{config.ResponseCode.ValidationErrors.value}]]"
     )
 
-
-test_illegal_zoom()
+# test_illegal_zoom()

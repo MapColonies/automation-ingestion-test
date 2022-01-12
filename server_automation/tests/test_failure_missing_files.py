@@ -31,6 +31,10 @@ def test_missing_files():
         _log.info(f"{product_id} {product_version}")
         sleep(5)
 
+        write_text_to_file('//tmp//shlomo.txt',
+                           {'source_dir': source_directory, 'product_id_version': ValueStorage.discrete_list,
+                            'test_name': test_missing_files.__name__})
+
         delete_file_from_folder(source_directory, missing_file, config.TEST_ENV)
 
         try:
@@ -74,7 +78,4 @@ def test_missing_files():
 
     # ToDo Test Finished Successfully
 
-    pass
-
-
-test_missing_files()
+# test_missing_files()

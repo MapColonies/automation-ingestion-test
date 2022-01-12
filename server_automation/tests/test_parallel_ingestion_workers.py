@@ -20,7 +20,6 @@ from time import sleep
 
 """
 
-
 _log = logging.getLogger("server_automation.tests.test_parallel_ingestion_workers")
 
 if config.DEBUG_MODE_LOCAL:
@@ -45,6 +44,13 @@ def test_parallel_ingestion():
     )
     source_directory = resp["ingestion_dir"]
     _log.info(f"{product_id} {product_version}")
+    ValueStorage.folder_to_delete = source_directory.split("/watch/")[-1]
+
+    write_text_to_file('//tmp//shlomo.txt',
+                       {'source_dir': source_directory, 'product_id_version': ValueStorage.discrete_list,
+                        'test_name': test_parallel_ingestion.__name__,
+                        'folder_to_delete': ValueStorage.folder_to_delete})
+
     sleep(5)
     pvc_handler = azure_pvc_api.PVCHandler(
         endpoint_url=config.PVC_HANDLER_ROUTE, watch=False
@@ -90,7 +96,7 @@ def test_parallel_ingestion():
     _log.info(f"manual ingestion following task response: {resp}")
 
     assert (
-        num_tasks == config.AMOUNT_OF_WORKERS
+            num_tasks == config.AMOUNT_OF_WORKERS
     ), f"Test: [{test_parallel_ingestion.__name__}] Failed: on following ingestion process [{error_msg} , actually {num_tasks} but expected : {config.AMOUNT_OF_WORKERS}]"
     _log.info(f"manual ingestion following task response: {resp}")
     _log.info(
@@ -105,16 +111,17 @@ def teardown_module(module):  # pylint: disable=unused-argument
     This method been executed after test running - env cleaning
     """
     stop_watch()
+    pvc_handler = azure_pvc_api.PVCHandler(
+        endpoint_url=config.PVC_HANDLER_ROUTE, watch=False
+    )
     if config.VALIDATION_SWITCH:
         if (
-            config.TEST_ENV == config.EnvironmentTypes.QA.name
-            or config.TEST_ENV == config.EnvironmentTypes.DEV.name
+                config.TEST_ENV == config.EnvironmentTypes.QA.name
+                or config.TEST_ENV == config.EnvironmentTypes.DEV.name
         ):
             # ToDo : Handle PVC - test it
             try:
-                resp = azure_pvc_api.delete_ingestion_directory(
-                    api=config.PVC_DELETE_DIR
-                )
+                resp = pvc_handler.delete_ingestion_directory(ValueStorage.folder_to_delete)
             except Exception as e:
                 resp = None
                 error_msg = str(e)
@@ -145,4 +152,4 @@ if config.DEBUG_MODE_LOCAL:
     config.PVC_UPDATE_ZOOM = True
     config.MAX_ZOOM_TO_CHANGE = 14  # 4
 
-test_parallel_ingestion()
+# test_parallel_ingestion()

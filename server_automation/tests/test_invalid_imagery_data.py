@@ -27,12 +27,16 @@ def test_invalid_data():
     ValueStorage.discrete_list.append(
         {"product_id": product_id, "product_version": product_version}
     )
+
     source_directory = resp["ingestion_dir"]
     _log.info("%s %s", product_id, product_version)
+    write_text_to_file('//tmp//shlomo.txt',
+                       {'source_dir': source_directory, 'product_id_version': ValueStorage.discrete_list,
+                        'test_name': test_invalid_data.__name__})
     sleep(5)
     if (
-        config.TEST_ENV == config.EnvironmentTypes.QA.name
-        or config.TEST_ENV == config.EnvironmentTypes.DEV.name
+            config.TEST_ENV == config.EnvironmentTypes.QA.name
+            or config.TEST_ENV == config.EnvironmentTypes.DEV.name
     ):
         pvc_handler = azure_pvc_api.PVCHandler(
             endpoint_url=config.PVC_HANDLER_ROUTE, watch=False
@@ -83,5 +87,4 @@ def test_invalid_data():
         f"Finished the test with invalid data , msg agent return :  [{error_msg}]"
     )
 
-
-test_invalid_data()
+# test_invalid_data()
