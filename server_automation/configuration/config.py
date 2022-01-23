@@ -82,6 +82,11 @@ SHAPE_FILE_LIST = [
     "ShapeMetadata.shp",
     "ShapeMetadata.dbf",
 ]
+##########################################  Overseer params
+_overseer_vars = conf.get('overseer_params')
+OVERSEER_END_URL = _overseer_vars.get('overseer_end_point_url')
+OVERSEER_JSON_LOCATION = _overseer_vars.get('geopackage_json')
+
 ##########################################  Ingestion API's sub urls & API
 _ingestion_sub_url_api = conf.get("ingestion_sub_url_api")
 INGESTION_MANUAL_TRIGGER = _ingestion_sub_url_api.get("ingestion_trigger", "trigger")
