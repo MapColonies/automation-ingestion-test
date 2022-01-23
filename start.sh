@@ -32,6 +32,6 @@ pytest --show-capture=no /source_code/server_automation/tests/
 #  elif [ "$mode" = "f" ]; then
 #        echo "Full set"
 #  fi
-#pytest --show-capture=no /source_code/server_automation/tests/test_ingestion_discrete.py --slack_username="Dannys Run 1" --slack_hook=https://hooks.slack.com/services/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
+#pytest --show-capture=no /source_code/server_automation/tests/test_ingestion_discrete.py --slack_username="Dannys Run 1
 #sleep 1m
-#pytest --show-capture=no /source_code/server_automation/tests/test_failure_exists_product_manual_ingestion.py --slack_username="Dannys Run 2" --slack_hook=https://hooks.slack.com/services/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
+#pytest --show-capture=no /source_code/server_automation/tests/test_failure_exists_product_manual_ingestion.py --slack_username="Dannys Run 2"
