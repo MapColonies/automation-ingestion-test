@@ -1,16 +1,23 @@
 #!/bin/bash
 source /source_code/venv/bin/activate
-pytest --show-capture=no /source_code/server_automation/tests/test_ingestion_discrete.py
-sleep 1m
-pytest --show-capture=no /source_code/server_automation/tests/test_failure_exists_product_manual_ingestion.py
-sleep 1m
-pytest --show-capture=no /source_code/server_automation/tests/test_failure_missing_files.py
-sleep 1m
-pytest --show-capture=no /source_code/server_automation/tests/test_failure_illegal_zoom_level_limit.py
-sleep 1m
-pytest --show-capture=no /source_code/server_automation/tests/test_invalid_imagery_data.py
-sleep 1m
-pytest --show-capture=no /source_code/server_automation/tests/test_parallel_ingestion_workers.py
+#pytest --show-capture=no /source_code/server_automation/tests/test_ingestion_discrete.py
+#sleep 1m
+#pytest --show-capture=no /source_code/server_automation/tests/test_failure_exists_product_manual_ingestion.py
+#sleep 1m
+#pytest --show-capture=no /source_code/server_automation/tests/test_failure_missing_files.py
+##sleep 1m
+#pytest --show-capture=no /source_code/server_automation/tests/test_failure_illegal_zoom_level_limit.py
+#sleep 1m
+#pytest --show-capture=no /source_code/server_automation/tests/test_invalid_imagery_data.py
+#sleep 1m
+#pytest --show-capture=no /source_code/server_automation/tests/test_parallel_ingestion_workers.py
+
+
+
+
+
+#
+pytest --show-capture=no /source_code/server_automation/tests/
 
 
 #pytest --show-capture=no /source_code/server_automation/tests/test_different_zoom_levels.py
@@ -25,3 +32,6 @@ pytest --show-capture=no /source_code/server_automation/tests/test_parallel_inge
 #  elif [ "$mode" = "f" ]; then
 #        echo "Full set"
 #  fi
+#pytest --show-capture=no /source_code/server_automation/tests/test_ingestion_discrete.py --slack_username="Dannys Run 1" --slack_hook=https://hooks.slack.com/services/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
+#sleep 1m
+#pytest --show-capture=no /source_code/server_automation/tests/test_failure_exists_product_manual_ingestion.py --slack_username="Dannys Run 2" --slack_hook=https://hooks.slack.com/services/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
