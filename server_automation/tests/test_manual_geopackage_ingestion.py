@@ -19,8 +19,8 @@ def test_manual_ingestion_geopackage():
 
     # ToDo: Start Manual ingestion with api
     os = overseer_api.Overseer(
-        end_point_url='https://discrete-ingestion-qa-overseer-route-raster.apps.v0h0bdx6.eastus.aroapp.io')
-    os_param = f'/home/dimitry/Desktop/Automation/automation-ingestion-test/server_automation/jsons/os_param.json'
+        end_point_url='')
+    os_param =''
     try:
         with open(os_param, "r", encoding="utf-8") as fp:
             params = json.load(fp)
