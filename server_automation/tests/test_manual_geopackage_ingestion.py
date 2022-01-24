@@ -1,5 +1,6 @@
 import logging
 import json
+import os.path
 from time import sleep
 from conftest import ValueStorage
 from server_automation.functions.executors import *
@@ -14,11 +15,16 @@ _log = logging.getLogger("server_automation.tests.test_manual_geopackage_ingesti
 def test_manual_ingestion_geopackage():
     stop_watch()
 
-    # ToDo: Validate file exists - Geopack
     # ToDo: Copy GeoPack file to Folder
+    status_code, resp = copy_geopackage_file_for_ingest(config.TEST_ENV)
+    src_folder_to_copy = resp['source']
+    assert (
+            status_code == config.ResponseCode.ChangeOk.value
+    ), f"Test: [{test_manual_ingestion_geopackage.__name__}] Failed: on copy src {src_folder_to_copy} status code :  [{status_code}]"
+    _log.info(f"Finished - copy {src_folder_to_copy} to watch folder")
 
     # ToDo: Start Manual ingestion with api
-    os = overseer_api.Overseer(
+    os_manager = overseer_api.Overseer(
         end_point_url=config.OVERSEER_END_URL)
     os_param = config.OVERSEER_JSON_LOCATION
     try:
@@ -29,12 +35,23 @@ def test_manual_ingestion_geopackage():
     letters = string.ascii_lowercase
     product_name = (''.join(random.choice(letters) for i in range(10)))
     params['metadata']['productId'] = product_name
-    resp, body = os.create_layer(params)
+    if (
+            config.TEST_ENV == config.EnvironmentTypes.QA.name
+            or config.TEST_ENV == config.EnvironmentTypes.DEV.name
+    ):
+        params['originDirectory'] = config.GEO_PACKAGE_DEST_PVC
+    if config.TEST_ENV == config.EnvironmentTypes.PROD.name:
+        params['originDirectory'] = config.GEO_PACKAGE_DEST_NFS
+
+    resp, body = os_manager.create_layer(params)
     body_json = json.loads(body)
     print(body_json['metadata']['productId'])
-    print("da")
+    print(product_name)
+    # print("da")
+    assert (
+            resp == config.ResponseCode.Ok.value
+    ), f"Test: [{test_manual_ingestion_geopackage.__name__}] Failed: on creating layer , status code : {resp}, body:{body}"
 
-    # ToDo: verify status is 200
     # ToDo: Record validation
     # ToDo: Validate pycsw record
     # ToDo: New discrete mapproxy

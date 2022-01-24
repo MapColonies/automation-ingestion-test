@@ -937,6 +937,50 @@ def validate_pycsw(gqk=config.GQK_URL, product_id=None, source_data=None):
     return res_dict, pycsw_record
 
 
+def copy_geopackage_file_for_ingest(env):
+    if (
+            env == config.EnvironmentTypes.QA.name
+            or env == config.EnvironmentTypes.DEV.name
+    ):
+
+        pvc_handler = azure_pvc_api.PVCHandler(
+            endpoint_url=config.PVC_HANDLER_ROUTE, watch=False
+        )
+        try:
+            src_folder_to_copy = config.GEO_PACKAGE_SRC_PVC
+            copied_dest_folder = config.GEO_PACKAGE_DEST_PVC
+            resp = pvc_handler.copy_file_to_dest(src_folder=src_folder_to_copy, dest_folder=copied_dest_folder)
+            msg_text = json.loads(resp.text)
+            resp_status = resp.status_code
+            source_folder = msg_text['source']
+            new_destination = msg_text['newDesination']
+            _log.info(msg_text['message'])
+            _log.info(f'status code : {resp_status}')
+            _log.info(f'source folder : {source_folder}')
+            _log.info(f'new destination : {new_destination}')
+        except Exception as e:
+            resp = None
+            error_msg = str(e)
+
+    elif env == config.EnvironmentTypes.PROD.name:
+        try:
+            command = f"cp -r {config.GEO_PACKAGE_SRC}/. {config.GEO_PACKAGE_DEST}"
+            os.system(command)
+            if os.path.exists(config.GEO_PACKAGE_DEST):
+                _log.info(f"Success copy and creation of test data on: {config.GEO_PACKAGE_DEST}")
+            else:
+                raise IOError("Failed on creating ingestion directory")
+            resp_status = 201
+            msg_text = {'source': config.GEO_PACKAGE_SRC}
+        except Exception as e:
+            resp_status = None
+            msg_text = 'error'
+            _log.error(
+                f"Failed copy files from {config.GEO_PACKAGE_SRC} into {config.GEO_PACKAGE_DEST} with error: [{str(e)}]")
+            raise e
+    return resp_status, msg_text
+
+
 def validate_new_discrete(pycsw_records, product_id, product_version):
     """
     This method will validate access and data on mapproxy

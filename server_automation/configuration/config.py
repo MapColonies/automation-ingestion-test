@@ -140,6 +140,7 @@ PVC_CHANGE_WATCH_METADATA = _pvc_routes.get(
 )
 PVC_VALIDATE_METADATA = _pvc_routes.get("pvc_validate_metadata", "validatePath")
 PVC_DELETE_DIR = _pvc_routes.get("pvc_delete_directory", "deleteTestDir")
+PVC_COPY_DIR = _pvc_routes.get("pvc_copy_file_to_src", "copyFile")
 PVC_WATCH_CREATE_DIR = _pvc_routes.get("pvc_watch_create_directory", "createWatchDir")
 PVC_WATCH_UPDATE_SHAPE = _pvc_routes.get(
     "pvc_watch_update_shape_metadata", "updateWatchShape"
@@ -211,6 +212,16 @@ PYCSW_REQUEST_GET_CAPABILITIES = _pycsw_records_params.get(
 _mock_data = conf.get("mock_data")
 MOCK_IMAGERY_RAW_DATA_PATH = _mock_data.get("mock_imagery_data_path")
 MOCK_IMAGERY_RAW_DATA_FILE = _mock_data.get("mock_data_file")
+
+
+"""
+# Geopackage params
+"""
+_geopack_vars = conf.get('overseer_params')
+GEO_PACKAGE_SRC_NFS = _geopack_vars.get('geopackage_src_dir_nfs')
+GEO_PACKAGE_DEST_NFS = _geopack_vars.get('geopackage_dest_dir_nfs')
+GEO_PACKAGE_SRC_PVC = _geopack_vars.get('geopackage_src_dir_pvc')
+GEO_PACKAGE_DEST_PVC = _geopack_vars.get('geopackage_dest_dir_pvc')
 
 """
 #  Zoom level limit params  #
