@@ -1,0 +1,101 @@
+{
+  "metadata": {
+    "type": "RECORD_RASTER",
+    "classification": "string",
+    "productId": "tester1",
+    "productName": "dani",
+    "productVersion": "1.0",
+    "productType": "Orthophoto",
+    "description": "string",
+    "srsId": "string",
+    "srsName": "string",
+    "producerName": "string",
+    "creationDate": "2022-01-13T07:58:14.855Z",
+    "ingestionDate": "2022-01-13T07:58:14.855Z",
+    "updateDate": "2022-01-13T07:58:14.855Z",
+    "sourceDateStart": "2022-01-13T07:58:14.855Z",
+    "sourceDateEnd": "2022-01-13T07:58:14.855Z",
+    "resolution": 0.072,
+    "maxResolutionMeter": 8000,
+    "accuracyCE90": 0,
+    "sensorType": [
+      "UNDEFINED"
+    ],
+    "region": "string",
+    "Rms": 0,
+    "scale": "1",
+    "footprint": {
+      "type": "Point",
+      "coordinates": [
+        0,
+        0
+      ]
+    },
+    "layerPolygonParts": {
+      "type": "FeatureCollection",
+      "features": [
+        {
+          "type": "Feature",
+          "properties": {
+            "Rms": "",
+            "Scale": ""
+          },
+          "geometry": {
+            "type": "GeometryCollection",
+            "geometries": [
+              {
+                "type": "Point"
+              }
+            ]
+          },
+          "bbox": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      "bbox": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    "rawProductData": {
+      "type": "FeatureCollection",
+      "features": [
+        {
+          "type": "Feature",
+          "properties": {},
+          "geometry": {
+            "type": "GeometryCollection",
+            "geometries": [
+              {
+                "type": "Point"
+              }
+            ]
+          },
+          "bbox": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      "bbox": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    "productBoundingBox": "1,1,2,3"
+  },
+  "originDirectory": "watch",
+  "fileNames": [
+    "area1.gpkg"
+  ]
+}

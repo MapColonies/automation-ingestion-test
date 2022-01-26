@@ -6,8 +6,11 @@ from conftest import ValueStorage
 from server_automation.functions.executors import *
 from server_automation.postgress import postgress_adapter
 from mc_automation_tools.ingestion_api import overseer_api
+from mc_automation_tools.validators import pycsw_validator
 import random
 import string
+
+from discrete_kit.functions.shape_functions import ShapeToJSON
 
 _log = logging.getLogger("server_automation.tests.test_manual_geopackage_ingestion")
 
@@ -33,8 +36,13 @@ def test_manual_ingestion_geopackage():
     except Exception as e:
         raise EnvironmentError("Failed to load JSON for configuration") from e
     letters = string.ascii_lowercase
+
+    my_json = ShapeToJSON().create_metadata_from_toc(params['metadata'])
+    # pycsw_conn = pycsw_validator.PycswHandler(pycsw_url, query_params)
+    # results = pycsw_conn.validate_pycsw(toc_json, layer_id, layer_version)
     product_name = (''.join(random.choice(letters) for i in range(10)))
     params['metadata']['productId'] = product_name
+    my_json['productId']['value'] = product_name
     if (
             config.TEST_ENV == config.EnvironmentTypes.QA.name
             or config.TEST_ENV == config.EnvironmentTypes.DEV.name
@@ -44,16 +52,53 @@ def test_manual_ingestion_geopackage():
         params['originDirectory'] = config.GEO_PACKAGE_DEST_NFS
 
     resp, body = os_manager.create_layer(params)
+
     body_json = json.loads(body)
     print(body_json['metadata']['productId'])
-    print(product_name)
+    # print(product_name)
     # print("da")
     assert (
             resp == config.ResponseCode.Ok.value
     ), f"Test: [{test_manual_ingestion_geopackage.__name__}] Failed: on creating layer , status code : {resp}, body:{body}"
 
     # ToDo: Record validation
+    try:
+        if config.FOLLOW_JOB_BY_MANAGER:  # following based on job manager api
+            _log.info("Start following job-tasks based on job manager api")
+            ingestion_follow_state = follow_running_job_manager(
+                body_json['metadata']['productId'], body_json['metadata']['productVersion']
+            )
+        else:  # following based on bff service
+            ingestion_follow_state = follow_running_task(body_json['metadata']['productId'],
+                                                         body_json['metadata']['productVersion'])
+            _log.info("Start following job-tasks based on bff api")
+        resp = ingestion_follow_state["status"] == config.JobStatus.Completed.name
+        error_msg = ingestion_follow_state["message"]
+
+    except Exception as e:
+        resp = None
+        error_msg = str(e)
+    assert (
+        resp
+    ), f"Test: [{test_manual_ingestion_geopackage.__name__}] Failed: on following ingestion process [{error_msg}]"
+    _log.info(f"watch ingestion following task response:{resp}")
+
     # ToDo: Validate pycsw record
+    try:
+        # shape_folder_path = executors.get_folder_path_by_name(source_directory, 'Shape')
+        # read_json_from_shape_file = ShapeToJSON(shape_folder_path)
+        # pycsw_record, links
+        resp = validate_geopack_pycsw({"metadata": my_json},
+                                      body_json['metadata']['productId'], body_json['metadata']['productVersion']
+                                      )
+        # todo this is legacy records validator based graphql -> for future needs maybe
+        # resp, pycsw_record = executors.validate_pycsw(config.GQK_URL, product_id, source_data)
+        state = resp["validation"]
+        error_msg = resp["reason"]
+    except Exception as e:
+        state = False
+        error_msg = str(e)
+    _log.error(f'error : {error_msg}')
     # ToDo: New discrete mapproxy
     """
     After getting ok ,

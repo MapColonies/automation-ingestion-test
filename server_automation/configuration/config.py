@@ -213,7 +213,6 @@ _mock_data = conf.get("mock_data")
 MOCK_IMAGERY_RAW_DATA_PATH = _mock_data.get("mock_imagery_data_path")
 MOCK_IMAGERY_RAW_DATA_FILE = _mock_data.get("mock_data_file")
 
-
 """
 # Geopackage params
 """
