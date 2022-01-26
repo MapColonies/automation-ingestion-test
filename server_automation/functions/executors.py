@@ -299,7 +299,8 @@ def init_ingestion_src_pvc(
 
     if config.PVC_UPDATE_ZOOM:
         try:
-            resp = pvc_handler.change_max_zoom_tfw()
+            # ToDo: Fix Zoom
+            resp = pvc_handler.change_max_zoom_tfw(12)
             if resp.status_code == config.ResponseCode.Ok.value:
                 _log.info(
                     f'Max resolution changed successfully: [{json.loads(resp.text)["json_data"][0]["reason"]}]'

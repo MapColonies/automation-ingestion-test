@@ -1,5 +1,53 @@
 #!/bin/bash
 source /source_code/venv/bin/activate
+
+# shellcheck disable=SC2236
+if [[ ! -z "${PYTEST_RUNNING_MODE}" ]]; then
+  echo -ne "Test chosen running mode is: [${PYTEST_RUNNING_MODE}]\n"
+
+  case $PYTEST_RUNNING_MODE in
+
+  parallel)
+    echo -ne " ***** Will Run End - To - End test ***** \n"
+    pytest --show-capture=no /source_code/server_automation/tests/test_parallel_ingestion_workers.py
+    ;;
+
+
+    full)
+    echo -ne " ***** Will Run full set of tests: e2e, failures, functional tests ***** \n"
+    pytest --show-capture=no /source_code/server_automation/tests/
+    ;;
+
+  failures)
+    echo -ne "Will Run failures tests\n"
+    pytest --show-capture=no /source_code/server_automation/tests/test_failure_exists_product_manual_ingestion.py
+    sleep 1m
+    pytest --show-capture=no /source_code/server_automation/tests/test_failure_missing_files.py
+    sleep 1m
+    pytest --show-capture=no /source_code/server_automation/tests/test_failure_illegal_zoom_level_limit.py
+    sleep 1m
+    pytest --show-capture=no /source_code/server_automation/tests/test_invalid_imagery_data.py
+    ;;
+
+  zoom_levels)
+    echo -ne " ***** Will Run functional tests *****\n"
+    pytest --show-capture=no /source_code/server_automation/tests/test_different_zoom_levels.py
+    ;;
+
+  ingest_only)
+    echo -ne " ***** Will Run only ingestion *****\n"
+    pytest --show-capture=no /source_code/server_automation/tests/test_ingestion_discrete.py
+    ;;
+
+  *)
+    echo -ne " ----- unknown tests mode params: [PYTEST_RUNNING_MODE=$PYTEST_RUNNING_MODE] ----- \n"
+    ;;
+  esac
+
+else
+  echo "no variable provided for PYTEST_RUNNING_MODE"
+fi
+
 #pytest --show-capture=no /source_code/server_automation/tests/test_ingestion_discrete.py
 #sleep 1m
 #pytest --show-capture=no /source_code/server_automation/tests/test_failure_exists_product_manual_ingestion.py
@@ -12,13 +60,8 @@ source /source_code/venv/bin/activate
 #sleep 1m
 #pytest --show-capture=no /source_code/server_automation/tests/test_parallel_ingestion_workers.py
 
-
-
-
-
 #
-pytest --show-capture=no /source_code/server_automation/tests/
-
+#pytest --show-capture=no /source_code/server_automation/tests/
 
 #pytest --show-capture=no /source_code/server_automation/tests/test_different_zoom_levels.py
 
