@@ -312,5 +312,5 @@ if config.DEBUG_MODE_LOCAL:
     config.PVC_UPDATE_ZOOM = True
     config.MAX_ZOOM_TO_CHANGE = 4  # 4
 
-    test_manual_discrete_ingest()
+    # test_manual_discrete_ingest()
     # test_watch_discrete_ingest()

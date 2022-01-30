@@ -49,4 +49,5 @@ def test_illegal_zoom():
         f"details: [{content}, expected :[{config.ResponseCode.ValidationErrors.value}]]"
     )
 
-# test_illegal_zoom()
+
+test_illegal_zoom()

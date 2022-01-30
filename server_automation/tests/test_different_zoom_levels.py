@@ -160,7 +160,7 @@ def test_zoom_level(zoom_lvl):
 
 
 test_zoom_level(config.FIRST_ZOOM_LEVEL)
-test_zoom_level(config.SECOND_ZOOM_LEVEL)
-test_zoom_level(config.THIRD_ZOOM_LEVEL)
+# test_zoom_level(config.SECOND_ZOOM_LEVEL)
+# test_zoom_level(config.THIRD_ZOOM_LEVEL)
 # if config.TEST_ENV == config.EnvironmentTypes.QA.name or config.TEST_ENV == config.EnvironmentTypes.DEV.name:
 # elif config.TEST_ENV == config.EnvironmentTypes.PROD.name:

@@ -88,17 +88,32 @@ def test_manual_ingestion_geopackage():
         # shape_folder_path = executors.get_folder_path_by_name(source_directory, 'Shape')
         # read_json_from_shape_file = ShapeToJSON(shape_folder_path)
         # pycsw_record, links
-        resp = validate_geopack_pycsw({"metadata": my_json},
-                                      body_json['metadata']['productId'], body_json['metadata']['productVersion']
-                                      )
+        resp, pycsw_record, links = validate_geopack_pycsw({"metadata": my_json},
+                                                           body_json['metadata']['productId'],
+                                                           body_json['metadata']['productVersion']
+                                                           )
         # todo this is legacy records validator based graphql -> for future needs maybe
         # resp, pycsw_record = executors.validate_pycsw(config.GQK_URL, product_id, source_data)
+        state = resp['validation']
+        error_msg = resp["reason"]
+        reason_e = resp["reason"]
+    except Exception as e:
+        state = False
+        error_msg = str(e)
+        _log.error(f'error : {error_msg}')
+    assert (
+        state
+    ), f"Test: [{test_manual_ingestion_geopackage.__name__}] Failed: on validation, error msg : {reason_e}, exception:{error_msg}"
+
+    try:
+        resp = validate_new_discrete(pycsw_record, body_json['metadata']['productId'],
+                                     body_json['metadata']['productVersion'])
         state = resp["validation"]
         error_msg = resp["reason"]
     except Exception as e:
         state = False
         error_msg = str(e)
-    _log.error(f'error : {error_msg}')
+        _log.error(f'error : {error_msg}')
     # ToDo: New discrete mapproxy
     """
     After getting ok ,

@@ -39,6 +39,22 @@ if [[ ! -z "${PYTEST_RUNNING_MODE}" ]]; then
     pytest --show-capture=no /source_code/server_automation/tests/test_ingestion_discrete.py
     ;;
 
+   working)
+    echo -ne " ***** Will Run only ingestion *****\n"
+    pytest --show-capture=no /source_code/server_automation/tests/test_ingestion_discrete.py
+    sleep 1m
+    pytest --show-capture=no /source_code/server_automation/tests/test_failure_exists_product_manual_ingestion.py
+    sleep 1m
+    pytest --show-capture=no /source_code/server_automation/tests/test_failure_missing_files.py
+    sleep 1m
+    pytest --show-capture=no /source_code/server_automation/tests/test_failure_illegal_zoom_level_limit.py
+    sleep 1m
+    pytest --show-capture=no /source_code/server_automation/tests/test_invalid_imagery_data.py
+    sleep 1m
+    pytest --show-capture=no /source_code/server_automation/tests/test_parallel_ingestion_workers.py
+    ;;
+
+
   *)
     echo -ne " ----- unknown tests mode params: [PYTEST_RUNNING_MODE=$PYTEST_RUNNING_MODE] ----- \n"
     ;;

@@ -152,4 +152,4 @@ if config.DEBUG_MODE_LOCAL:
     config.PVC_UPDATE_ZOOM = True
     config.MAX_ZOOM_TO_CHANGE = 14  # 4
 
-# test_parallel_ingestion()
+test_parallel_ingestion()

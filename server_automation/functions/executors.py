@@ -300,7 +300,7 @@ def init_ingestion_src_pvc(
     if config.PVC_UPDATE_ZOOM:
         try:
             # ToDo: Fix Zoom
-            resp = pvc_handler.change_max_zoom_tfw(12)
+            resp = pvc_handler.change_max_zoom_tfw()
             if resp.status_code == config.ResponseCode.Ok.value:
                 _log.info(
                     f'Max resolution changed successfully: [{json.loads(resp.text)["json_data"][0]["reason"]}]'
@@ -810,9 +810,6 @@ def validate_geopack_pycsw(source_json_metadata, product_id=None, product_versio
     res_dict["validation"] = validation_flag
     res_dict["reason"] = err_dict
     return res_dict, pycsw_records, links
-
-    print("x")
-    return ""
 
 
 def validate_pycsw2(source_json_metadata, product_id=None, product_version=None):
