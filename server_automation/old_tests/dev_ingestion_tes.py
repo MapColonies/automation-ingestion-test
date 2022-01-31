@@ -15,7 +15,6 @@ def test_manuel_discrete_ingest():
     """
     This test will test full e2e discrete ingestion
     """
-    # config.TEST_ENV = 'PROD'
 
     # prepare test data
     try:
@@ -214,5 +213,5 @@ def teardown_module(module):  # pylint: disable=unused-argument
 
 # ToDo: Uncomment those only
 # if config.DEBUG_MODE_LOCAL:
-    # test_manuel_discrete_ingest()
-    # test_watch_discrete_ingest()
+# test_manuel_discrete_ingest()
+# test_watch_discrete_ingest()

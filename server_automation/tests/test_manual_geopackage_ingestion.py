@@ -3,9 +3,11 @@ import json
 import os.path
 from time import sleep
 from conftest import ValueStorage
-from server_automation.functions.executors import *
+from server_automation.functions.executors import stop_watch, copy_geopackage_file_for_ingest, follow_running_task, \
+    follow_running_job_manager, validate_geopack_pycsw, validate_new_discrete
 from server_automation.postgress import postgress_adapter
 from mc_automation_tools.ingestion_api import overseer_api
+from server_automation.configuration import config
 from mc_automation_tools.validators import pycsw_validator
 import random
 import string
@@ -38,8 +40,6 @@ def test_manual_ingestion_geopackage():
     letters = string.ascii_lowercase
 
     my_json = ShapeToJSON().create_metadata_from_toc(params['metadata'])
-    # pycsw_conn = pycsw_validator.PycswHandler(pycsw_url, query_params)
-    # results = pycsw_conn.validate_pycsw(toc_json, layer_id, layer_version)
     product_name = (''.join(random.choice(letters) for i in range(10)))
     params['metadata']['productId'] = product_name
     my_json['productId']['value'] = product_name
@@ -54,9 +54,7 @@ def test_manual_ingestion_geopackage():
     resp, body = os_manager.create_layer(params)
 
     body_json = json.loads(body)
-    print(body_json['metadata']['productId'])
-    # print(product_name)
-    # print("da")
+    _log.info(f"productId is: {body_json['metadata']['productId']}")
     assert (
             resp == config.ResponseCode.Ok.value
     ), f"Test: [{test_manual_ingestion_geopackage.__name__}] Failed: on creating layer , status code : {resp}, body:{body}"
@@ -85,9 +83,6 @@ def test_manual_ingestion_geopackage():
 
     # ToDo: Validate pycsw record
     try:
-        # shape_folder_path = executors.get_folder_path_by_name(source_directory, 'Shape')
-        # read_json_from_shape_file = ShapeToJSON(shape_folder_path)
-        # pycsw_record, links
         resp, pycsw_record, links = validate_geopack_pycsw({"metadata": my_json},
                                                            body_json['metadata']['productId'],
                                                            body_json['metadata']['productVersion']
@@ -167,6 +162,7 @@ def test_manual_ingestion_geopackage():
 
 
     """
+
 
 if config.RUN_IT:
     test_manual_ingestion_geopackage()

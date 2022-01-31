@@ -1,9 +1,9 @@
 import logging
 from time import sleep
-from discrete_kit.validator.json_compare_pycsw import *
 from discrete_kit.functions.shape_functions import ShapeToJSON
 from server_automation.configuration import config
-from server_automation.functions.executors import *
+from server_automation.functions.executors import stop_watch, init_ingestion_src, write_text_to_file, azure_pvc_api, \
+    create_mock_file, start_manual_ingestion, follow_running_task, follow_running_job_manager
 from server_automation.postgress import postgress_adapter
 from conftest import ValueStorage
 
@@ -86,6 +86,7 @@ def test_invalid_data():
     _log.info(
         f"Finished the test with invalid data , msg agent return :  [{error_msg}]"
     )
+
 
 if config.RUN_IT:
     test_invalid_data()

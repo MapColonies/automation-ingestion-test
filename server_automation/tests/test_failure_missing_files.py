@@ -1,6 +1,8 @@
 import logging
 from time import sleep
-from server_automation.functions.executors import *
+from server_automation.configuration import config
+from server_automation.functions.executors import stop_watch, init_ingestion_src, delete_file_from_folder, \
+    write_text_to_file, start_manual_ingestion
 from conftest import ValueStorage
 
 _log = logging.getLogger("server_automation.tests.test_failure_missing_files")
@@ -48,34 +50,6 @@ def test_missing_files():
             f"details: [{content}, expected :[{config.ResponseCode.ValidationErrors.value}]]"
         )
 
-    # ToDo : Create new source data -> copy and edit origin discrete- unique
-    # product name
 
-    # ToDo : copy the data and remove tiff files
-
-    # ToDo : Start manual ingestion via manual post request [rest api]
-
-    # ToDo : Check if Status 400 - bad request -> No(Test Failed)
-
-    # ToDo: copy full source data instead of previous - remove
-    # shapemetadata.shp files
-
-    # ToDo : Start manual ingestion via manual post request [rest api]
-
-    # ToDo : Check if Status 400 - bad request -> No(Test Failed)
-
-    # ToDo: copy full source data instead of previous - remove files.shp files
-
-    # ToDo : Start manual ingestion via manual post request [rest api]
-
-    # ToDo : Check if Status 400 - bad request -> No(Test Failed)
-
-    # ToDo: copy full source data instead of previous - remove tfw.shp files
-
-    # ToDo : Start manual ingestion via manual post request [rest api]
-
-    # ToDo : Check if Status 400 - bad request -> No(Test Failed)
-
-    # ToDo Test Finished Successfully
 if config.RUN_IT:
     test_missing_files()

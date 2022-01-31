@@ -1,8 +1,7 @@
 """ configuration for running ingestion tests"""
 import json
 from mc_automation_tools import common
-from server_automation.models.structs import *
-
+from server_automation.models.structs import EnvironmentTypes
 
 CONF_FILE = common.get_environment_variable("CONF_FILE", None)
 if not CONF_FILE:
@@ -16,7 +15,7 @@ except Exception as e:
 _api_route = conf.get("api_routes")
 ########  general running environment ##########
 environment = conf.get("environment")
-RUN_IT = environment.get('run_it',True)
+RUN_IT = environment.get('run_it', True)
 # compatibility to azure + prod env
 TEST_ENV = environment.get("name", EnvironmentTypes.QA.name)
 SHAPES_PATH = environment.get("shapes_path_name", "Shapes")
@@ -76,8 +75,6 @@ PG_JOB_TASK_DB_NAME = _pg_credentials.get("pg_job_task_table", None)
 PG_RECORD_PYCSW_DB = _pg_credentials.get("pg_pycsw_record_table", None)
 PG_MAPPROXY_CONFIG = _pg_credentials.get("pg_mapproxy_table", None)
 PG_AGENT = _pg_credentials.get("pg_agent_table", None)
-# PG_PYCSW_RECORD = common.get_environment_variable('PG_PYCSW_RECORD', None)
-
 
 """
 #  NFS Directories  #
@@ -139,16 +136,6 @@ MAX_ZOOM_TO_CHANGE = _endpoints_discrete_ingestion.get("max_zoom_level", 4)
 FAILURE_FLAG = _endpoints_discrete_ingestion.get("failure_tag", False)
 PVC_UPDATE_ZOOM = _endpoints_discrete_ingestion.get("change_max_zoom_level", True)
 PVC_HANDLER_ROUTE = _endpoints_discrete_ingestion.get("pvc_handler_url", None)
-# DISCRETE_JOB_MANAGER_URL = _endpoints_discrete_ingestion.get('agent_url', 'https://')
-# PVC_HANDLER_URL = _endpoints_discrete_ingestion.get('pvc_handler_url', 'https://')
-# DISCRETE_RAW_ROOT_DIR = _endpoints_discrete_ingestion.get('discrete_raw_root_dir', '/tmp')
-# DISCRETE_RAW_SRC_DIR = _endpoints_discrete_ingestion.get('discrete_raw_src_dir', 'ingestion/1')
-# DISCRETE_RAW_DST_DIR = _endpoints_discrete_ingestion.get('discrete_raw_dst_dir', 'ingestion/2')
-# NFS_RAW_ROOT_DIR = _endpoints_discrete_ingestion.get('nfs_raw_root_dir', '/tmp')
-# NFS_RAW_SRC_DIR = _endpoints_discrete_ingestion.get('nfs_raw_src_dir', 'ingestion/1')
-# NFS_RAW_DST_DIR = _endpoints_discrete_ingestion.get('nfs_raw_dst_dir', 'ingestion/2')
-# INGESTION_TIMEOUT = _endpoints_discrete_ingestion.get('ingestion_timeout', 300)
-# BUFFER_TIMEOUT = _endpoints_discrete_ingestion.get('buffer_timeout', 70)
 
 """
 #  pycsw record params  #

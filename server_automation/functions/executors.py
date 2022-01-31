@@ -29,6 +29,7 @@ from server_automation.pycsw import pycsw_handler
 from discrete_kit.validator.json_compare_pycsw import *
 
 # from importlib.resources import path
+FAILED_ = "Failed: "
 
 _log = logging.getLogger("server_automation.function.executors")
 
@@ -467,7 +468,7 @@ def follow_running_task(product_id, product_version, timeout=config.FOLLOW_TIMEO
         elif status == config.JobStatus.Failed.name:
             return {
                 "status": status,
-                "message": " ".join(["Failed: ", reason]),
+                "message": " ".join([FAILED_, reason]),
                 "job_id": job_id,
             }
 
@@ -477,7 +478,7 @@ def follow_running_task(product_id, product_version, timeout=config.FOLLOW_TIMEO
             return {
                 "status": status,
                 "message": " ".join(
-                    ["Failed: ", "got timeout while following job running"]
+                    [FAILED_, "got timeout while following job running"]
                 ),
                 "job_id": job_id,
             }
@@ -547,7 +548,7 @@ def follow_running_job_manager(
         elif status == config.JobStatus.Failed.name:
             return {
                 "status": status,
-                "message": " ".join(["Failed: ", reason]),
+                "message": " ".join([FAILED_, reason]),
                 "job_id": job_id,
             }
 
@@ -557,7 +558,7 @@ def follow_running_job_manager(
             return {
                 "status": status,
                 "message": " ".join(
-                    ["Failed: ", "got timeout while following job running"]
+                    [FAILED_, "got timeout while following job running"]
                 ),
                 "job_id": job_id,
             }
@@ -636,7 +637,7 @@ def follow_parallel_running_tasks(
         elif status == config.JobStatus.Failed.name:
             return {
                 "status": status,
-                "message": " ".join(["Failed: ", reason]),
+                "message": " ".join([FAILED_, reason]),
                 "job_id": job_id,
                 "in_progress_tasks": task_counter,
             }
@@ -647,11 +648,10 @@ def follow_parallel_running_tasks(
             return {
                 "status": status,
                 "message": " ".join(
-                    ["Failed: ", "got timeout while following job running"]
+                    [FAILED_, "got timeout while following job running"]
                 ),
                 "job_id": job_id,
             }
-    return
     #
     # while running:
     #     time.sleep(config.SYSTEM_DELAY // 4)
@@ -904,14 +904,14 @@ def validate_pycsw(gqk=config.GQK_URL, product_id=None, source_data=None):
         )
 
     # validate product name:
-    record_product_Name = pycsw_record["data"]["search"][0]["productName"]
-    orig_product_Name = source_data["metadata"]["productName"]
-    if record_product_Name != orig_product_Name:
+    record_product_name = pycsw_record["data"]["search"][0]["productName"]
+    orig_product_name = source_data["metadata"]["productName"]
+    if record_product_name != orig_product_name:
         res_dict["validation"] = False
         res_dict["reason"] = "\n----------------------".join(
             [
                 res_dict["reason"],
-                f"\nWrong product name: orig name:[{orig_product_Name}] != pycsw_record name:[{record_product_Name}]",
+                f"\nWrong product name: orig name:[{orig_product_name}] != pycsw_record name:[{record_product_name}]",
             ]
         )
 

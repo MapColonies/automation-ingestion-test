@@ -12,6 +12,10 @@ from server_automation.functions.executors import (
 from server_automation.postgress import postgress_adapter
 from conftest import ValueStorage
 
+LIST_OBJECT_FROM_S_ = "Getting list object from S3"
+
+CREATING_S_CLIENT = "Creating S3 client"
+
 ZOOM_LEVEL_0_TO_4 = list(range(0, 5))
 ZOOM_LEVEL_0_TO_10 = list(range(0, 11))
 ZOOM_LEVEL_0_TO_16 = list(range(0, 17))
@@ -74,12 +78,12 @@ def test_zoom_level(zoom_lvl):
     _log.info(f"testing zoom to level : {zoom_lvl}")
     if zoom_lvl == config.FIRST_ZOOM_LEVEL:
         sleep(config.DIFFERENT_ZOOM_LEVEL_DELAY_4)
-        _log.info("Creating S3 client")
+        _log.info(CREATING_S_CLIENT)
         s3_conn = s3.S3Client(
             config.S3_END_POINT, config.S3_ACCESS_KEY, config.S3_SECRET_KEY
         )
         s3_c = s3_conn.get_client()
-        _log.info("Getting list object from S3")
+        _log.info(LIST_OBJECT_FROM_S_)
         result = s3_c.list_objects(
             Bucket=config.S3_BUCKET_NAME,
             Prefix=f"{product_id}/{product_version}/OrthophotoHistory/",
@@ -102,12 +106,12 @@ def test_zoom_level(zoom_lvl):
 
     elif zoom_lvl == config.SECOND_ZOOM_LEVEL:
         sleep(config.DIFFERENT_ZOOM_LEVEL_DELAY_10)
-        _log.info("Creating S3 client")
+        _log.info(CREATING_S_CLIENT)
         s3_conn = s3.S3Client(
             config.S3_END_POINT, config.S3_ACCESS_KEY, config.S3_SECRET_KEY
         )
         s3_c = s3_conn.get_client()
-        _log.info("Getting list object from S3")
+        _log.info(LIST_OBJECT_FROM_S_)
         result = s3_c.list_objects(
             Bucket=config.S3_BUCKET_NAME,
             Prefix=f"{product_id}/{product_version}/OrthophotoHistory/",
@@ -130,12 +134,12 @@ def test_zoom_level(zoom_lvl):
 
     elif zoom_lvl == config.THIRD_ZOOM_LEVEL:
         sleep(config.DIFFERENT_ZOOM_LEVEL_DELAY_16)
-        _log.info("Creating S3 client")
+        _log.info(CREATING_S_CLIENT)
         s3_conn = s3.S3Client(
             config.S3_END_POINT, config.S3_ACCESS_KEY, config.S3_SECRET_KEY
         )
         s3_c = s3_conn.get_client()
-        _log.info("Getting list object from S3")
+        _log.info(LIST_OBJECT_FROM_S_)
         result = s3_c.list_objects(
             Bucket=config.S3_BUCKET_NAME,
             Prefix=f"{product_id}/{product_version}/OrthophotoHistory/",
@@ -157,6 +161,7 @@ def test_zoom_level(zoom_lvl):
         ), f"Test: [{test_zoom_level.__name__}] Failed: on validation : actual [{verification_list_0_to_16} , expected {ZOOM_LEVEL_0_TO_16}]"
     else:
         raise Exception(f"Failed : unmatch zoom level , zoom level is {zoom_lvl}")
+
 
 # if config.RUN_IT:
 test_zoom_level(config.FIRST_ZOOM_LEVEL)

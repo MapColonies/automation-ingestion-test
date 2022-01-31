@@ -1,4 +1,4 @@
-"""This module provide multiple test of ingestion services"""
+"""This module provides multiple test of ingestion services"""
 import shutil
 from time import sleep
 from conftest import ValueStorage
@@ -21,7 +21,6 @@ def test_manual_discrete_ingest():
     This test will test full e2e discrete ingestion
     """
     stop_watch()
-    # ================================================================================================================ #
     try:
         resp = init_ingestion_src(config.TEST_ENV)
         error_msg = None
@@ -41,11 +40,12 @@ def test_manual_discrete_ingest():
     source_directory = resp["ingestion_dir"]
     _log.info(f"{product_id} {product_version}")
     sleep(5)
+
     write_text_to_file('//tmp//shlomo.txt',
                        {'source_dir': source_directory, 'product_id_version': ValueStorage.discrete_list,
                         'test_name': test_manual_discrete_ingest.__name__,
                         'folder_to_delete': ValueStorage.folder_to_delete})
-    # ================================================================================================================ #
+
     try:
         status_code, content, source_data = start_manual_ingestion(
             source_directory, config.TEST_ENV
@@ -61,7 +61,6 @@ def test_manual_discrete_ingest():
     _log.info(f"manual ingestion - content: {content}")
     _log.info(f"manual ingestion - status code: {status_code}")
 
-    # ================================================================================================================ #
     # validating following and completion of ingestion job
     try:
         if config.FOLLOW_JOB_BY_MANAGER:  # following based on job manager api
@@ -85,7 +84,7 @@ def test_manual_discrete_ingest():
     # this timeout is for mapproxy updating time of new layer on configuration
     sleep(config.SYSTEM_DELAY)
     pycsw_record = None
-    # ================================================================================================================ #
+
     # validate new discrete on pycsw records
     try:
         resp, pycsw_record, links = validate_pycsw2(
@@ -109,7 +108,6 @@ def test_manual_discrete_ingest():
         _log.info(f"manual ingestion validation - pycsw_record: {pycsw_record}")
         _log.info(f"manual ingestion validation - links: {links}")
 
-    # ================================================================================================================ #
     # validating new discrete on mapproxy
     try:
         resp = validate_new_discrete(pycsw_record, product_id, product_version)
@@ -215,8 +213,7 @@ def test_watch_discrete_ingest():
     pycsw_record = None
     # validate new discrete on pycsw records
     try:
-        # shape_folder_path = executors.get_folder_path_by_name(source_directory, 'Shape')
-        # read_json_from_shape_file = ShapeToJSON(shape_folder_path)
+
         resp, pycsw_record, links = validate_pycsw2(
             source_data, product_id, product_version
         )
@@ -258,9 +255,6 @@ def test_watch_discrete_ingest():
             f'watch ingestion, Finish running watch ingestion. Watch status: [{resp["reason"]}]'
         )
 
-    # if config.DEBUG_MODE_LOCAL:
-    #     cleanup_env(product_id, product_version, initial_mapproxy_config)
-
 
 def teardown_module(module):  # pylint: disable=unused-argument
     """
@@ -270,39 +264,37 @@ def teardown_module(module):  # pylint: disable=unused-argument
     pvc_handler = azure_pvc_api.PVCHandler(
         endpoint_url=config.PVC_HANDLER_ROUTE, watch=False
     )
-    if config.CLEAN_UP:
-        if config.VALIDATION_SWITCH:
-            if (
-                    config.TEST_ENV == config.EnvironmentTypes.QA.name
-                    or config.TEST_ENV == config.EnvironmentTypes.DEV.name
-            ):
-                # ToDo : Handle PVC - test it
-                try:
-                    error_msg = None
-                    resp = pvc_handler.delete_ingestion_directory(
-                        api=config.PVC_DELETE_DIR
+    if config.CLEAN_UP and config.VALIDATION_SWITCH:
+        if (
+                config.TEST_ENV == config.EnvironmentTypes.QA.name
+                or config.TEST_ENV == config.EnvironmentTypes.DEV.name
+        ):
+            # ToDo : Handle PVC - test it
+            try:
+                error_msg = None
+                resp = pvc_handler.delete_ingestion_directory(
+                    api=config.PVC_DELETE_DIR
 
-                    )
-                #     folder_param=ValueStorage.folder_to_delete,
-                except Exception as e:
-                    resp = None
-                    error_msg = str(e)
-                assert (
-                    resp
-                ), f"Test: [{test_watch_discrete_ingest.__name__}] Failed: on following ingestion process (Folder delete) :  [{error_msg}]"
-                _log.info(f"Teardown - Finish PVC folder deletion")
+                )
+            except Exception as e:
+                resp = None
+                error_msg = str(e)
+            assert (
+                resp
+            ), f"Test: [{test_watch_discrete_ingest.__name__}] Failed: on following ingestion process (Folder delete) :  [{error_msg}]"
+            _log.info(f"Teardown - Finish PVC folder deletion")
 
-            elif config.TEST_ENV == config.EnvironmentTypes.PROD.name:
-                if os.path.exists(config.NFS_ROOT_DIR_DEST):
-                    shutil.rmtree(config.NFS_ROOT_DIR_DEST)
-                    _log.info(f"Teardown - Finish NFS folder deletion")
+        elif config.TEST_ENV == config.EnvironmentTypes.PROD.name:
+            if os.path.exists(config.NFS_ROOT_DIR_DEST):
+                shutil.rmtree(config.NFS_ROOT_DIR_DEST)
+                _log.info(f"Teardown - Finish NFS folder deletion")
 
-                else:
-                    raise NotADirectoryError(
-                        f"Failed to delete directory because it doesnt exists: [{config.NFS_ROOT_DIR_DEST}]"
-                    )
             else:
-                raise ValueError(f"Illegal environment value type: {config.TEST_ENV}")
+                raise NotADirectoryError(
+                    f"Failed to delete directory because it doesnt exists: [{config.NFS_ROOT_DIR_DEST}]"
+                )
+        else:
+            raise ValueError(f"Illegal environment value type: {config.TEST_ENV}")
     if config.CLEAN_UP and config.DEBUG_MODE_LOCAL:
         for p in ValueStorage.discrete_list:
             cleanup_env(p["product_id"], p["product_version"], initial_mapproxy_config)
@@ -310,7 +302,8 @@ def teardown_module(module):  # pylint: disable=unused-argument
 
 if config.DEBUG_MODE_LOCAL:
     config.PVC_UPDATE_ZOOM = True
-    config.MAX_ZOOM_TO_CHANGE = 4  # 4
+    config.MAX_ZOOM_TO_CHANGE = 4
+
 if config.RUN_IT:
     test_manual_discrete_ingest()
-    test_watch_discrete_ingest()
+    # test_watch_discrete_ingest()
