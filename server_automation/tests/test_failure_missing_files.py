@@ -77,5 +77,5 @@ def test_missing_files():
     # ToDo : Check if Status 400 - bad request -> No(Test Failed)
 
     # ToDo Test Finished Successfully
-
-# test_missing_files()
+if config.RUN_IT:
+    test_missing_files()

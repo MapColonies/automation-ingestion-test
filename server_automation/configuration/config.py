@@ -16,6 +16,7 @@ except Exception as e:
 _api_route = conf.get("api_routes")
 ########  general running environment ##########
 environment = conf.get("environment")
+RUN_IT = environment.get('run_it',True)
 # compatibility to azure + prod env
 TEST_ENV = environment.get("name", EnvironmentTypes.QA.name)
 SHAPES_PATH = environment.get("shapes_path_name", "Shapes")
