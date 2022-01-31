@@ -82,7 +82,7 @@ def test_manual_discrete_ingest():
     _log.info(f"manual ingestion following task response: {resp}")
 
     # this timeout is for mapproxy updating time of new layer on configuration
-    sleep(config.SYSTEM_DELAY)
+    sleep(config.DELAY_INGESTION_TEST)
     pycsw_record = None
 
     # validate new discrete on pycsw records
@@ -186,7 +186,7 @@ def test_watch_discrete_ingest():
     _log.info(f"watch ingestion ,start watch - content: {content}")
     _log.info(f"watch ingestion ,start watch - source_data: {source_data}")
 
-    sleep(config.SYSTEM_DELAY)  # validate generation of new job
+    sleep(config.DELAY_INGESTION_TEST)  # validate generation of new job
     # validating following and completion of ingestion job
     try:
         if config.FOLLOW_JOB_BY_MANAGER:  # following based on job manager api
@@ -209,7 +209,7 @@ def test_watch_discrete_ingest():
     _log.info(f"watch ingestion following task response:{resp}")
 
     # this timeout is for mapproxy updating time of new layer on configuration
-    sleep(config.SYSTEM_DELAY)
+    sleep(config.DELAY_INGESTION_TEST * 2)
     pycsw_record = None
     # validate new discrete on pycsw records
     try:

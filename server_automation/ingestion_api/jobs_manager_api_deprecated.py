@@ -44,7 +44,7 @@ class JobsTasksManager:
         url = common.combine_url(self.__end_point_url, self.__jobs_api)
         resp = base_requests.send_get_request(url, params)
         if resp.status_code != config.ResponseCode.Ok.value:
-            raise Exception(
+            raise RuntimeError(
                 f"[find_jobs_by_criteria]:failed retrieve jobs, return with error:[{resp.status_code}],error msg:[{str(resp.text)}]"
             )
 
@@ -87,7 +87,7 @@ class JobsTasksManager:
 
         resp = base_requests.send_post_request(url, body)
         if resp.status_code != config.ResponseCode.ChangeOk.value:
-            raise Exception(
+            raise RuntimeError(
                 f"[create_new_job]:failed on creation new job, return with error:[{resp.status_code}],error msg:[{str(resp.content)}]"
             )
         return json.loads(resp.content)
@@ -103,7 +103,7 @@ class JobsTasksManager:
         params = {"shouldReturnTasks": str(return_tasks).lower()}
         resp = base_requests.send_get_request(url, params)
         if resp.status_code != config.ResponseCode.Ok.value:
-            raise Exception(
+            raise RuntimeError(
                 f"[get_job_by_id]:failed retrieve job, return with error:[{resp.status_code}]:error msg:[{str(resp.content)}]"
             )
 
@@ -133,7 +133,7 @@ class JobsTasksManager:
             raise ValueError(f"params is not on valid params -> json or dict")
         resp = base_requests.send_put_request(url, body)
         if resp.status_code != config.ResponseCode.Ok.value:
-            raise Exception(
+            raise RuntimeError(
                 f"[get_job_by_id]:failed update job, return with error:[{resp.status_code}]:error msg:[{str(resp.content)}]"
             )
         return resp.text
@@ -149,7 +149,7 @@ class JobsTasksManager:
         params = json.dumps({"shouldReturnTasks": return_tasks})
         resp = base_requests.send_delete_request(url, params)
         if resp.status_code != config.ResponseCode.Ok.value:
-            raise Exception(
+            raise RuntimeError(
                 f"[delete_job]:failed delete job, return with error:[{resp.status_code}]:error msg:[{str(resp.content)}]"
             )
 
@@ -166,7 +166,7 @@ class JobsTasksManager:
         )
         resp = base_requests.send_post_request(url)
         if resp.status_code != config.ResponseCode.Ok.value:
-            raise Exception(
+            raise RuntimeError(
                 f"[resettable]:failed get resettable state for job, return with error:[{resp.status_code}]:error msg:[{str(resp.content)}]"
             )
 
@@ -183,7 +183,7 @@ class JobsTasksManager:
         )
         resp = base_requests.send_post_request(url)
         if resp.status_code != config.ResponseCode.Ok.value:
-            raise Exception(
+            raise RuntimeError(
                 f"[reset]:failed start reset on resettable job, return with error:[{resp.status_code}]:error msg:[{str(resp.content)}]"
             )
 
@@ -200,7 +200,7 @@ class JobsTasksManager:
         )
         resp = base_requests.send_get_request2(url)
         if resp.status_code != config.ResponseCode.Ok.value:
-            raise Exception(
+            raise RuntimeError(
                 f"[tasks]:failed get tasks of job, return with error:[{resp.status_code}]:error msg:[{str(resp.content)}]"
             )
 
@@ -228,7 +228,7 @@ class JobsTasksManager:
         )
         resp = base_requests.send_post_request(url, body)
         if resp.status_code != config.ResponseCode.ChangeOk.value:
-            raise Exception(
+            raise RuntimeError(
                 f"[create_task]:failed insert new task to job, return with error:[{resp.status_code}]:error msg:[{str(resp.content)}]"
             )
 

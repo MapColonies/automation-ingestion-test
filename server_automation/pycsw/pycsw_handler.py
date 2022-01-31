@@ -4,6 +4,10 @@ import xmltodict
 from server_automation.configuration import config
 from mc_automation_tools import base_requests
 
+CSW_SEARCH_RESULTS = "csw:SearchResults"
+
+CSW_GET_RECORDS_RESPONSE = "csw:GetRecordsResponse"
+
 
 def get_raster_records(host=config.PYCSW_URL, params=config.PYCSW_GET_RECORD_PARAMS):
     """
@@ -19,24 +23,24 @@ def get_raster_records(host=config.PYCSW_URL, params=config.PYCSW_GET_RECORD_PAR
             resp = base_requests.send_get_request(host, params)
             s_code = resp.status_code
             if s_code != config.ResponseCode.Ok.value:
-                raise Exception(
+                raise RuntimeError(
                     f"Failed on request GetRecords with error:[{str(resp.text)}] and status code: [{str(s_code)}]"
                 )
 
             records = xmltodict.parse(resp.content)
-            cuurent_records = records["csw:GetRecordsResponse"]["csw:SearchResults"][
+            cuurent_records = records[CSW_GET_RECORDS_RESPONSE][CSW_SEARCH_RESULTS][
                 "mc:MCRasterRecord"
             ]
-            params["startPosition"] = records["csw:GetRecordsResponse"][
-                "csw:SearchResults"
+            params["startPosition"] = records[CSW_GET_RECORDS_RESPONSE][
+                CSW_SEARCH_RESULTS
             ]["@nextRecord"]
             next_record = int(
-                records["csw:GetRecordsResponse"]["csw:SearchResults"]["@nextRecord"]
+                records[CSW_GET_RECORDS_RESPONSE][CSW_SEARCH_RESULTS]["@nextRecord"]
             )
             records_list = records_list + cuurent_records
 
     except Exception as e:
-        raise Exception(
+        raise RuntimeError(
             f"Failed on request records on pycsw host:[{host}] with error:{str(e)}"
         )
     del params["startPosition"]

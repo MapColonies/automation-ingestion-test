@@ -76,7 +76,7 @@ def test_exists_product_manual_ingestion():
     _log.info(f"manual ingestion following task response: {resp}")
 
     # this timeout is for mapproxy updating time of new layer on configuration
-    sleep(config.SYSTEM_DELAY)
+    sleep(config.DELAY_INGESTION_TEST)
 
     try:
         status_code, content, source_data = start_manual_ingestion(

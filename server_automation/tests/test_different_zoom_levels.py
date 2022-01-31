@@ -160,7 +160,7 @@ def test_zoom_level(zoom_lvl):
                 verification_list_0_to_16 == ZOOM_LEVEL_0_TO_16
         ), f"Test: [{test_zoom_level.__name__}] Failed: on validation : actual [{verification_list_0_to_16} , expected {ZOOM_LEVEL_0_TO_16}]"
     else:
-        raise Exception(f"Failed : unmatch zoom level , zoom level is {zoom_lvl}")
+        raise RuntimeError(f"Failed : unmatch zoom level , zoom level is {zoom_lvl}")
 
 
 # if config.RUN_IT:

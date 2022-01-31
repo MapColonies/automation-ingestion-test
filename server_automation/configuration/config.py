@@ -1,7 +1,7 @@
 """ configuration for running ingestion tests"""
 import json
 from mc_automation_tools import common
-from server_automation.models.structs import EnvironmentTypes
+from server_automation.models.structs import EnvironmentTypes, ResponseCode, JobStatus
 
 CONF_FILE = common.get_environment_variable("CONF_FILE", None)
 if not CONF_FILE:
@@ -87,8 +87,8 @@ NFS_SOURCE_DIR = _nfs_directories.get("nfs_source_directory", "ingestion/1")
 NFS_DEST_DIR = _nfs_directories.get("nfs_destination_directory", "test_data")
 NFS_TILES_DIR = _nfs_directories.get("nfs_tiles_directory", "/tmp")
 NFS_WATCH_ROOT_DIR = _nfs_directories.get("nfs_watch_root_directory", "/tmp")
-NFS_WATCH_SOURCE_DIR = _nfs_directories.get("nfs_watch_source_directory", "ingestion/1")
-NFS_WATCH_BASE_DIR = _nfs_directories.get("nfs_watch_base_direcotry", "ingestion/1")
+NFS_WATCH_SOURCE_DIR = _nfs_directories.get("nfs_watch_source_directory", "ingestion/2")
+NFS_WATCH_BASE_DIR = _nfs_directories.get("nfs_watch_base_direcotry", "ingestion/3")
 NFS_WATCH_DEST_DIR = _nfs_directories.get("nfs_watch_destination_directory", "watch")
 
 """
@@ -187,6 +187,10 @@ DIFFERENT_ZOOM_LEVEL_DELAY = _zoom_level_limit_config.get("diff_zoom_level", 60)
 DIFFERENT_ZOOM_LEVEL_DELAY_4 = _zoom_level_limit_config.get("diff_zoom_level_4", 90)
 DIFFERENT_ZOOM_LEVEL_DELAY_10 = _zoom_level_limit_config.get("diff_zoom_level_10", 180)
 DIFFERENT_ZOOM_LEVEL_DELAY_16 = _zoom_level_limit_config.get("diff_zoom_level_16", 360)
+
+_delay_config = conf.get("delay_config")
+DELAY_INGESTION_TEST = _delay_config.get("system_delay_ingestion_test", 120)
+DELAY_INVALID_IMAGE_TEST = _delay_config.get("system_delay_invalid_image_test", 120)
 
 PYCSW_GET_RECORD_PARAMS = {
     "service": PYCSW_SERVICE,

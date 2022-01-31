@@ -65,7 +65,7 @@ def test_invalid_data():
     _log.info("manual ingestion - source_data: %s", source_data)
     _log.info("manual ingestion - content: %s", content)
     _log.info("manual ingestion - status code: %s", status_code)
-    sleep(config.SYSTEM_DELAY)
+    sleep(config.DELAY_INVALID_IMAGE_TEST)
     try:
         if config.FOLLOW_JOB_BY_MANAGER:  # following based on job manager api
             _log.info("Start following job-tasks based on job manager api")

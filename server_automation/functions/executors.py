@@ -65,7 +65,7 @@ def stop_watch():
         return {"state": True, "reason": "isWatch=False - agent not watching"}
     except Exception as e:
         _log.error(f"Failed on stop watching process with error: [{str(e)}]")
-        raise Exception(f"Failed on stop watching process with error: [{str(e)}]")
+        raise RuntimeError(f"Failed on stop watching process with error: [{str(e)}]")
 
 
 def start_watch():
@@ -100,7 +100,7 @@ def start_watch():
 
     except Exception as e:
         _log.error(f"Failed on start watching process with error: [{str(e)}]")
-        raise Exception(f"Failed on start watching process with error: [{str(e)}]")
+        raise RuntimeError(f"Failed on start watching process with error: [{str(e)}]")
 
 
 def init_watch_ingestion_src(env=config.EnvironmentTypes.QA.name):
@@ -132,7 +132,7 @@ def init_watch_ingestion_src(env=config.EnvironmentTypes.QA.name):
         res = init_ingestion_src_fs(src, dst, watch=True)
         return res
     else:
-        raise Exception(f"Illegal environment value type: {env}")
+        raise RuntimeError(f"Illegal environment value type: {env}")
 
 
 def delete_file_from_folder(path_to_folder, file_to_delete, env):
@@ -147,7 +147,7 @@ def delete_file_from_folder(path_to_folder, file_to_delete, env):
         resp = pvc_handler.delete_file_from_folder(path_to_folder, file_to_delete)
         # ToDo: Continue here
         if not resp.status_code == config.ResponseCode.Ok.value:
-            raise Exception(
+            raise RuntimeError(
                 f"Failed access pvc on source data cloning with error: [{resp.text}] and status: [{resp.status_code}]"
             )
     elif env == config.EnvironmentTypes.PROD.name:
@@ -155,7 +155,7 @@ def delete_file_from_folder(path_to_folder, file_to_delete, env):
         ret_folder = glob.glob(path_to_folder + "/**/" + file_to_delete, recursive=True)
         if not ret_folder:
             _log.error(f"{file_to_delete} not found in {path_to_folder}")
-            raise Exception(f"{file_to_delete} not found in {path_to_folder}")
+            raise RuntimeError(f"{file_to_delete} not found in {path_to_folder}")
         try:
             for folder in ret_folder:
                 os.remove(folder)
@@ -186,7 +186,7 @@ def init_ingestion_src(env=config.EnvironmentTypes.QA.name):
         except FileNotFoundError as e:
             raise e
         except Exception as e1:
-            raise Exception(
+            raise RuntimeError(
                 f"Failed generating testing directory with error: {str(e1)}"
             )
 
@@ -271,7 +271,7 @@ def init_ingestion_src_pvc(
         # resp = azure_pvc_api.create_new_ingestion_dir(host, create_api)
         resp = pvc_handler.create_new_ingestion_dir()
         if not resp.status_code == config.ResponseCode.ChangeOk.value:
-            raise Exception(
+            raise RuntimeError(
                 f"Failed access pvc on source data cloning with error: [{resp.text}] and status: [{resp.status_code}]"
             )
         msg = json.loads(resp.text)
@@ -280,14 +280,14 @@ def init_ingestion_src_pvc(
             f'[{resp.status_code}]: New test running directory was created from source data: {msg["source"]} into {msg["newDesination"]}'
         )
     except Exception as e:
-        raise Exception(
+        raise RuntimeError(
             f"Failed access pvc on source data cloning with error: [{str(e)}]"
         )
 
     try:
         resp = pvc_handler.make_unique_shapedata()
         if not resp.status_code == config.ResponseCode.ChangeOk.value:
-            raise Exception(
+            raise RuntimeError(
                 f"Failed access pvc on source data updating metadata.shp with error: [{resp.text}] and status: [{resp.status_code}]"
             )
         resource_name = json.loads(resp.text)["source"]
@@ -296,7 +296,7 @@ def init_ingestion_src_pvc(
         )
 
     except Exception as e:
-        raise Exception(f"Failed access pvc on changing shape metadata: [{str(e)}]")
+        raise RuntimeError(f"Failed access pvc on changing shape metadata: [{str(e)}]")
 
     if config.PVC_UPDATE_ZOOM:
         try:
@@ -307,7 +307,7 @@ def init_ingestion_src_pvc(
                     f'Max resolution changed successfully: [{json.loads(resp.text)["json_data"][0]["reason"]}]'
                 )
             else:
-                raise Exception(
+                raise RuntimeError(
                     f'Failed on updating zoom level with error: [{json.loads(resp.text)["message"]} | {json.loads(resp.text)["json_data"]}]'
                 )
         except Exception as e:
@@ -368,7 +368,7 @@ def validate_source_directory(
             return False, "Failed on tiff validation"
         # return state, resp
     else:
-        raise Exception(f"illegal Environment name: [{env}]")
+        raise RuntimeError(f"illegal Environment name: [{env}]")
 
 
 def start_manual_ingestion(path, env=config.EnvironmentTypes.QA.name, validation=True):
@@ -412,15 +412,11 @@ def start_watch_ingestion(path, env=config.EnvironmentTypes.QA.name):
         )
 
     _log.info(f"Init ingestion via watch start request for dir: {path}")
-    # if env == config.EnvironmentTypes.QA.name or env == config.EnvironmentTypes.DEV.name:
-    #     relative_path = path.split(config.PVC_ROOT_DIR)[1]
-    # elif env == config.EnvironmentTypes.PROD.name:
-    #     relative_path = config.NFS_DEST_DIR
 
     resp = start_watch()
     watch_state = resp["state"]
     if not watch_state:
-        raise Exception(f"Failed on start watching with error:\n" f'{resp["reason"]}')
+        raise RuntimeError(f"Failed on start watching with error:\n" f'{resp["reason"]}')
 
     _log.info(
         f'Receive from agent - watch status: [{watch_state}] and message: [{resp["reason"]}]'
@@ -439,7 +435,7 @@ def follow_running_task(product_id, product_version, timeout=config.FOLLOW_TIMEO
     )
     _log.info(resp)
     if not resp:
-        raise Exception(f"Job for {product_id}:{product_version} not found")
+        raise RuntimeError(f"Job for {product_id}:{product_version} not found")
 
     while running:
         time.sleep(config.SYSTEM_DELAY // 4)
@@ -503,7 +499,7 @@ def follow_running_job_manager(
     }
     resp = job_task_handler.find_jobs_by_criteria(find_job_params)[0]
     if not resp:
-        raise Exception(f"Job for {product_id}:{product_version} not found")
+        raise RuntimeError(f"Job for {product_id}:{product_version} not found")
     _log.info(
         f"Found job with details:\n"
         f'id: [{resp["id"]}]\n'
@@ -589,7 +585,7 @@ def follow_parallel_running_tasks(
             task_counter += 1
 
     if not resp:
-        raise Exception(f"Job for {product_id}:{product_version} not found")
+        raise RuntimeError(f"Job for {product_id}:{product_version} not found")
     _log.info(
         f"Found job with details:\n"
         f'id: [{resp["id"]}]\n'
@@ -1085,7 +1081,7 @@ def validate_new_discrete(pycsw_records, product_id, product_version):
                     if ".png" in file:
                         list_of_tiles.append(os.path.join(r, file))
         else:
-            raise Exception(f"Illegal environment value type: {config.TEST_ENV}")
+            raise RuntimeError(f"Illegal environment value type: {config.TEST_ENV}")
 
         zxy = list_of_tiles[len(list_of_tiles) - 1].split("/")[-3:]
         zxy[2] = zxy[2].split(".")[0]
@@ -1140,7 +1136,7 @@ def get_xml_as_dict(url):
 
     except Exception as e:
         _log.error(f"Failed getting xml object from url [{url}] with error: {str(e)}")
-        raise Exception(
+        raise RuntimeError(
             f"Failed getting xml object from url [{url}] with error: {str(e)}"
         )
 
@@ -1148,13 +1144,13 @@ def get_xml_as_dict(url):
 def create_mock_file(path_to_folder, file_to_create):
     ret_folder = glob.glob(path_to_folder + "/**/" + file_to_create, recursive=True)
     if not ret_folder:
-        raise Exception(f"{file_to_create} not found in {path_to_folder}")
+        raise RuntimeError(f"{file_to_create} not found in {path_to_folder}")
     try:
         for folder in ret_folder:
             os.remove(folder)
             Path(folder).touch()
     except OSError as e:
-        raise Exception(f"error occurred , msg : {str(e)}")
+        raise RuntimeError(f"error occurred , msg : {str(e)}")
 
 
 def write_text_to_file(path_to_text, text_to_write):
@@ -1164,4 +1160,4 @@ def write_text_to_file(path_to_text, text_to_write):
         with open(path_to_text, "a") as f:
             f.write(f"{text_to_write}\n")
     except IOError as e:
-        raise Exception(f"Failed to write to {path_to_text} , with msg : {str(e)}")
+        raise RuntimeError(f"Failed to write to {path_to_text} , with msg : {str(e)}")
