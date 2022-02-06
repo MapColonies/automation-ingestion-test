@@ -204,13 +204,15 @@ def init_ingestion_src_fs(src, dst, watch=False):
     if watch:
         deletion_watch_dir = os.path.dirname(dst)
         if os.path.exists(deletion_watch_dir):
-            command = f"rm -rf {deletion_watch_dir}/*"
-            os.system(command)
+            if config.DELETE_INGESTION_FOLDER:
+                command = f"rm -rf {deletion_watch_dir}/*"
+                os.system(command)
     else:
         deletion_watch_dir = dst
         if os.path.exists(dst):
-            command = f"rm -rf {deletion_watch_dir}"
-            os.system(command)
+            if config.DELETE_INGESTION_FOLDER:
+                command = f"rm -rf {deletion_watch_dir}"
+                os.system(command)
 
     if not os.path.exists(src):
         raise FileNotFoundError(f"[{src}] directory not found")
@@ -732,8 +734,10 @@ def cleanup_env(product_id, product_version, initial_mapproxy_config):
 
             try:
                 if os.path.exists(path):
-                    command = f"rm -rf {path}"
-                    os.system(command)
+                    #ToDo : Fix it
+                    if config.DELETE_INGESTION_FOLDER:
+                        command = f"rm -rf {path}"
+                        os.system(command)
                 else:
                     # todo maybe on future add it with exception and test step
                     # assertion

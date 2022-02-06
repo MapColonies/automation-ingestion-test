@@ -94,7 +94,8 @@ def get_mapproxy_config(db_name=config.PG_MAPPROXY_CONFIG):
 
 def get_mapproxy_configs(table_name="config", db_name=config.PG_MAPPROXY_CONFIG):
     """This method query and return uuid of current ingestion job according keys: productId and productVersion"""
-    client = postgres.PGClass(config.PG_HOST, db_name, config.PG_USER, config.PG_PASS,port=6432)
+
+    client = postgres.PGClass(config.PG_HOST, db_name, config.PG_USER, config.PG_PASS,port=int(config.PG_PORT))
     res = client.get_rows_by_order(
         table_name=table_name,
         order_key="updated_time",
