@@ -13,6 +13,7 @@ except Exception as e:
     raise EnvironmentError("Failed to load JSON for configuration") from e
 
 _api_route = conf.get("api_routes")
+MAPPROXY_URL = _api_route.get('mapproxy_url')
 ########  general running environment ##########
 environment = conf.get("environment")
 RUN_IT = environment.get('run_it', True)
@@ -29,7 +30,12 @@ VALIDATION_SWITCH = environment.get("validation_switch", True)
 SYSTEM_DELAY = environment.get("system_delay", 60)
 PROGRESS_TASK_DELAY = environment.get("progress_task_delay", 50)
 FOLLOW_TIMEOUT = 60 * environment.get("follow_timeout", 5)
-DELETE_INGESTION_FOLDER = environment.get('delete_ingestion_folder',False)
+DELETE_INGESTION_FOLDER = environment.get('delete_ingestion_folder', False)
+SOURCE_DATA_PROVIDER = environment.get('source_data_provider', "NFS")
+TILES_PROVIDER = environment.get('tiles_provider', "S3")
+STOP_WATCH = environment.get('stop_watch', False)
+WRITE_TEXT_TO_FILE = environment.get('write_text_to_file', False)
+
 ############################################  follow  ####################
 _job_manager_params = conf.get("job_manager_params")
 AMOUNT_OF_WORKERS = _job_manager_params.get("amount_of_workers", 1)
@@ -66,11 +72,12 @@ _mapproxy_vars = conf.get("mapproxy_variables")
 WMS = _mapproxy_vars.get("wms")
 WMTS = _mapproxy_vars.get("wmts")
 WMTS_LAYER = _mapproxy_vars.get("wmts_layer")
+MAPPROXY_GRID_ORIGIN = _mapproxy_vars.get('mapproxy_grid_origin')
 ###############################################  POSTGRESS CREDENTIALS  ##
 _pg_credentials = conf.get("pg_credential")
 PG_USER = _pg_credentials.get("pg_user", None)
 PG_PASS = _pg_credentials.get("pg_pass", None)
-PG_PORT = _pg_credentials.get("pg_port",None)
+PG_PORT = _pg_credentials.get("pg_port", None)
 PG_HOST = _pg_credentials.get("pg_host", None)
 PG_JOB_TASK_DB_NAME = _pg_credentials.get("pg_job_task_table", None)
 PG_RECORD_PYCSW_DB = _pg_credentials.get("pg_pycsw_record_table", None)
@@ -91,6 +98,7 @@ NFS_WATCH_ROOT_DIR = _nfs_directories.get("nfs_watch_root_directory", "/tmp")
 NFS_WATCH_SOURCE_DIR = _nfs_directories.get("nfs_watch_source_directory", "ingestion/2")
 NFS_WATCH_BASE_DIR = _nfs_directories.get("nfs_watch_base_direcotry", "ingestion/3")
 NFS_WATCH_DEST_DIR = _nfs_directories.get("nfs_watch_destination_directory", "watch")
+NFS_TILES_DIR = _nfs_directories.get('nfs_tiles_dir', None)
 
 """
 #  PVC ROUTES  #
@@ -133,7 +141,7 @@ S3_END_POINT = _s3_credentials.get("s3_end_point", None)
 
 _endpoints_discrete_ingestion = conf.get("discrete_ingestion_credential")
 PYCSW_URL = _api_route.get("pycsw_url", None)
-MAX_ZOOM_TO_CHANGE = _endpoints_discrete_ingestion.get("max_zoom_level", 4)
+MAX_ZOOM_TO_CHANGE = _endpoints_discrete_ingestion.get("max_zoom_level", None)
 FAILURE_FLAG = _endpoints_discrete_ingestion.get("failure_tag", False)
 PVC_UPDATE_ZOOM = _endpoints_discrete_ingestion.get("change_max_zoom_level", True)
 PVC_HANDLER_ROUTE = _endpoints_discrete_ingestion.get("pvc_handler_url", None)
@@ -192,6 +200,7 @@ DIFFERENT_ZOOM_LEVEL_DELAY_16 = _zoom_level_limit_config.get("diff_zoom_level_16
 _delay_config = conf.get("delay_config")
 DELAY_INGESTION_TEST = _delay_config.get("system_delay_ingestion_test", 120)
 DELAY_INVALID_IMAGE_TEST = _delay_config.get("system_delay_invalid_image_test", 120)
+DELAY_MAPPROXY_PYCSW_VALIDATION = _delay_config.get("system_delay_inestion_pycsw_validation", 120)
 
 PYCSW_GET_RECORD_PARAMS = {
     "service": PYCSW_SERVICE,

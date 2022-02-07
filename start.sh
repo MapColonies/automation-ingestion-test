@@ -12,7 +12,7 @@ if [[ ! -z "${PYTEST_RUNNING_MODE}" ]]; then
     pytest --show-capture=no /source_code/server_automation/tests/test_parallel_ingestion_workers.py
     ;;
 
-
+  \
     full)
     echo -ne " ***** Will Run full set of tests: e2e, failures, functional tests ***** \n"
     pytest --show-capture=no /source_code/server_automation/tests/
@@ -34,12 +34,37 @@ if [[ ! -z "${PYTEST_RUNNING_MODE}" ]]; then
     pytest --show-capture=no /source_code/server_automation/tests/test_different_zoom_levels.py
     ;;
 
+  fail_exist_product)
+    echo -ne " ***** Will Run functional tests *****\n"
+    pytest --show-capture=no /source_code/server_automation/tests/test_failure_exists_product_manual_ingestion.py
+    ;;
+
+  fail_missing_file)
+    echo -ne " ***** Will Run functional tests *****\n"
+    pytest --show-capture=no /source_code/server_automation/tests/test_failure_missing_files.py
+    ;;
+
+  fail_illegal_zoom)
+    echo -ne " ***** Will Run functional tests *****\n"
+    pytest --show-capture=no /source_code/server_automation/tests/test_failure_illegal_zoom_level_limit.py
+    ;;
+
+  fail_invalid_imagery_data)
+    echo -ne " ***** Will Run functional tests *****\n"
+    pytest --show-capture=no /source_code/server_automation/tests/test_invalid_imagery_data.py
+    ;;
+
   ingest_only)
     echo -ne " ***** Will Run only ingestion *****\n"
     pytest --show-capture=no /source_code/server_automation/tests/test_ingestion_discrete.py
     ;;
 
-   working)
+    #  geopack_ingestion)
+    #    echo -ne " ***** Will Run only ingestion *****\n"
+    #    pytest --show-capture=no /source_code/server_automation/tests/test_ingestion_discrete.py
+    #    ;;
+
+  working)
     echo -ne " ***** Will Run only ingestion *****\n"
     pytest --show-capture=no /source_code/server_automation/tests/test_ingestion_discrete.py
     sleep 1m
@@ -54,8 +79,8 @@ if [[ ! -z "${PYTEST_RUNNING_MODE}" ]]; then
     pytest --show-capture=no /source_code/server_automation/tests/test_parallel_ingestion_workers.py
     ;;
 
-
-  *)
+  \
+    *)
     echo -ne " ----- unknown tests mode params: [PYTEST_RUNNING_MODE=$PYTEST_RUNNING_MODE] ----- \n"
     ;;
   esac

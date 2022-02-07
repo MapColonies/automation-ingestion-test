@@ -15,7 +15,7 @@ from mc_automation_tools import s3storage as s3
 from mc_automation_tools.ingestion_api import job_manager_api
 from discrete_kit.functions import metadata_convertor
 from mc_automation_tools.ingestion_api import azure_pvc_api
-
+from mc_automation_tools.models import structs
 from shapely.geometry import Polygon
 from server_automation.configuration import config
 from server_automation.ingestion_api import (
@@ -25,7 +25,7 @@ from server_automation.ingestion_api import (
 from server_automation.postgress import postgress_adapter
 from server_automation.graphql import gql_wrapper
 from server_automation.pycsw import pycsw_handler
-
+from mc_automation_tools.validators import pycsw_validator, mapproxy_validator
 from discrete_kit.validator.json_compare_pycsw import *
 
 # from importlib.resources import path
@@ -103,17 +103,14 @@ def start_watch():
         raise RuntimeError(f"Failed on start watching process with error: [{str(e)}]")
 
 
-def init_watch_ingestion_src(env=config.EnvironmentTypes.QA.name):
+def init_watch_ingestion_src():
     """
     This method create test dedicated folder of source discrete for ingestion
     :param env:
     :return:
     """
 
-    if (
-            env == config.EnvironmentTypes.QA.name
-            or env == config.EnvironmentTypes.DEV.name
-    ):
+    if config.SOURCE_DATA_PROVIDER.lower() == 'pv':
         host = config.PVC_HANDLER_ROUTE
         api = config.PVC_WATCH_CREATE_DIR
         change_api = config.PVC_WATCH_UPDATE_SHAPE
@@ -121,7 +118,7 @@ def init_watch_ingestion_src(env=config.EnvironmentTypes.QA.name):
             True, host, api, change_api, update_tfw_url=config.PVC_CHANGE_WATCH_MAX_ZOOM
         )
         return res
-    elif env == config.EnvironmentTypes.PROD.name:
+    if config.SOURCE_DATA_PROVIDER.lower() == 'nfs':
         src = os.path.join(config.NFS_WATCH_ROOT_DIR, config.NFS_WATCH_SOURCE_DIR)
         dst = os.path.join(
             config.NFS_WATCH_ROOT_DIR,
@@ -132,7 +129,7 @@ def init_watch_ingestion_src(env=config.EnvironmentTypes.QA.name):
         res = init_ingestion_src_fs(src, dst, watch=True)
         return res
     else:
-        raise RuntimeError(f"Illegal environment value type: {env}")
+        raise RuntimeError(f"Illegal environment value type: {config.SOURCE_DATA_PROVIDER.lower()}")
 
 
 def delete_file_from_folder(path_to_folder, file_to_delete, env):
@@ -164,24 +161,22 @@ def delete_file_from_folder(path_to_folder, file_to_delete, env):
             _log.error(f"error occurred , msg : {str(e)}")
 
 
-def init_ingestion_src(env=config.EnvironmentTypes.QA.name):
+def init_ingestion_src():
     """
     This module will init new ingestion source folder.
     The prerequisites must have source folder with suitable data and destination folder for new data
     The method will duplicate and rename metadata shape file to unique running name
     :return:dict with ingestion_dir and resource_name
     """
-    if (
-            env == config.EnvironmentTypes.QA.name
-            or env == config.EnvironmentTypes.DEV.name
-    ):
+    if config.SOURCE_DATA_PROVIDER.lower() == 'pv':
         res = init_ingestion_src_pvc(False)
         return res
-    elif env == config.EnvironmentTypes.PROD.name:
+    if config.SOURCE_DATA_PROVIDER.lower() == 'nfs':
         src = os.path.join(config.NFS_ROOT_DIR, config.NFS_SOURCE_DIR)
         dst = os.path.join(config.NFS_ROOT_DIR_DEST, config.NFS_DEST_DIR)
         try:
-            res = init_ingestion_src_fs(src, dst)
+            res = init_ingest_nfs(src, dst, str(config.zoom_level_dict[config.MAX_ZOOM_TO_CHANGE]))
+            # res = init_ingestion_src_fs(src, dst, str(config.zoom_level_dict[config.MAX_ZOOM_TO_CHANGE]), watch=False)
             return res
         except FileNotFoundError as e:
             raise e
@@ -189,12 +184,70 @@ def init_ingestion_src(env=config.EnvironmentTypes.QA.name):
             raise RuntimeError(
                 f"Failed generating testing directory with error: {str(e1)}"
             )
-
     else:
-        raise ValueError(f"Illegal environment value type: {env}")
+        raise ValueError(f"Illegal environment value type: {config.SOURCE_DATA_PROVIDER.lower()}")
 
 
-def init_ingestion_src_fs(src, dst, watch=False):
+def delete_destination_folder(dst):
+    try:
+        folder_to_delete = os.path.dirname(dst)
+        if os.path.exists(folder_to_delete):
+            _log.info(f"Folder To Delete: {folder_to_delete}")
+    except Exception as er:
+        raise RuntimeError(f"Failed to find {folder_to_delete} folder")
+
+
+def copy_file_from_src_to_dst(src, dst):
+    try:
+        create_folder_cmd = f"cp -r {src}/. {dst}"
+        os.system(create_folder_cmd)
+        if os.path.exists(dst):
+            _log.info(f"Success copy and creation of test data on: {dst}")
+        else:
+            raise IOError("Failed on creating ingestion directory")
+
+    except Exception as e2:
+        _log.error(f"Failed copy files from {src} into {dst} with error: [{str(e2)}]")
+        raise e2
+
+
+def update_destination_shape_file(dst):
+    try:
+        # file = os.path.join(dst, config.SHAPES_PATH, config.SHAPE_METADATA_FILE)
+        file = os.path.join(
+            discrete_directory_loader.get_folder_path_by_name(dst, config.SHAPES_PATH),
+            config.SHAPE_METADATA_FILE,
+        )
+        if config.FAILURE_FLAG:
+            source_name = update_shape_fs_to_failure(file)
+        else:
+            source_name = update_shape_fs(file)
+        _log.info(f"[{file}]:was changed resource name: {source_name}")
+    except Exception as e:
+        _log.error(f"Failed on updating shape file: {file} with error: {str(e)}")
+        raise e
+    return source_name
+
+
+def update_shape_zoom_level(dst, zoom_level):
+    if config.PVC_UPDATE_ZOOM:
+        res = metadata_convertor.replace_discrete_resolution(
+            dst, zoom_level, "tfw"
+        )
+        return res
+
+
+# ToDo: Finish it
+def init_ingest_nfs(src, dst, zoom_level):
+    zoom_level = str(config.zoom_level_dict[config.MAX_ZOOM_TO_CHANGE])  # ToDo: Each test
+    delete_destination_folder(dst)
+    copy_file_from_src_to_dst(src, dst)
+    update_resource_name = update_destination_shape_file(dst)
+    zoom_level_resp = update_shape_zoom_level(dst, zoom_level)
+    return {"ingestion_dir": dst, "resource_name": update_resource_name, "max_resolution": zoom_level_resp}
+
+
+def init_ingestion_src_fs(src, dst, zoom_level, watch=False):
     """
     This module will init new ingestion source folder - for file system / NFS deployment.
     The prerequisites must have source folder with suitable data and destination folder for new data
@@ -204,15 +257,19 @@ def init_ingestion_src_fs(src, dst, watch=False):
     if watch:
         deletion_watch_dir = os.path.dirname(dst)
         if os.path.exists(deletion_watch_dir):
-            if config.DELETE_INGESTION_FOLDER:
-                command = f"rm -rf {deletion_watch_dir}/*"
-                os.system(command)
+            # ToDo : Fix it
+            print("Delete")
+            # if config.DELETE_INGESTION_FOLDER:
+            #     command = f"rm -rf {deletion_watch_dir}/*"
+            #     os.system(command)
     else:
         deletion_watch_dir = dst
         if os.path.exists(dst):
-            if config.DELETE_INGESTION_FOLDER:
-                command = f"rm -rf {deletion_watch_dir}"
-                os.system(command)
+            # ToDo : Fix it
+            print(f"Delete {dst}")
+            # if config.DELETE_INGESTION_FOLDER:
+            #     command = f"rm -rf {deletion_watch_dir}"
+            #     os.system(command)
 
     if not os.path.exists(src):
         raise FileNotFoundError(f"[{src}] directory not found")
@@ -246,7 +303,7 @@ def init_ingestion_src_fs(src, dst, watch=False):
 
     if config.PVC_UPDATE_ZOOM:
         res = metadata_convertor.replace_discrete_resolution(
-            dst, str(config.zoom_level_dict[config.MAX_ZOOM_TO_CHANGE]), "tfw"
+            dst, zoom_level, "tfw"
         )
 
     return {"ingestion_dir": dst, "resource_name": source_name, "max_resolution": res}
@@ -318,7 +375,7 @@ def init_ingestion_src_pvc(
 
 
 def validate_source_directory(
-        path=None, env=config.EnvironmentTypes.QA.name, watch=False
+        path=None, watch=False
 ):
     """
     This will validate that source directory include all needed files for ingestion
@@ -326,34 +383,18 @@ def validate_source_directory(
     :param env: default qa for azure running with pvc
     :return: True \\ False + response json
     """
-    pvc_handler = azure_pvc_api.PVCHandler(
-        endpoint_url=config.PVC_HANDLER_ROUTE, watch=watch
-    )
 
-    if (
-            env == config.EnvironmentTypes.QA.name
-            or env == config.EnvironmentTypes.DEV.name
-    ):
-        # if watch:
-        # resp = azure_pvc_api.validate_ingestion_directory(api=config.PVC_WATCH_VALIDATE)
-
-        # else:
-        # resp = azure_pvc_api.validate_ingestion_directory()
+    if config.SOURCE_DATA_PROVIDER.lower() == 'pv':
+        pvc_handler = azure_pvc_api.PVCHandler(
+            endpoint_url=config.PVC_HANDLER_ROUTE, watch=watch
+        )
         resp = pvc_handler.validate_ingestion_directory()
         content = json.loads(resp.text)
-        # ToDo: Add to PVC
-        # if content.get('json_data'):
-        #     validation_tiff_dict, error_msg = validate_tiff_exists(path, content.get('json_data')['fileNames'])
-        #     assert all(validation_tiff_dict.values()) is True, f' Failed: on following ingestion process [{error_msg}]'
-        #     return not content['failure'], content['json_data']
-        #
-        # else:
-        #     return not content['failure'], content['message']
         if content.get("json_data"):
             return not content["failure"], content["json_data"]
         else:
             return content["failure"], "missing json data"
-    elif env == config.EnvironmentTypes.PROD.name:
+    elif config.SOURCE_DATA_PROVIDER.lower() == 'nfs':
         state, resp = discrete_directory_loader.validate_source_directory(path)
         content = ""
         content = resp["metadata"]
@@ -370,26 +411,23 @@ def validate_source_directory(
             return False, "Failed on tiff validation"
         # return state, resp
     else:
-        raise RuntimeError(f"illegal Environment name: [{env}]")
+        raise RuntimeError(f"illegal Environment name: [{config.SOURCE_DATA_PROVIDER.lower()}]")
 
 
-def start_manual_ingestion(path, env=config.EnvironmentTypes.QA.name, validation=True):
+def start_manual_ingestion(path, validation=True):
     """This method will trigger new process of discrete ingestion by provided path"""
     # validate directory include all needed files and data
     if validation:
-        source_ok, body = validate_source_directory(path, env)
+        source_ok, body = validate_source_directory(path)
         if not source_ok:
             raise FileNotFoundError(
                 f"Directory [{path}] with missing files / errors msg: [{body}]"
             )
 
     _log.info(f"Send ingestion request for dir: {path}")
-    if (
-            env == config.EnvironmentTypes.QA.name
-            or env == config.EnvironmentTypes.DEV.name
-    ):
+    if config.SOURCE_DATA_PROVIDER.lower() == 'pv':
         relative_path = path.split(config.PVC_ROOT_DIR)[1]
-    elif env == config.EnvironmentTypes.PROD.name:
+    if config.SOURCE_DATA_PROVIDER.lower() == 'nfs':
         relative_path = config.NFS_DEST_DIR
 
     resp = discrete_agent_api.post_manual_trigger(relative_path)
@@ -403,11 +441,11 @@ def start_manual_ingestion(path, env=config.EnvironmentTypes.QA.name, validation
     return status_code, content, body
 
 
-def start_watch_ingestion(path, env=config.EnvironmentTypes.QA.name):
+def start_watch_ingestion(path):
     """This method will start watch agent and validate start of current job"""
 
     # validate directory include all needed files and data
-    source_ok, body = validate_source_directory(path, env, watch=True)
+    source_ok, body = validate_source_directory(path, watch=True)
     if not source_ok:
         raise FileNotFoundError(
             f"Directory [{path}] with missing files / errors msg: [{body}]"
@@ -734,10 +772,11 @@ def cleanup_env(product_id, product_version, initial_mapproxy_config):
 
             try:
                 if os.path.exists(path):
-                    #ToDo : Fix it
-                    if config.DELETE_INGESTION_FOLDER:
-                        command = f"rm -rf {path}"
-                        os.system(command)
+                    # ToDo : Fix it
+                    print("Starting Delete")
+                    # if config.DELETE_INGESTION_FOLDER:
+                    #     command = f"rm -rf {path}"
+                    #     os.system(command)
                 else:
                     # todo maybe on future add it with exception and test step
                     # assertion
@@ -817,33 +856,49 @@ def validate_pycsw2(source_json_metadata, product_id=None, product_version=None)
     :return: dict of result validation
     """
     res_dict = {"validation": True, "reason": ""}
-    pycsw_records = pycsw_handler.get_record_by_id(
-        product_id,
-        product_version,
-        host=config.PYCSW_URL,
-        params=config.PYCSW_GET_RECORD_PARAMS,
-    )
+    try:
+        pycsw_conn = pycsw_validator.PycswHandler(config.PYCSW_URL, config.PYCSW_GET_RECORD_PARAMS)
+        results = pycsw_conn.validate_pycsw(source_json_metadata, product_id, product_version)
+        res_dict = results['results']
+        pycsw_records = results['pycsw_record']
+        links = results['links']
+        _log.info(f'')
 
-    if not pycsw_records:
-        return {"validation": False, "reason": f"Records of [{product_id}] not found"}
-    links = {}
-    for record in pycsw_records:
-        links[record["mc:productType"]] = {
-            record["mc:links"][0]["@scheme"]: record["mc:links"][0]["#text"],
-            record["mc:links"][1]["@scheme"]: record["mc:links"][1]["#text"],
-            record["mc:links"][2]["@scheme"]: record["mc:links"][2]["#text"],
-        }
-    if config.TEST_ENV == "PROD":
-        source_json_metadata_dic = {"metadata": source_json_metadata}
-        validation_flag, err_dict = validate_pycsw_with_shape_json(
-            pycsw_records, source_json_metadata_dic
-        )
-    else:
-        validation_flag, err_dict = validate_pycsw_with_shape_json(
-            pycsw_records, source_json_metadata
-        )
-    res_dict["validation"] = validation_flag
-    res_dict["reason"] = err_dict
+    except Exception as e:
+        _log.error(f'Failed validation of pycsw with error: [{str(e)}]')
+        res_dict = {'validation': False, 'reason': str(e)}
+        pycsw_records = {}
+        links = {}
+
+    _log.info(
+        f'\n-------------------------- Finish validation of toc metadata vs. pycsw record ----------------------------')
+    # pycsw_records = pycsw_handler.get_record_by_id(
+    #     product_id,
+    #     product_version,
+    #     host=config.PYCSW_URL,
+    #     params=config.PYCSW_GET_RECORD_PARAMS,
+    # )
+
+    # if not pycsw_records:
+    #     return {"validation": False, "reason": f"Records of [{product_id}] not found"}
+    # links = {}
+    # for record in pycsw_records:
+    #     links[record["mc:productType"]] = {
+    #         record["mc:links"][0]["@scheme"]: record["mc:links"][0]["#text"],
+    #         record["mc:links"][1]["@scheme"]: record["mc:links"][1]["#text"],
+    #         record["mc:links"][2]["@scheme"]: record["mc:links"][2]["#text"],
+    #     }
+    # if config.TEST_ENV == "PROD":
+    #     source_json_metadata_dic = {"metadata": source_json_metadata}
+    #     validation_flag, err_dict = validate_pycsw_with_shape_json(
+    #         pycsw_records, source_json_metadata_dic
+    #     )
+    # else:
+    #     validation_flag, err_dict = validate_pycsw_with_shape_json(
+    #         pycsw_records, source_json_metadata
+    #     )
+    # res_dict["validation"] = validation_flag
+    # res_dict["reason"] = err_dict
     return res_dict, pycsw_records, links
 
 
@@ -1013,6 +1068,34 @@ def copy_geopackage_file_for_ingest(env):
                 f"Failed copy files from {config.GEO_PACKAGE_SRC} into {config.GEO_PACKAGE_DEST} with error: [{str(e)}]")
             raise e
     return resp_status, msg_text
+
+
+def validate_mapproxy_layer(pycsw_record, product_id, product_version, params=None):
+    """
+    This method will ensure the url's provided on mapproxy from pycsw
+    :return: result dict -> {'validation': bool, 'reason':{}}, links -> dict
+    """
+    _log.info(
+        f'\n\n********************** Will run validation of layer mapproxy vs. pycsw record *************************')
+
+    if params['tiles_storage_provide'].lower() == 's3':
+        s3_credential = structs.S3Provider(entrypoint_url=params['endpoint_url'],
+                                           access_key=params['access_key'],
+                                           secret_key=params['secret_key'],
+                                           bucket_name=params['bucket_name'])
+    else:
+        s3_credential = None
+    mapproxy_conn = mapproxy_validator.MapproxyHandler(entrypoint_url=params['mapproxy_endpoint_url'],
+                                                       tiles_storage_provide=params['tiles_storage_provide'],
+                                                       grid_origin=params['grid_origin'],
+                                                       s3_credential=s3_credential,
+                                                       nfs_tiles_url=params['nfs_tiles_url'])
+
+    res = mapproxy_conn.validate_layer_from_pycsw(pycsw_record, product_id, product_version)
+    return res
+
+    _log.info(
+        f'\n----------------------- Finish validation of layer mapproxy vs. pycsw record ---------------------------')
 
 
 def validate_new_discrete(pycsw_records, product_id, product_version):
