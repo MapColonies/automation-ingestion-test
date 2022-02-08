@@ -13,7 +13,7 @@ _log = logging.getLogger(
 def test_illegal_zoom():
     stop_watch()
     try:
-        resp = init_ingestion_src(config.TEST_ENV)
+        resp = init_ingestion_src()
         error_msg = None
     except Exception as e:
         resp = None
@@ -30,9 +30,10 @@ def test_illegal_zoom():
     source_directory = resp["ingestion_dir"]
     _log.info(f"{product_id} {product_version}")
     sleep(5)
-    write_text_to_file('//tmp//shlomo.txt',
-                       {'source_dir': source_directory, 'product_id_version': ValueStorage.discrete_list,
-                        'test_name': test_illegal_zoom.__name__})
+    if config.WRITE_TEXT_TO_FILE:
+        write_text_to_file('//tmp//shlomo.txt',
+                           {'source_dir': source_directory, 'product_id_version': ValueStorage.discrete_list,
+                            'test_name': test_illegal_zoom.__name__})
     config.PVC_UPDATE_ZOOM = True
     config.MAX_ZOOM_TO_CHANGE = 3  # 4
     pvc_handler = azure_pvc_api.PVCHandler(
@@ -41,7 +42,7 @@ def test_illegal_zoom():
     pvc_handler.change_max_zoom_tfw(config.MAX_ZOOM_TO_CHANGE)
     try:
         status_code, content, source_data = start_manual_ingestion(
-            source_directory, config.TEST_ENV, False
+            source_directory, False
         )
     except Exception as e:
         content = str(e)

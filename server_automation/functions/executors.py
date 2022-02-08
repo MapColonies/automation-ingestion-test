@@ -132,22 +132,19 @@ def init_watch_ingestion_src():
         raise RuntimeError(f"Illegal environment value type: {config.SOURCE_DATA_PROVIDER.lower()}")
 
 
-def delete_file_from_folder(path_to_folder, file_to_delete, env):
+def delete_file_from_folder(path_to_folder, file_to_delete):
     pvc_handler = azure_pvc_api.PVCHandler(
         endpoint_url=config.PVC_HANDLER_ROUTE, watch=False
     )
 
-    if (
-            env == config.EnvironmentTypes.QA.name
-            or env == config.EnvironmentTypes.DEV.name
-    ):
+    if config.SOURCE_DATA_PROVIDER.lower() == 'pv':
         resp = pvc_handler.delete_file_from_folder(path_to_folder, file_to_delete)
         # ToDo: Continue here
         if not resp.status_code == config.ResponseCode.Ok.value:
             raise RuntimeError(
                 f"Failed access pvc on source data cloning with error: [{resp.text}] and status: [{resp.status_code}]"
             )
-    elif env == config.EnvironmentTypes.PROD.name:
+    if config.SOURCE_DATA_PROVIDER.lower() == 'nfs':
         _log.info(f"Deleting file - {file_to_delete} from folder")
         ret_folder = glob.glob(path_to_folder + "/**/" + file_to_delete, recursive=True)
         if not ret_folder:

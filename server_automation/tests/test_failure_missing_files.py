@@ -15,7 +15,7 @@ def test_missing_files():
 
         stop_watch()
         try:
-            resp = init_ingestion_src(config.TEST_ENV)
+            resp = init_ingestion_src()
             error_msg = None
         except Exception as e:
             resp = None
@@ -33,15 +33,17 @@ def test_missing_files():
         _log.info(f"{product_id} {product_version}")
         sleep(5)
 
-        write_text_to_file('//tmp//shlomo.txt',
-                           {'source_dir': source_directory, 'product_id_version': ValueStorage.discrete_list,
-                            'test_name': test_missing_files.__name__})
+        if config.WRITE_TEXT_TO_FILE:
+            write_text_to_file('//tmp//shlomo.txt',
+                               {'source_dir': source_directory, 'product_id_version': ValueStorage.discrete_list,
+                                'test_name': test_missing_files.__name__})
 
-        delete_file_from_folder(source_directory, missing_file, config.TEST_ENV)
+        delete_file_from_folder(source_directory, missing_file)
 
         try:
             status_code, content, source_data = start_manual_ingestion(
-                source_directory, config.TEST_ENV, False
+                source_directory
+                , False
             )
         except Exception as e:
             content = str(e)

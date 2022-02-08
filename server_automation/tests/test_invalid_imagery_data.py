@@ -13,7 +13,7 @@ _log = logging.getLogger("server_automation.tests.test_invalid_imagery_data")
 def test_invalid_data():
     stop_watch()
     try:
-        resp = init_ingestion_src(config.TEST_ENV)
+        resp = init_ingestion_src()
         error_msg = None
     except Exception as e:
         resp = None
@@ -30,21 +30,19 @@ def test_invalid_data():
 
     source_directory = resp["ingestion_dir"]
     _log.info("%s %s", product_id, product_version)
-    write_text_to_file('//tmp//shlomo.txt',
-                       {'source_dir': source_directory, 'product_id_version': ValueStorage.discrete_list,
-                        'test_name': test_invalid_data.__name__})
+    if config.WRITE_TEXT_TO_FILE:
+        write_text_to_file('//tmp//shlomo.txt',
+                           {'source_dir': source_directory, 'product_id_version': ValueStorage.discrete_list,
+                            'test_name': test_invalid_data.__name__})
     sleep(5)
-    if (
-            config.TEST_ENV == config.EnvironmentTypes.QA.name
-            or config.TEST_ENV == config.EnvironmentTypes.DEV.name
-    ):
+    if config.SOURCE_DATA_PROVIDER.lower() == 'pv':
         pvc_handler = azure_pvc_api.PVCHandler(
             endpoint_url=config.PVC_HANDLER_ROUTE, watch=False
         )
         pvc_handler.create_mock_file(
             config.MOCK_IMAGERY_RAW_DATA_PATH, config.MOCK_IMAGERY_RAW_DATA_FILE
         )
-    elif config.TEST_ENV == config.EnvironmentTypes.PROD.name:
+    if config.SOURCE_DATA_PROVIDER.lower() == 'nfs':
         create_mock_file(
             config.MOCK_IMAGERY_RAW_DATA_PATH, config.MOCK_IMAGERY_RAW_DATA_FILE
         )
@@ -52,7 +50,7 @@ def test_invalid_data():
 
     try:
         status_code, content, source_data = start_manual_ingestion(
-            source_directory, config.TEST_ENV
+            source_directory
         )
     except Exception as e:
         status_code = "unknown"

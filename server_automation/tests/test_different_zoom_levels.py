@@ -38,7 +38,7 @@ def test_zoom_level(zoom_lvl):
     _log.info("stopping watch")
     stop_watch()
     try:
-        resp = init_ingestion_src(config.TEST_ENV)
+        resp = init_ingestion_src()
         error_msg = None
     except Exception as e:
         resp = None
@@ -65,7 +65,7 @@ def test_zoom_level(zoom_lvl):
     pvc_handler.change_max_zoom_tfw(zoom_lvl)
     try:
         status_code, content, source_data = start_manual_ingestion(
-            source_directory, config.TEST_ENV, False
+            source_directory, False
         )
         _log.info("finished manual ingestion")
     except Exception as e:
@@ -86,7 +86,7 @@ def test_zoom_level(zoom_lvl):
         _log.info(LIST_OBJECT_FROM_S_)
         result = s3_c.list_objects(
             Bucket=config.S3_BUCKET_NAME,
-            Prefix=f"{product_id}/{product_version}/OrthophotoHistory/",
+            Prefix=f"{product_id}/{product_version}/OrthophotoHistory",
             Delimiter="/",
         )
         _log.info(

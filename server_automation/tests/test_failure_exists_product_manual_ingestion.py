@@ -15,7 +15,7 @@ if config.DEBUG_MODE_LOCAL:
 
 def test_exists_product_manual_ingestion():
     try:
-        resp = init_ingestion_src(config.TEST_ENV)
+        resp = init_ingestion_src()
         error_msg = None
     except Exception as e:
         resp = None
@@ -32,16 +32,17 @@ def test_exists_product_manual_ingestion():
     )
     source_directory = resp["ingestion_dir"]
     ValueStorage.folder_to_delete = source_directory.split("/watch/")[-1]
-    write_text_to_file('//tmp//shlomo.txt',
-                       {'source_dir': source_directory, 'product_id_version': ValueStorage.discrete_list,
-                        'test_name': test_exists_product_manual_ingestion.__name__,
-                        'folder_to_delete': ValueStorage.folder_to_delete})
+    if config.WRITE_TEXT_TO_FILE:
+        write_text_to_file('//tmp//shlomo.txt',
+                           {'source_dir': source_directory, 'product_id_version': ValueStorage.discrete_list,
+                            'test_name': test_exists_product_manual_ingestion.__name__,
+                            'folder_to_delete': ValueStorage.folder_to_delete})
     _log.info(f"{product_id} {product_version}")
     sleep(5)
     # ================================================================================================================ #
     try:
         status_code, content, source_data = start_manual_ingestion(
-            source_directory, config.TEST_ENV
+            source_directory
         )
     except Exception as e:
         status_code = "unknown"
@@ -80,7 +81,7 @@ def test_exists_product_manual_ingestion():
 
     try:
         status_code, content, source_data = start_manual_ingestion(
-            source_directory, config.TEST_ENV
+            source_directory
         )
     except Exception as e:
         status_code = "unknown"

@@ -172,6 +172,8 @@ PYCSW_REQUEST_GET_CAPABILITIES = _pycsw_records_params.get(
 """
 
 _mock_data = conf.get("mock_data")
+MOCK_IMAGERY_RAW_DATA_PATH_PVC = _mock_data.get("mock_imagery_data_path_pvc")
+MOCK_IMAGERY_RAW_DATA_FILE_PVC = _mock_data.get("mock_data_file_pvc")
 MOCK_IMAGERY_RAW_DATA_PATH = _mock_data.get("mock_imagery_data_path")
 MOCK_IMAGERY_RAW_DATA_FILE = _mock_data.get("mock_data_file")
 
