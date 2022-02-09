@@ -59,6 +59,11 @@ if [[ ! -z "${PYTEST_RUNNING_MODE}" ]]; then
     pytest --show-capture=no /source_code/server_automation/tests/test_ingestion_discrete.py
     ;;
 
+
+  geopackage_ingest)
+    echo -ne " ***** Will Run only ingestion *****\n"
+    pytest --show-capture=no /source_code/server_automation/tests/test_manual_geopackage_ingestion.py
+    ;;
     #  geopack_ingestion)
     #    echo -ne " ***** Will Run only ingestion *****\n"
     #    pytest --show-capture=no /source_code/server_automation/tests/test_ingestion_discrete.py
