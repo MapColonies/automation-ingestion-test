@@ -45,7 +45,7 @@ def test_manual_ingestion_geopackage():
     if config.SOURCE_DATA_PROVIDER.lower() == 'pv':
         params['originDirectory'] = params['originDirectory'] + config.GEO_PACKAGE_DEST_PVC
     if config.SOURCE_DATA_PROVIDER.lower() == 'nfs':
-        params['originDirectory'] = params['originDirectory'] + config.GEO_PACKAGE_DEST_NFS
+        params['originDirectory'] = config.GEO_PACKAGE_DEST_NFS
 
     resp, body = os_manager.create_layer(params)
 
