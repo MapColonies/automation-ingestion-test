@@ -1046,19 +1046,19 @@ def copy_geopackage_file_for_ingest():
 
     if config.SOURCE_DATA_PROVIDER.lower() == 'nfs':
         try:
-            command = f"cp -r {config.GEO_PACKAGE_SRC}/. {config.GEO_PACKAGE_DEST}"
+            command = f"cp -r {config.GEO_PACKAGE_SRC_NFS}/. {config.GEO_PACKAGE_DEST_NFS}"
             os.system(command)
-            if os.path.exists(config.GEO_PACKAGE_DEST):
-                _log.info(f"Success copy and creation of test data on: {config.GEO_PACKAGE_DEST}")
+            if os.path.exists(config.GEO_PACKAGE_DEST_NFS):
+                _log.info(f"Success copy and creation of test data on: {config.GEO_PACKAGE_DEST_NFS}")
             else:
                 raise IOError("Failed on creating ingestion directory")
             resp_status = 201
-            msg_text = {'source': config.GEO_PACKAGE_SRC}
+            msg_text = {'source': config.GEO_PACKAGE_SRC_NFS}
         except Exception as e:
             resp_status = None
             msg_text = 'error'
             _log.error(
-                f"Failed copy files from {config.GEO_PACKAGE_SRC} into {config.GEO_PACKAGE_DEST} with error: [{str(e)}]")
+                f"Failed copy files from {config.GEO_PACKAGE_SRC_NFS} into {config.GEO_PACKAGE_DEST_NFS} with error: [{str(e)}]")
             raise e
     return resp_status, msg_text
 
