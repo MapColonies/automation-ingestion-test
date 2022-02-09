@@ -3,7 +3,8 @@ import shutil
 import os
 from server_automation.configuration import config
 from server_automation.functions.executors import postgress_adapter, init_ingestion_src, write_text_to_file, \
-    azure_pvc_api, start_manual_ingestion, follow_parallel_running_tasks, stop_watch, cleanup_env
+    azure_pvc_api, start_manual_ingestion, follow_parallel_running_tasks, stop_watch, cleanup_env, \
+    update_shape_zoom_level
 from conftest import ValueStorage
 from time import sleep
 
@@ -30,7 +31,7 @@ if config.DEBUG_MODE_LOCAL:
 
 def test_parallel_ingestion():
     try:
-        resp = init_ingestion_src(config.TEST_ENV)
+        resp = init_ingestion_src()
         error_msg = None
     except Exception as e:
         resp = None
@@ -48,20 +49,26 @@ def test_parallel_ingestion():
     _log.info(f"{product_id} {product_version}")
     ValueStorage.folder_to_delete = source_directory.split("/watch/")[-1]
 
-    write_text_to_file('//tmp//shlomo.txt',
-                       {'source_dir': source_directory, 'product_id_version': ValueStorage.discrete_list,
-                        'test_name': test_parallel_ingestion.__name__,
-                        'folder_to_delete': ValueStorage.folder_to_delete})
+    if config.WRITE_TEXT_TO_FILE:
+        write_text_to_file('//tmp//shlomo.txt',
+                           {'source_dir': source_directory, 'product_id_version': ValueStorage.discrete_list,
+                            'test_name': test_parallel_ingestion.__name__,
+                            'folder_to_delete': ValueStorage.folder_to_delete})
 
     sleep(5)
-    pvc_handler = azure_pvc_api.PVCHandler(
-        endpoint_url=config.PVC_HANDLER_ROUTE, watch=False
-    )
-    pvc_handler.change_max_zoom_tfw(12)
+
+    if config.SOURCE_DATA_PROVIDER.lower() == 'pv':
+        pvc_handler = azure_pvc_api.PVCHandler(
+            endpoint_url=config.PVC_HANDLER_ROUTE, watch=False
+        )
+        pvc_handler.change_max_zoom_tfw(12)
     # ================================================================================================================ #
+    if config.SOURCE_DATA_PROVIDER.lower() == 'nfs':
+        resp_from_update = update_shape_zoom_level(source_directory, str(config.MAX_ZOOM_TO_CHANGE))
+        _log.info(f'Zoom update response: {str(resp_from_update)}')
     try:
         status_code, content, source_data = start_manual_ingestion(
-            source_directory, config.TEST_ENV
+            source_directory
         )
     except Exception as e:
         status_code = "unknown"
@@ -113,39 +120,7 @@ def teardown_module(module):  # pylint: disable=unused-argument
     This method been executed after test running - env cleaning
     """
     stop_watch()
-    pvc_handler = azure_pvc_api.PVCHandler(
-        endpoint_url=config.PVC_HANDLER_ROUTE, watch=False
-    )
-    if config.VALIDATION_SWITCH:
-        if (
-                config.TEST_ENV == config.EnvironmentTypes.QA.name
-                or config.TEST_ENV == config.EnvironmentTypes.DEV.name
-        ):
-            # ToDo : Handle PVC - test it
-            try:
-                resp = pvc_handler.delete_ingestion_directory(ValueStorage.folder_to_delete)
-            except Exception as e:
-                resp = None
-                error_msg = str(e)
-            assert (
-                resp
-            ), f"Test: [{test_parallel_ingestion.__name__}] Failed: on following ingestion process (Folder delete) :  [{error_msg}]"
-            _log.info(f"Teardown - Finish PVC folder deletion")
-
-        elif config.TEST_ENV == config.EnvironmentTypes.PROD.name:
-            if os.path.exists(config.NFS_ROOT_DIR_DEST):
-                shutil.rmtree(config.NFS_ROOT_DIR_DEST)
-                _log.info(f"Teardown - Finish NFS folder deletion")
-
-            else:
-                raise NotADirectoryError(
-                    f"Failed to delete directory because it doesnt exists: [{config.NFS_ROOT_DIR_DEST}]"
-                )
-        else:
-            raise ValueError(f"Illegal environment value type: {config.TEST_ENV}")
-
-        """ Clean up """
-    if config.CLEAN_UP and config.DEBUG_MODE_LOCAL:
+    if config.CLEAN_UP:
         for p in ValueStorage.discrete_list:
             cleanup_env(p["product_id"], p["product_version"], initial_mapproxy_config)
 

@@ -40,7 +40,7 @@ def test_invalid_data():
             endpoint_url=config.PVC_HANDLER_ROUTE, watch=False
         )
         pvc_handler.create_mock_file(
-            config.MOCK_IMAGERY_RAW_DATA_PATH, config.MOCK_IMAGERY_RAW_DATA_FILE
+            config.MOCK_IMAGERY_RAW_DATA_PATH_PVC, config.MOCK_IMAGERY_RAW_DATA_FILE_PVC
         )
     if config.SOURCE_DATA_PROVIDER.lower() == 'nfs':
         create_mock_file(

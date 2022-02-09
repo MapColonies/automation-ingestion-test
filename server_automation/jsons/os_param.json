@@ -147,7 +147,7 @@
     },
     "productBoundingBox": "1,1,2,3"
   },
-  "originDirectory": "watch/watch",
+  "originDirectory": "watch",
   "fileNames": [
     "area1.gpkg"
   ]

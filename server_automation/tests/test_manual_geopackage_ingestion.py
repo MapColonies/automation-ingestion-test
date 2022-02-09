@@ -4,7 +4,7 @@ import os.path
 from time import sleep
 from conftest import ValueStorage
 from server_automation.functions.executors import stop_watch, copy_geopackage_file_for_ingest, follow_running_task, \
-    follow_running_job_manager, validate_geopack_pycsw, validate_new_discrete
+    follow_running_job_manager, validate_geopack_pycsw, validate_new_discrete, validate_mapproxy_layer
 from server_automation.postgress import postgress_adapter
 from mc_automation_tools.ingestion_api import overseer_api
 from server_automation.configuration import config
@@ -21,7 +21,7 @@ def test_manual_ingestion_geopackage():
     stop_watch()
 
     # ToDo: Copy GeoPack file to Folder
-    status_code, resp = copy_geopackage_file_for_ingest(config.TEST_ENV)
+    status_code, resp = copy_geopackage_file_for_ingest()
     src_folder_to_copy = resp['source']
     assert (
             status_code == config.ResponseCode.ChangeOk.value
@@ -38,18 +38,14 @@ def test_manual_ingestion_geopackage():
     except Exception as e:
         raise EnvironmentError("Failed to load JSON for configuration") from e
     letters = string.ascii_lowercase
-
     my_json = ShapeToJSON().create_metadata_from_toc(params['metadata'])
     product_name = (''.join(random.choice(letters) for i in range(10)))
     params['metadata']['productId'] = product_name
     my_json['productId']['value'] = product_name
-    if (
-            config.TEST_ENV == config.EnvironmentTypes.QA.name
-            or config.TEST_ENV == config.EnvironmentTypes.DEV.name
-    ):
-        params['originDirectory'] = config.GEO_PACKAGE_DEST_PVC
-    if config.TEST_ENV == config.EnvironmentTypes.PROD.name:
-        params['originDirectory'] = config.GEO_PACKAGE_DEST_NFS
+    if config.SOURCE_DATA_PROVIDER.lower() == 'pv':
+        params['originDirectory'] = params['originDirectory'] + config.GEO_PACKAGE_DEST_PVC
+    if config.SOURCE_DATA_PROVIDER.lower() == 'nfs':
+        params['originDirectory'] = params['originDirectory'] + config.GEO_PACKAGE_DEST_NFS
 
     resp, body = os_manager.create_layer(params)
 
@@ -59,7 +55,6 @@ def test_manual_ingestion_geopackage():
             resp == config.ResponseCode.Ok.value
     ), f"Test: [{test_manual_ingestion_geopackage.__name__}] Failed: on creating layer , status code : {resp}, body:{body}"
 
-    # ToDo: Record validation
     try:
         if config.FOLLOW_JOB_BY_MANAGER:  # following based on job manager api
             _log.info("Start following job-tasks based on job manager api")
@@ -99,16 +94,41 @@ def test_manual_ingestion_geopackage():
     assert (
         state
     ), f"Test: [{test_manual_ingestion_geopackage.__name__}] Failed: on validation, error msg : {reason_e}, exception:{error_msg}"
-
+    sleep(config.DELAY_MAPPROXY_PYCSW_VALIDATION)
     try:
-        resp = validate_new_discrete(pycsw_record, body_json['metadata']['productId'],
-                                     body_json['metadata']['productVersion'])
-        state = resp["validation"]
-        error_msg = resp["reason"]
+        params = {'mapproxy_endpoint_url': config.MAPPROXY_URL,
+                  'tiles_storage_provide': config.TILES_PROVIDER,
+                  'grid_origin': config.MAPPROXY_GRID_ORIGIN,
+                  'nfs_tiles_url': config.NFS_TILES_DIR}
+
+        if config.TILES_PROVIDER.lower() == "s3":
+            params['endpoint_url'] = config.S3_ENDPOINT_URL
+            params['access_key'] = config.S3_ACCESS_KEY
+            params['secret_key'] = config.S3_SECRET_KEY
+            params['bucket_name'] = config.S3_BUCKET_NAME
+
+        result = validate_mapproxy_layer(pycsw_record, body_json['metadata']['productId'],
+                                         body_json['metadata']['productVersion'], params)
+        mapproxy_validation_state = result['validation']
+        msg = result['reason']
+
     except Exception as e:
-        state = False
-        error_msg = str(e)
-        _log.error(f'error : {error_msg}')
+        mapproxy_validation_state = False
+        msg = str(e)
+
+    assert mapproxy_validation_state, f'Test: [{test_manual_ingestion_geopackage.__name__}] Failed: Validation of mapproxy urls\n' \
+                                      f'related errors:\n' \
+                                      f'{msg}'
+
+    # try:
+    #     resp = validate_new_discrete(pycsw_record, body_json['metadata']['productId'],
+    #                                  body_json['metadata']['productVersion'])
+    #     state = resp["validation"]
+    #     error_msg = resp["reason"]
+    # except Exception as e:
+    #     state = False
+    #     error_msg = str(e)
+    #     _log.error(f'error : {error_msg}')
     # ToDo: New discrete mapproxy
     """
     After getting ok ,

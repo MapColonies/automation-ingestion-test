@@ -34,13 +34,14 @@ def test_manual_discrete_ingest():
     _log.info(f"Product_id : {product_id} , Product_version : {product_version}")
     sleep(5)
 
-    _log.info("Starting - Write Tests to files.................")
+
     if config.WRITE_TEXT_TO_FILE:
+        _log.info("Starting - Write Tests to files.................")
         write_text_to_file('//tmp//test_runs.txt',
                            {'source_dir': source_directory, 'product_id_version': ValueStorage.discrete_list,
                             'test_name': test_manual_discrete_ingest.__name__,
                             'folder_to_delete': ValueStorage.folder_to_delete})
-    _log.info("Finished - Write Tests to files.................")
+        _log.info("Finished - Write Tests to files.................")
 
     _log.info(f'Starting - manual ingestion...............')
     try:
@@ -328,41 +329,7 @@ def teardown_module(module):  # pylint: disable=unused-argument
     This method been executed after test running - env cleaning
     """
     stop_watch()
-    pvc_handler = azure_pvc_api.PVCHandler(
-        endpoint_url=config.PVC_HANDLER_ROUTE, watch=False
-    )
-    if config.CLEAN_UP and config.VALIDATION_SWITCH:
-        if (
-                config.TEST_ENV == config.EnvironmentTypes.QA.name
-                or config.TEST_ENV == config.EnvironmentTypes.DEV.name
-        ):
-            # ToDo : Handle PVC - test it
-            try:
-                error_msg = None
-                resp = pvc_handler.delete_ingestion_directory(
-                    api=config.PVC_DELETE_DIR
-
-                )
-            except Exception as e:
-                resp = None
-                error_msg = str(e)
-            assert (
-                resp
-            ), f"Test: [{test_watch_discrete_ingest.__name__}] Failed: on following ingestion process (Folder delete) :  [{error_msg}]"
-            _log.info(f"Teardown - Finish PVC folder deletion")
-
-        # elif config.TEST_ENV == config.EnvironmentTypes.PROD.name:
-        #     if os.path.exists(config.NFS_ROOT_DIR_DEST):
-        #         shutil.rmtree(config.NFS_ROOT_DIR_DEST)
-        #         _log.info(f"Teardown - Finish NFS folder deletion")
-
-        # else:
-        #     raise NotADirectoryError(
-        #         f"Failed to delete directory because it doesnt exists: [{config.NFS_ROOT_DIR_DEST}]"
-        #     )
-        else:
-            raise ValueError(f"Illegal environment value type: {config.TEST_ENV}")
-    if config.CLEAN_UP and config.DEBUG_MODE_LOCAL:
+    if config.CLEAN_UP:
         for p in ValueStorage.discrete_list:
             cleanup_env(p["product_id"], p["product_version"], initial_mapproxy_config)
 

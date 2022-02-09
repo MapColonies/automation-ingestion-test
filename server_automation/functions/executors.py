@@ -1021,14 +1021,10 @@ def validate_pycsw(gqk=config.GQK_URL, product_id=None, source_data=None):
     return res_dict, pycsw_record
 
 
-def copy_geopackage_file_for_ingest(env):
+def copy_geopackage_file_for_ingest():
     msg_text = None
     resp_status = None
-    if (
-            env == config.EnvironmentTypes.QA.name
-            or env == config.EnvironmentTypes.DEV.name
-    ):
-
+    if config.SOURCE_DATA_PROVIDER.lower() == 'pv':
         pvc_handler = azure_pvc_api.PVCHandler(
             endpoint_url=config.PVC_HANDLER_ROUTE, watch=False
         )
@@ -1048,7 +1044,7 @@ def copy_geopackage_file_for_ingest(env):
             resp = None
             error_msg = str(e)
 
-    elif env == config.EnvironmentTypes.PROD.name:
+    if config.SOURCE_DATA_PROVIDER.lower() == 'nfs':
         try:
             command = f"cp -r {config.GEO_PACKAGE_SRC}/. {config.GEO_PACKAGE_DEST}"
             os.system(command)
