@@ -89,12 +89,15 @@ def test_zoom_level(zoom_lvl):
             config.S3_END_POINT, config.S3_ACCESS_KEY, config.S3_SECRET_KEY
         )
         s3_c = s3_conn.get_client()
+        # product_version_int = (product_version.split('.')[0])
         _log.info(LIST_OBJECT_FROM_S_)
-        result = s3_c.list_objects(
-            Bucket=config.S3_BUCKET_NAME,
-            Prefix=f"{product_id}/{product_version}/OrthophotoHistory",
-            Delimiter="/",
-        )
+        result = s3_conn.list_folder_content(config.S3_BUCKET_NAME, product_id)
+
+        # result = s3_c.list_objects(
+        #     Bucket=config.S3_BUCKET_NAME,
+        #     Prefix=f"{product_id}/{product_version}/OrthophotoHistory",
+        #     Delimiter="/",
+        # )
         _log.info(
             f"Got s3 files from product: {product_id} and id :{product_id} , result : {result}"
         )
@@ -170,8 +173,8 @@ def test_zoom_level(zoom_lvl):
 
 
 # if config.RUN_IT:
-test_zoom_level(config.FIRST_ZOOM_LEVEL)
+# test_zoom_level(config.FIRST_ZOOM_LEVEL)
 test_zoom_level(config.SECOND_ZOOM_LEVEL)
-test_zoom_level(config.THIRD_ZOOM_LEVEL)
+# test_zoom_level(config.THIRD_ZOOM_LEVEL)
 # if config.TEST_ENV == config.EnvironmentTypes.QA.name or config.TEST_ENV == config.EnvironmentTypes.DEV.name:
 # elif config.TEST_ENV == config.EnvironmentTypes.PROD.name:

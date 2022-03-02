@@ -200,9 +200,11 @@ DIFFERENT_ZOOM_LEVEL_DELAY_10 = _zoom_level_limit_config.get("diff_zoom_level_10
 DIFFERENT_ZOOM_LEVEL_DELAY_16 = _zoom_level_limit_config.get("diff_zoom_level_16", 360)
 
 _delay_config = conf.get("delay_config")
-DELAY_INGESTION_TEST = _delay_config.get("system_delay_ingestion_test", 120)
+DELAY_INGESTION_TEST = _delay_config.get("system_delay_ingestion_test", 220)
 DELAY_INVALID_IMAGE_TEST = _delay_config.get("system_delay_invalid_image_test", 120)
 DELAY_MAPPROXY_PYCSW_VALIDATION = _delay_config.get("system_delay_inestion_pycsw_validation", 120)
+DELAY_PRIORITY_FIRST_JOB = _delay_config.get('system_delay_priority_first_job', 120)
+DELAY_PRIORITY_SECOND_JOB = _delay_config.get('system_delay_priority_second_job', 120)
 
 PYCSW_GET_RECORD_PARAMS = {
     "service": PYCSW_SERVICE,

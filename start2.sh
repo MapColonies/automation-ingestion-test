@@ -1,6 +1,6 @@
 #!/bin/bash
-source /source_code/venv/bin/activate
-
+#source /source_code/venv/bin/activate
+echo ${PYTEST_RUNNING_MODE}
 # shellcheck disable=SC2236
 if [[ ! -z "${PYTEST_RUNNING_MODE}" ]]; then
   echo -ne "Test chosen running mode is: [${PYTEST_RUNNING_MODE}]\n"
@@ -46,7 +46,7 @@ if [[ ! -z "${PYTEST_RUNNING_MODE}" ]]; then
 
   fail_illegal_zoom)
     echo -ne " ***** Will Run functional tests *****\n"
-    pytest --show-capture=no /source_code/server_automation/tests/test_failure_illegal_zoom_level_limit.py --alluredir=/opt/my_results
+    pytest --show-capture=no /source_code/server_automation/tests/test_failure_illegal_zoom_level_limit.py
     ;;
 
   fail_invalid_imagery_data)
@@ -56,7 +56,7 @@ if [[ ! -z "${PYTEST_RUNNING_MODE}" ]]; then
 
   ingest_only)
     echo -ne " ***** Will Run only ingestion *****\n"
-    pytest --show-capture=no /source_code/server_automation/tests/test_ingestion_discrete.py --alluredir=/opt/my_results
+    pytest --show-capture=no /source_code/server_automation/tests/test_ingestion_discrete.py
     ;;
 
 
