@@ -194,6 +194,42 @@ def delete_destination_folder(dst):
         raise RuntimeError(f"Failed to find {folder_to_delete} folder")
 
 
+def init_ingestion_src_for_priority():
+    """
+    This module will init new ingestion source folder.
+    The prerequisites must have source folder with suitable data and destination folder for new data
+    The method will duplicate and rename metadata shape file to unique running name
+    :return:dict with ingestion_dir and resource_name
+    """
+    if config.SOURCE_DATA_PROVIDER.lower() == 'pv':
+        res = init_ingestion_src_pvc(False)
+        return res
+    if config.SOURCE_DATA_PROVIDER.lower() == 'nfs':
+        src = os.path.join(config.NFS_ROOT_DIR, config.NFS_SOURCE_DIR)
+        dst = os.path.join(config.NFS_ROOT_DIR_DEST, config.NFS_DEST_DIR)
+        try:
+            res = init_ingest_nfs(src, dst, str(config.zoom_level_dict[config.MAX_ZOOM_TO_CHANGE]))
+            # res = init_ingestion_src_fs(src, dst, str(config.zoom_level_dict[config.MAX_ZOOM_TO_CHANGE]), watch=False)
+            return res
+        except FileNotFoundError as e:
+            raise e
+        except Exception as e1:
+            raise RuntimeError(
+                f"Failed generating testing directory with error: {str(e1)}"
+            )
+    else:
+        raise ValueError(f"Illegal environment value type: {config.SOURCE_DATA_PROVIDER.lower()}")
+
+
+def delete_destination_folder(dst):
+    try:
+        folder_to_delete = os.path.dirname(dst)
+        if os.path.exists(folder_to_delete):
+            _log.info(f"Folder To Delete: {folder_to_delete}")
+    except Exception as er:
+        raise RuntimeError(f"Failed to find {folder_to_delete} folder")
+
+
 def copy_file_from_src_to_dst(src, dst):
     try:
         create_folder_cmd = f"cp -r {src}/. {dst}"
@@ -312,6 +348,7 @@ def init_ingestion_src_pvc(
         create_api=config.PVC_CLONE_SOURCE,
         change_api=config.PVC_CHANGE_METADATA,
         update_tfw_url=config.PVC_CHANGE_MAX_ZOOM,
+
 ):
     """
     This module will init new ingestion source folder inside pvc - only on azure.
@@ -1085,10 +1122,9 @@ def validate_mapproxy_layer(pycsw_record, product_id, product_version, params=No
                                                        nfs_tiles_url=params['nfs_tiles_url'])
 
     res = mapproxy_conn.validate_layer_from_pycsw(pycsw_record, product_id, product_version)
-    return res
-
     _log.info(
         f'\n----------------------- Finish validation of layer mapproxy vs. pycsw record ---------------------------')
+    return res
 
 
 def validate_new_discrete(pycsw_records, product_id, product_version):
@@ -1241,3 +1277,80 @@ def write_text_to_file(path_to_text, text_to_write):
             f.write(f"{text_to_write}\n")
     except IOError as e:
         raise RuntimeError(f"Failed to write to {path_to_text} , with msg : {str(e)}")
+
+
+"""====================================       NEW          ===================================="""
+"""====================================       NEW          ===================================="""
+"""====================================       NEW          ===================================="""
+"""====================================       NEW          ===================================="""
+"""====================================       NEW          ===================================="""
+"""====================================       NEW          ===================================="""
+"""====================================       NEW          ===================================="""
+"""====================================       NEW          ===================================="""
+"""====================================       NEW          ===================================="""
+
+
+# ToDo : Make MicroServices of all our code
+
+def create_ingestion_folder_pvc(watch_state):
+    pvc_handler = azure_pvc_api.PVCHandler(
+        endpoint_url=config.PVC_HANDLER_ROUTE, watch=watch_state
+    )
+
+    try:
+        resp = pvc_handler.create_new_ingestion_dir()
+        if not resp.status_code == config.ResponseCode.ChangeOk.value:
+            raise RuntimeError(
+                f"Failed access pvc on source data cloning with error: [{resp.text}] and status: [{resp.status_code}]"
+            )
+        msg = json.loads(resp.text)
+        new_dir = msg["newDesination"]
+        _log.info(
+            f'[{resp.status_code}]: New test running directory was created from source data: {msg["source"]} into {msg["newDesination"]}'
+        )
+    except Exception as e:
+        raise RuntimeError(
+            f"Failed access pvc on source data cloning with error: [{str(e)}]"
+        )
+    return new_dir , resp
+
+
+def update_ingestion_folder_pvc(watch_state):
+    pvc_handler = azure_pvc_api.PVCHandler(
+        endpoint_url=config.PVC_HANDLER_ROUTE, watch=watch_state
+    )
+    try:
+        resp = pvc_handler.make_unique_shapedata()
+        if not resp.status_code == config.ResponseCode.ChangeOk.value:
+            raise RuntimeError(
+                f"Failed access pvc on source data updating metadata.shp with error: [{resp.text}] and status: [{resp.status_code}]"
+            )
+        changed_resource_name = json.loads(resp.text)["source"]
+        _log.info(
+            f"[{resp.status_code}]: metadata.shp was changed resource name: {changed_resource_name}"
+        )
+
+    except Exception as e:
+        raise RuntimeError(f"Failed access pvc on changing shape metadata: [{str(e)}]")
+    return changed_resource_name , resp
+
+
+def change_zoom_level_pvc():
+    # ToDo : handle the config param
+    if config.PVC_UPDATE_ZOOM:
+        pvc_handler = azure_pvc_api.PVCHandler(
+            endpoint_url=config.PVC_HANDLER_ROUTE
+        )
+        try:
+            # ToDo: Fix Zoom
+            resp = pvc_handler.change_max_zoom_tfw()
+            if resp.status_code == config.ResponseCode.Ok.value:
+                _log.info(
+                    f'Max resolution changed successfully: [{json.loads(resp.text)["json_data"][0]["reason"]}]'
+                )
+            else:
+                raise RuntimeError(
+                    f'Failed on updating zoom level with error: [{json.loads(resp.text)["message"]} | {json.loads(resp.text)["json_data"]}]'
+                )
+        except Exception as e:
+            raise IOError(f"Failed updating zoom max level with error: [{str(e)}]")

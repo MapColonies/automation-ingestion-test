@@ -1,5 +1,6 @@
 """This module provides multiple test of ingestion services"""
 import shutil
+import allure
 from time import sleep
 from conftest import ValueStorage
 import logging
@@ -22,7 +23,19 @@ def test_manual_discrete_ingest():
     This test will test full e2e discrete ingestion
     """
 
-    stop_watch()
+    watch_resp = stop_watch()
+    if watch_resp:
+        _log.info(f"watch state = {watch_resp['state']}, watch response is : {watch_resp['reason']}")
+
+    """
+    New code
+    """
+
+
+
+    """
+    New code
+    """
 
     resp_from_init_folder = init_ingestion_folder()
 
@@ -320,7 +333,7 @@ def init_ingestion_folder():
         resp
     ), f"Test: [{test_manual_discrete_ingest.__name__}] Failed: on creating and updating layerSource folder [{error_msg}]"
     _log.info(f"Response [init_ingestion_src] : {resp}")
-    _log.info(pad_with_minus('Finished - init_ingestion_folder'))
+    _log.info(pad_with_minus('\nFinished - init_ingestion_folder'))
     return resp
 
 
@@ -338,6 +351,6 @@ if config.DEBUG_MODE_LOCAL:
     config.PVC_UPDATE_ZOOM = True
     config.MAX_ZOOM_TO_CHANGE = 4
 
-# if config.RUN_IT:
-#     test_manual_discrete_ingest()
-#     test_watch_discrete_ingest()
+if config.RUN_IT:
+    test_manual_discrete_ingest()
+    test_watch_discrete_ingest()

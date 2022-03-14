@@ -53,16 +53,32 @@
 # # print(type(dod))
 from textwrap import dedent
 
-print(dedent("""
-The Gothons of Planet Percal #25 have invaded your ship and
-6 destroyed your entire crew. You are the last surviving
-7 member and your last mission is to get the neutron destruct
-8 bomb from the Weapons Armory, put it in the bridge, and
-9 blow the ship up after getting into an escape pod.
-10
-11 You're running down the central corridor to the Weapons
-12 Armory when a Gothon jumps out, red scaly skin, dark grimy
-13 teeth, and evil clown costume flowing around his hate
-14 filled body. He's blocking the door to the Armory and
-15 about to pull a weapon to blast you.
-"""))
+# print(dedent("""
+# The Gothons of Planet Percal #25 have invaded your ship and
+# 6 destroyed your entire crew. You are the last surviving
+# 7 member and your last mission is to get the neutron destruct
+# 8 bomb from the Weapons Armory, put it in the bridge, and
+# 9 blow the ship up after getting into an escape pod.
+# 10
+# 11 You're running down the central corridor to the Weapons
+# 12 Armory when a Gothon jumps out, red scaly skin, dark grimy
+# 13 teeth, and evil clown costume flowing around his hate
+# 14 filled body. He's blocking the door to the Armory and
+# 15 about to pull a weapon to blast you.
+# """))
+
+import asyncio
+import time
+
+import pytest
+
+@pytest.fixture
+def input_value():
+   input = 39
+   return input
+
+def test_divisible_by_3(input_value):
+   assert input_value % 3 == 0
+
+def test_divisible_by_6(input_value):
+   assert input_value % 6 == 3

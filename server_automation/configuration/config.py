@@ -31,6 +31,7 @@ SYSTEM_DELAY = environment.get("system_delay", 60)
 PROGRESS_TASK_DELAY = environment.get("progress_task_delay", 50)
 FOLLOW_TIMEOUT = 60 * environment.get("follow_timeout", 5)
 DELETE_INGESTION_FOLDER = environment.get('delete_ingestion_folder', False)
+ALLURE_REPORTER = environment.get('reporter', False)
 SOURCE_DATA_PROVIDER = environment.get('source_data_provider', "NFS")
 TILES_PROVIDER = environment.get('tiles_provider', "S3")
 STOP_WATCH = environment.get('stop_watch', False)
@@ -83,6 +84,15 @@ PG_JOB_TASK_DB_NAME = _pg_credentials.get("pg_job_task_table", None)
 PG_RECORD_PYCSW_DB = _pg_credentials.get("pg_pycsw_record_table", None)
 PG_MAPPROXY_CONFIG = _pg_credentials.get("pg_mapproxy_table", None)
 PG_AGENT = _pg_credentials.get("pg_agent_table", None)
+###############################################  POSTGRESS SCHEMAS  ##
+_pg_schemas = conf.get("pg_schemas")
+SCHEMA_DISCRETE_AGENT_DB = _pg_schemas.get("discrete_agent_db")
+SCHEMA_HEARTBEAT_MANAGER = _pg_schemas.get("heartbeat_manager")
+SCHEMA_JOB_MANAGER = _pg_schemas.get("job_manager")
+SCHEMA_LAYER_SPEC = _pg_schemas.get("layer_spec")
+SCHEMA_MAPPROXY_CONFIG = _pg_schemas.get("mapproxy_config")
+SCHEMA_RASTER_CATALOG_MANAGER = _pg_schemas.get("raster_catalog_manager")
+SCHEMA_PUBLIC = _pg_schemas.get("public")
 
 """
 #  NFS Directories  #

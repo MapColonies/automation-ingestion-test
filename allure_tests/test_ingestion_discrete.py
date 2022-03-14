@@ -23,19 +23,10 @@ def test_manual_discrete_ingest():
     This test will test full e2e discrete ingestion
     """
 
-    watch_resp = stop_watch()
-    if watch_resp:
-        _log.info(f"watch state = {watch_resp['state']}, watch response is : {watch_resp['reason']}")
-
-    """
-    New code
-    """
-
-    """
-    New code
-    """
-
-    resp_from_init_folder = init_ingestion_folder()
+    stop_watch()
+    if config.ALLURE_REPORTER:
+        with allure.step("Init Ingestion Folder"):
+            resp_from_init_folder = init_ingestion_folder()
 
     product_id, product_version = resp_from_init_folder["resource_name"].split("-")
     ValueStorage.discrete_list.append(
@@ -54,92 +45,98 @@ def test_manual_discrete_ingest():
         _log.info("Finished - Write Tests to files.................")
 
     _log.info(f'Starting - manual ingestion...............')
-    try:
-        status_code, content, source_data = start_manual_ingestion(source_directory)
-    except Exception as e:
-        status_code = "unknown"
-        content = str(e)
-    assert status_code == config.ResponseCode.Ok.value, (
-        f"Test: [{test_manual_discrete_ingest.__name__}] Failed: trigger new ingest with status code: [{status_code}]\n"
-        f"details: [{content}]"
-    )
-    _log.info(f"manual ingestion - source_data: {source_data}")
-    _log.info(f"manual ingestion - content: {content}")
-    _log.info(f"manual ingestion - status code: {status_code}")
+    if config.ALLURE_REPORTER:
+        with allure.step("Start Manual Ingestion"):
+            try:
+                status_code, content, source_data = start_manual_ingestion(source_directory)
+            except Exception as e:
+                status_code = "unknown"
+                content = str(e)
+            assert status_code == config.ResponseCode.Ok.value, (
+                f"Test: [{test_manual_discrete_ingest.__name__}] Failed: trigger new ingest with status code: [{status_code}]\n"
+                f"details: [{content}]"
+            )
+            _log.info(f"manual ingestion - source_data: {source_data}")
+            _log.info(f"manual ingestion - content: {content}")
+            _log.info(f"manual ingestion - status code: {status_code}")
 
     # validating following and completion of ingestion job
-    try:
-        if config.FOLLOW_JOB_BY_MANAGER:  # following based on job manager api
-            _log.info("Start following job-tasks based on job manager api")
-            ingestion_follow_state = follow_running_job_manager(
-                product_id, product_version
-            )
-        else:  # following based on bff service
-            ingestion_follow_state = follow_running_task(product_id, product_version)
-        resp = ingestion_follow_state["status"] == config.JobStatus.Completed.name
-        error_msg = ingestion_follow_state["message"]
+    if config.ALLURE_REPORTER:
+        with allure.step("Follow Manual - Running Job"):
+            try:
+                if config.FOLLOW_JOB_BY_MANAGER:  # following based on job manager api
+                    _log.info("Start following job-tasks based on job manager api")
+                    ingestion_follow_state = follow_running_job_manager(
+                        product_id, product_version
+                    )
+                else:  # following based on bff service
+                    ingestion_follow_state = follow_running_task(product_id, product_version)
+                resp = ingestion_follow_state["status"] == config.JobStatus.Completed.name
+                error_msg = ingestion_follow_state["message"]
 
-    except Exception as e:
-        resp = None
-        error_msg = str(e)
-    assert (
-        resp
-    ), f"Test: [{test_manual_discrete_ingest.__name__}] Failed: on following ingestion process [{error_msg}]"
-    _log.info(f"manual ingestion following task response: {resp}")
+            except Exception as e:
+                resp = None
+                error_msg = str(e)
+            assert (
+                resp
+            ), f"Test: [{test_manual_discrete_ingest.__name__}] Failed: on following ingestion process [{error_msg}]"
+            _log.info(f"manual ingestion following task response: {resp}")
 
     # this timeout is for mapproxy updating time of new layer on configuration
     sleep(config.DELAY_INGESTION_TEST)
     pycsw_record = None
-
     # validate new discrete on pycsw records
-    try:
-        resp, pycsw_record, links = validate_pycsw2(
-            source_data, product_id, product_version
-        )
-        # todo this is legacy records validator based graphql -> for future needs maybe
-        # resp, pycsw_record = executors.validate_pycsw(config.GQK_URL, product_id, source_data)
-        state = resp["validation"]
-        error_msg = resp["reason"]
-    except Exception as e:
-        state = False
-        error_msg = str(e)
+    if config.ALLURE_REPORTER:
+        with allure.step("Validate PYCSW - Manual Ingestion"):
+            try:
+                resp, pycsw_record, links = validate_pycsw2(
+                    source_data, product_id, product_version
+                )
+                # todo this is legacy records validator based graphql -> for future needs maybe
+                # resp, pycsw_record = executors.validate_pycsw(config.GQK_URL, product_id, source_data)
+                state = resp["validation"]
+                error_msg = resp["reason"]
+            except Exception as e:
+                state = False
+                error_msg = str(e)
 
-    if config.VALIDATION_SWITCH:
-        assert state, (
-            f"Test: [{test_manual_discrete_ingest.__name__}] Failed: validation of pycsw record\n"
-            f"related errors:\n"
-            f"{error_msg}"
-        )
-        _log.info(f"manual ingestion validation - response: {resp}")
-        _log.info(f"manual ingestion validation - pycsw_record: {pycsw_record}")
-        _log.info(f"manual ingestion validation - links: {links}")
+            if config.VALIDATION_SWITCH:
+                assert state, (
+                    f"Test: [{test_manual_discrete_ingest.__name__}] Failed: validation of pycsw record\n"
+                    f"related errors:\n"
+                    f"{error_msg}"
+                )
+                _log.info(f"manual ingestion validation - response: {resp}")
+                _log.info(f"manual ingestion validation - pycsw_record: {pycsw_record}")
+                _log.info(f"manual ingestion validation - links: {links}")
 
     sleep(config.DELAY_MAPPROXY_PYCSW_VALIDATION)
     # validating new discrete on mapproxy
+    if config.ALLURE_REPORTER:
+        with allure.step("Validate Mapproxy - Manual Ingestion"):
+            try:
+                params = {'mapproxy_endpoint_url': config.MAPPROXY_URL,
+                          'tiles_storage_provide': config.TILES_PROVIDER,
+                          'grid_origin': config.MAPPROXY_GRID_ORIGIN,
+                          'nfs_tiles_url': config.NFS_TILES_DIR}
 
-    try:
-        params = {'mapproxy_endpoint_url': config.MAPPROXY_URL,
-                  'tiles_storage_provide': config.TILES_PROVIDER,
-                  'grid_origin': config.MAPPROXY_GRID_ORIGIN,
-                  'nfs_tiles_url': config.NFS_TILES_DIR}
+                if config.TILES_PROVIDER.lower() == "s3":
+                    params['endpoint_url'] = config.S3_ENDPOINT_URL
+                    params['access_key'] = config.S3_ACCESS_KEY
+                    params['secret_key'] = config.S3_SECRET_KEY
+                    params['bucket_name'] = config.S3_BUCKET_NAME
 
-        if config.TILES_PROVIDER.lower() == "s3":
-            params['endpoint_url'] = config.S3_ENDPOINT_URL
-            params['access_key'] = config.S3_ACCESS_KEY
-            params['secret_key'] = config.S3_SECRET_KEY
-            params['bucket_name'] = config.S3_BUCKET_NAME
+                result = validate_mapproxy_layer(pycsw_record, product_id, product_version, params)
+                mapproxy_validation_state = result['validation']
+                msg = result['reason']
 
-        result = validate_mapproxy_layer(pycsw_record, product_id, product_version, params)
-        mapproxy_validation_state = result['validation']
-        msg = result['reason']
+            except Exception as e:
+                mapproxy_validation_state = False
+                msg = str(e)
 
-    except Exception as e:
-        mapproxy_validation_state = False
-        msg = str(e)
-
-    assert mapproxy_validation_state, f'Test: [{test_manual_discrete_ingest.__name__}] Failed: Validation of mapproxy urls\n' \
-                                      f'related errors:\n' \
-                                      f'{msg}'
+            assert mapproxy_validation_state, f'Test: [{test_manual_discrete_ingest.__name__}] Failed: Validation of mapproxy urls\n' \
+                                              f'related errors:\n' \
+                                              f'{msg}'
     if config.DEBUG_MODE_LOCAL:
         cleanup_env(product_id, product_version, initial_mapproxy_config)
 
@@ -322,20 +319,6 @@ def test_watch_discrete_ingest():
 def init_ingestion_folder():
     _log.info('\n' + pad_with_stars('Started - init_ingestion_folder'))
     try:
-        destination_folder, resp_code = create_ingestion_folder_pvc(False)
-    except RuntimeError as err:
-        create_folder_err = str(err)
-
-    assert resp_code.status_code == config.ResponseCode.ChangeOk.value, f"Test: [{test_manual_discrete_ingest.__name__}] Failed: create folder with status code: [{resp_code.status_code}],details : [{create_folder_err}]"
-
-    try:
-        updated_source_name, resp_code = update_ingestion_folder_pvc(False)
-    except Exception as err:
-        update_source_name_err = str(err)
-
-    assert resp_code.status_code == config.ResponseCode.ChangeOk.value, f"Test: [{test_manual_discrete_ingest.__name__}] Failed: create folder with status code: [{resp_code.status_code}],details : [{update_source_name_err}]"
-
-    try:
         resp = init_ingestion_src()
         error_msg = None
     except Exception as e:
@@ -363,6 +346,6 @@ if config.DEBUG_MODE_LOCAL:
     config.PVC_UPDATE_ZOOM = True
     config.MAX_ZOOM_TO_CHANGE = 4
 
-if config.RUN_IT:
-    test_manual_discrete_ingest()
-    test_watch_discrete_ingest()
+# if config.RUN_IT:
+# test_manual_discrete_ingest()
+# test_watch_discrete_ingest()

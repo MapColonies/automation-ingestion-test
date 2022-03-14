@@ -7,7 +7,8 @@ _log = logging.getLogger("server_automation.postgress.postgress_adapter")
 
 def get_current_job_id(product_id, product_version, db_name=config.PG_JOB_TASK_DB_NAME):
     """This method query and return uuid of current ingestion job according keys: productId and productVersion"""
-    client = postgres.PGClass(config.PG_HOST, db_name, config.PG_USER, config.PG_PASS,port=6432)
+    client = postgres.PGClass(config.PG_HOST, db_name, config.PG_USER, config.PG_PASS, config.SCHEMA_JOB_MANAGER,
+                              port=int(config.PG_PORT))
     keys_values = {"resourceId": product_id, "version": product_version}
     res = client.get_rows_by_keys(
         "Job", keys_values, order_key="creationTime", order_desc=True
@@ -19,7 +20,8 @@ def get_current_job_id(product_id, product_version, db_name=config.PG_JOB_TASK_D
 
 def get_job_by_id(job_id, db_name=config.PG_JOB_TASK_DB_NAME):
     """This  method will provide job full row data from db, by jobid"""
-    client = postgres.PGClass(config.PG_HOST, db_name, config.PG_USER, config.PG_PASS,port=6432)
+    client = postgres.PGClass(config.PG_HOST, db_name, config.PG_USER, config.PG_PASS, config.SCHEMA_JOB_MANAGER,
+                              port=int(config.PG_PORT))
     res = client.get_rows_by_keys("Job", {"id": job_id}, return_as_dict=True)
     return res[0]
 
@@ -29,7 +31,8 @@ def get_tasks_by_job(job_id, db_name=config.PG_JOB_TASK_DB_NAME):
     This method query the db and return all related task to the current job_id
     :return:
     """
-    client = postgres.PGClass(config.PG_HOST, db_name, config.PG_USER, config.PG_PASS,port=6432)
+    client = postgres.PGClass(config.PG_HOST, db_name, config.PG_USER, config.PG_PASS, config.SCHEMA_JOB_MANAGER,
+                              port=int(config.PG_PORT))
     res = client.get_rows_by_keys("Task", {"jobId": job_id}, return_as_dict=True)
     return res
 
@@ -37,7 +40,8 @@ def get_tasks_by_job(job_id, db_name=config.PG_JOB_TASK_DB_NAME):
 def clean_layer_history(job_id, db_name=config.PG_AGENT):
     """This will directly clean job and related task from db"""
     deletion_command = f"""DELETE FROM "layer_history" WHERE "layerId"='{job_id}';"""
-    client = postgres.PGClass(config.PG_HOST, db_name, config.PG_USER, config.PG_PASS,port=6432)
+    client = postgres.PGClass(config.PG_HOST, db_name, config.PG_USER, config.PG_PASS, config.SCHEMA_DISCRETE_AGENT_DB,
+                              port=int(config.PG_PORT))
     try:
         client.command_execute([deletion_command])
         _log.info(
@@ -51,8 +55,9 @@ def clean_layer_history(job_id, db_name=config.PG_AGENT):
 
 def clean_job_task(job_id, db_name=config.PG_JOB_TASK_DB_NAME):
     """This will directly clean job and related task from db"""
-    deletion_command = f"""DELETE FROM "Task" WHERE "jobId"='{job_id}';DELETE FROM "Job" WHERE "id"='{job_id}';"""
-    client = postgres.PGClass(config.PG_HOST, db_name, config.PG_USER, config.PG_PASS,port=6432)
+    deletion_command = f"""DELETE FROM "{config.SCHEMA_JOB_MANAGER}"."Task" WHERE "jobId"='{job_id}';DELETE FROM "Job" WHERE "id"='{job_id}';"""
+    client = postgres.PGClass(config.PG_HOST, db_name, config.PG_USER, config.PG_PASS, config.SCHEMA_JOB_MANAGER,
+                              port=int(config.PG_PORT))
     try:
         client.command_execute([deletion_command])
         _log.info(
@@ -66,8 +71,9 @@ def clean_job_task(job_id, db_name=config.PG_JOB_TASK_DB_NAME):
 
 def clean_pycsw_record(product_id, db_name=config.PG_RECORD_PYCSW_DB):
     """This will directly clean job and related task from db"""
-    deletion_command = f"""DELETE FROM "records" WHERE "product_id"='{product_id}'"""
-    client = postgres.PGClass(config.PG_HOST, db_name, config.PG_USER, config.PG_PASS,port=6432)
+    deletion_command = f"""DELETE FROM "{config.SCHEMA_RASTER_CATALOG_MANAGER}"."records" WHERE "product_id"='{product_id}'"""
+    client = postgres.PGClass(config.PG_HOST, db_name, config.PG_USER, config.PG_PASS,
+                              config.SCHEMA_RASTER_CATALOG_MANAGER, port=int(config.PG_PORT))
     try:
         client.command_execute([deletion_command])
         _log.info(
@@ -81,7 +87,8 @@ def clean_pycsw_record(product_id, db_name=config.PG_RECORD_PYCSW_DB):
 
 def get_mapproxy_config(db_name=config.PG_MAPPROXY_CONFIG):
     """will get mapproxy-config data"""
-    client = postgres.PGClass(config.PG_HOST, db_name, config.PG_USER, config.PG_PASS,port=6432)
+    client = postgres.PGClass(config.PG_HOST, db_name, config.PG_USER, config.PG_PASS, config.SCHEMA_MAPPROXY_CONFIG,
+                              port=int(config.PG_PORT))
 
     try:
         res = client.get_column_by_name(table_name="config", column_name="data")[0]
@@ -95,7 +102,8 @@ def get_mapproxy_config(db_name=config.PG_MAPPROXY_CONFIG):
 def get_mapproxy_configs(table_name="config", db_name=config.PG_MAPPROXY_CONFIG):
     """This method query and return uuid of current ingestion job according keys: productId and productVersion"""
 
-    client = postgres.PGClass(config.PG_HOST, db_name, config.PG_USER, config.PG_PASS,port=int(config.PG_PORT))
+    client = postgres.PGClass(config.PG_HOST, db_name, config.PG_USER, config.PG_PASS, config.SCHEMA_MAPPROXY_CONFIG,
+                              port=int(config.PG_PORT))
     res = client.get_rows_by_order(
         table_name=table_name,
         order_key="updated_time",
@@ -116,7 +124,8 @@ def delete_config_mapproxy(
     :param db_name: name of db
     :param table_name: name of table
     """
-    client = postgres.PGClass(config.PG_HOST, db_name, config.PG_USER, config.PG_PASS,port=6432)
+    client = postgres.PGClass(config.PG_HOST, db_name, config.PG_USER, config.PG_PASS, config.SCHEMA_MAPPROXY_CONFIG,
+                              port=int(config.PG_PORT))
     res = client.delete_row_by_id(table_name, id, value)
 
 
@@ -130,7 +139,8 @@ def delete_pycsw_record(
     :param db_name: name of db
     :param table_name: name of table
     """
-    client = postgres.PGClass(config.PG_HOST, db_name, config.PG_USER, config.PG_PASS,port=6432)
+    client = postgres.PGClass(config.PG_HOST, db_name, config.PG_USER, config.PG_PASS,
+                              config.SCHEMA_RASTER_CATALOG_MANAGER, port=int(config.PG_PORT))
     res = client.delete_row_by_id(table_name, product_id, value)
 
 
@@ -144,5 +154,6 @@ def delete_agent_path(
     :param db_name: name of db
     :param table_name: name of table
     """
-    client = postgres.PGClass(config.PG_HOST, db_name, config.PG_USER, config.PG_PASS,port=6432)
+    client = postgres.PGClass(config.PG_HOST, db_name, config.PG_USER, config.PG_PASS, config.SCHEMA_DISCRETE_AGENT_DB,
+                              port=int(config.PG_PORT))
     res = client.delete_row_by_id(table_name, layer_id, value)

@@ -10,16 +10,18 @@ _log = logging.getLogger("server_automation.tests.test_priority_change")
 
 
 def test_priority_change():
-    stop_watch()
+    watch_resp = stop_watch()
+    if watch_resp:
+        _log.info(f"watch state = {watch_resp['state']}, watch response is : {watch_resp['reason']}")
 
-    resp_from_init_folder = init_ingestion_folder()
+    resp_from_init_folder = init_ingestion_folder_without_delete()
 
-    product_id, product_version = resp_from_init_folder["resource_name"].split("-")
+    product_id_first_id, product_version_first_id = resp_from_init_folder["resource_name"].split("-")
     ValueStorage.discrete_list.append(
-        {"product_id": product_id, "product_version": product_version}
+        {"product_id": product_id_first_id, "product_version": product_version_first_id}
     )
     source_directory = resp_from_init_folder["ingestion_dir"]
-    _log.info(f"Product_id : {product_id} , Product_version : {product_version}")
+    _log.info(f"Product_id : {product_id_first_id} , Product_version : {product_version_first_id}")
     sleep(5)
 
     if config.WRITE_TEXT_TO_FILE:
@@ -50,10 +52,11 @@ def test_priority_change():
 
     assert True  # ToDo : Fix It compare it status code and more. add more assertions.
 
-def init_ingestion_folder():
+
+def init_ingestion_folder_without_delete():
     _log.info('\n' + pad_with_stars('Started - init_ingestion_folder'))
     try:
-        resp = init_ingestion_src()
+        resp = init_ingestion_src_for_priority()
         error_msg = None
     except Exception as e:
         resp = None
@@ -64,7 +67,6 @@ def init_ingestion_folder():
     _log.info(f"Response [init_ingestion_src] : {resp}")
     _log.info(pad_with_minus('Finished - init_ingestion_folder'))
     return resp
-
 
 
 test_priority_change()
