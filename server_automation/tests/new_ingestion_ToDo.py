@@ -1,6 +1,5 @@
 """This module provides multiple test of ingestion services"""
 import shutil
-import allure
 from time import sleep
 from conftest import ValueStorage
 import logging
@@ -22,40 +21,31 @@ def test_manual_discrete_ingest():
     """
     This test will test full e2e discrete ingestion
     """
-
+    _log.info('\n' + pad_with_minus('Started - Stop watch'))
     watch_resp = stop_watch()
     if watch_resp:
         _log.info(f"watch state = {watch_resp['state']}, watch response is : {watch_resp['reason']}")
+    _log.info('\n' + pad_with_minus('Finished - Stop watch'))
 
-    """
-    New code
-    """
+    folder_name, resource_new_name = init_ingestion_folder()
 
-
-
-    """
-    New code
-    """
-
-    resp_from_init_folder = init_ingestion_folder()
-
-    product_id, product_version = resp_from_init_folder["resource_name"].split("-")
+    product_id, product_version = resource_new_name.split("-")
     ValueStorage.discrete_list.append(
         {"product_id": product_id, "product_version": product_version}
     )
-    source_directory = resp_from_init_folder["ingestion_dir"]
+    source_directory = folder_name
     _log.info(f"Product_id : {product_id} , Product_version : {product_version}")
     sleep(5)
 
     if config.WRITE_TEXT_TO_FILE:
-        _log.info("Starting - Write Tests to files.................")
+        _log.info('\n' + pad_with_minus('Started - Write Tests to files'))
         write_text_to_file('//tmp//test_runs.txt',
                            {'source_dir': source_directory, 'product_id_version': ValueStorage.discrete_list,
                             'test_name': test_manual_discrete_ingest.__name__,
                             'folder_to_delete': ValueStorage.folder_to_delete})
-        _log.info("Finished - Write Tests to files.................")
+        _log.info('\n' + pad_with_minus('Finished - Write Tests to files'))
 
-    _log.info(f'Starting - manual ingestion...............')
+    _log.info('\n' + pad_with_minus('Started - manual ingestion'))
     try:
         status_code, content, source_data = start_manual_ingestion(source_directory)
     except Exception as e:
@@ -68,7 +58,9 @@ def test_manual_discrete_ingest():
     _log.info(f"manual ingestion - source_data: {source_data}")
     _log.info(f"manual ingestion - content: {content}")
     _log.info(f"manual ingestion - status code: {status_code}")
+    _log.info('\n' + pad_with_minus('Finished - manual ingestion'))
 
+    _log.info('\n' + pad_with_minus('Started - follow manual ingestion job'))
     # validating following and completion of ingestion job
     try:
         if config.FOLLOW_JOB_BY_MANAGER:  # following based on job manager api
@@ -88,11 +80,13 @@ def test_manual_discrete_ingest():
         resp
     ), f"Test: [{test_manual_discrete_ingest.__name__}] Failed: on following ingestion process [{error_msg}]"
     _log.info(f"manual ingestion following task response: {resp}")
+    _log.info('\n' + pad_with_minus('Finished - follow manual ingestion job'))
 
     # this timeout is for mapproxy updating time of new layer on configuration
     sleep(config.DELAY_INGESTION_TEST)
     pycsw_record = None
 
+    _log.info('\n' + pad_with_minus('Started - validation of manual ingestion'))
     # validate new discrete on pycsw records
     try:
         resp, pycsw_record, links = validate_pycsw2(
@@ -276,39 +270,6 @@ def test_watch_discrete_ingest():
                                       f'related errors:\n' \
                                       f'{msg}'
 
-    # validate new discrete on pycsw records
-    # try:
-    #
-    #     resp, pycsw_record, links = validate_pycsw2(
-    #         source_data, product_id, product_version
-    #     )
-    #     # todo this is legacy records validator based graphql -> for future needs maybe
-    #     # resp, pycsw_record = executors.validate_pycsw(config.GQK_URL, product_id, source_data)
-    #     state = resp["validation"]
-    #     error_msg = resp["reason"]
-    # except Exception as e:
-    #     state = False
-    #     error_msg = str(e)
-    #
-    # if config.VALIDATION_SWITCH:
-    #     assert state, (
-    #         f"Test: [{test_watch_discrete_ingest.__name__}] Failed: validation of pycsw record\n"
-    #         f"related errors:\n"
-    #         f"{error_msg}"
-    #     )
-    #     _log.info(f"watch ingestion ,watch validation - response: {resp}")
-    #     _log.info(f"watch ingestion ,watch validation - pycsw_record: {pycsw_record}")
-    #     _log.info(f"watch ingestion ,watch validation - links: {links}")
-    #
-    # # validating new discrete on mapproxy
-    # try:
-    #     resp = validate_new_discrete(pycsw_record, product_id, product_version)
-    #     state = resp["validation"]
-    #     error_msg = resp["reason"]
-    # except Exception as e:
-    #     state = False
-    #     error_msg = str(e)
-
     if config.VALIDATION_SWITCH:
         assert state, (
             f"Test: [{test_watch_discrete_ingest.__name__}] Failed: validation of mapproxy layer\n"
@@ -322,19 +283,56 @@ def test_watch_discrete_ingest():
 
 
 def init_ingestion_folder():
-    _log.info('\n' + pad_with_stars('Started - init_ingestion_folder'))
+    if config.SOURCE_DATA_PROVIDER.lower() == 'pv':
+        return pv_init_ingestion_flow()
+    if config.SOURCE_DATA_PROVIDER.lower() == 'nfs':
+        return nfs_init_ingestion_flow()
+    else:
+        raise ValueError(f"Illegal environment value type: {config.SOURCE_DATA_PROVIDER.lower()}")
+
+
+def nfs_init_ingestion_flow():
+    src = os.path.join(config.NFS_ROOT_DIR, config.NFS_SOURCE_DIR)
+    dst = os.path.join(config.NFS_ROOT_DIR_DEST, config.NFS_DEST_DIR)
     try:
-        resp = init_ingestion_src()
-        error_msg = None
-    except Exception as e:
-        resp = None
-        error_msg = str(e)
-    assert (
-        resp
-    ), f"Test: [{test_manual_discrete_ingest.__name__}] Failed: on creating and updating layerSource folder [{error_msg}]"
-    _log.info(f"Response [init_ingestion_src] : {resp}")
-    _log.info(pad_with_minus('\nFinished - init_ingestion_folder'))
-    return resp
+        res = init_ingest_nfs(src, dst, str(config.zoom_level_dict[config.MAX_ZOOM_TO_CHANGE]))
+        # res = init_ingestion_src_fs(src, dst, str(config.zoom_level_dict[config.MAX_ZOOM_TO_CHANGE]), watch=False)
+        return res
+    except FileNotFoundError as e:
+        raise e
+    except Exception as e1:
+        raise RuntimeError(
+            f"Failed generating testing directory with error: {str(e1)}"
+        )
+
+
+def pv_init_ingestion_flow():
+    _log.info('\n' + pad_with_stars('Started - create ingestion folder'))
+    try:
+        destination_folder, resp_code = create_ingestion_folder_pvc(False)
+    except RuntimeError as err:
+        create_folder_err = str(err)
+
+    assert resp_code.status_code == config.ResponseCode.ChangeOk.value, f"Test: [{test_manual_discrete_ingest.__name__}] Failed: create folder with status code: [{resp_code.status_code}],details : [{create_folder_err}]"
+    _log.info('\n' + pad_with_stars('Finished - create ingestion folder'))
+
+    _log.info('\n' + pad_with_stars('Started - update ingestion source name'))
+    try:
+        updated_source_name, resp_code = update_ingestion_folder_pvc(False)
+    except Exception as err:
+        update_source_name_err = str(err)
+
+    assert resp_code.status_code == config.ResponseCode.ChangeOk.value, f"Test: [{test_manual_discrete_ingest.__name__}] Failed: update source name with status code: [{resp_code.status_code}],details : [{update_source_name_err}] "
+    _log.info('\n' + pad_with_stars('Finished - update ingestion source name'))
+
+    _log.info('\n' + pad_with_stars('Started - change zoom level'))
+    try:
+        resp_code = change_zoom_level_pvc(config.MAX_ZOOM_TO_CHANGE)
+    except Exception as err:
+        change_zoom_err = str(err)
+    assert resp_code.status_code == config.ResponseCode.Ok.value, f"Test: [{test_manual_discrete_ingest.__name__}] Failed: change zoom with status code: [{resp_code.status_code}],details : [{change_zoom_err}] "
+    _log.info('\n' + pad_with_stars('Finished - change zoom level'))
+    return destination_folder, updated_source_name
 
 
 def teardown_module(module):  # pylint: disable=unused-argument
@@ -347,10 +345,5 @@ def teardown_module(module):  # pylint: disable=unused-argument
             cleanup_env(p["product_id"], p["product_version"], initial_mapproxy_config)
 
 
-if config.DEBUG_MODE_LOCAL:
-    config.PVC_UPDATE_ZOOM = True
-    config.MAX_ZOOM_TO_CHANGE = 4
-
-if config.RUN_IT:
-    test_manual_discrete_ingest()
-    test_watch_discrete_ingest()
+test_manual_discrete_ingest()
+# test_watch_discrete_ingest()

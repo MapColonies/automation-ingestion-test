@@ -92,7 +92,7 @@ def test_manual_discrete_ingest():
                 resp, pycsw_record, links = validate_pycsw2(
                     source_data, product_id, product_version
                 )
-                # todo this is legacy records validator based graphql -> for future needs maybe
+                # ZS65todo this is legacy records validator based graphql -> for future needs maybe
                 # resp, pycsw_record = executors.validate_pycsw(config.GQK_URL, product_id, source_data)
                 state = resp["validation"]
                 error_msg = resp["reason"]

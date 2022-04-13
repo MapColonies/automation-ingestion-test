@@ -1,6 +1,6 @@
 """This module provides multiple test of ingestion services"""
 import shutil
-import allure
+# import allure
 from time import sleep
 from conftest import ValueStorage
 import logging
@@ -26,14 +26,6 @@ def test_manual_discrete_ingest():
     watch_resp = stop_watch()
     if watch_resp:
         _log.info(f"watch state = {watch_resp['state']}, watch response is : {watch_resp['reason']}")
-
-    """
-    New code
-    """
-
-    """
-    New code
-    """
 
     resp_from_init_folder = init_ingestion_folder()
 
@@ -322,20 +314,6 @@ def test_watch_discrete_ingest():
 def init_ingestion_folder():
     _log.info('\n' + pad_with_stars('Started - init_ingestion_folder'))
     try:
-        destination_folder, resp_code = create_ingestion_folder_pvc(False)
-    except RuntimeError as err:
-        create_folder_err = str(err)
-
-    assert resp_code.status_code == config.ResponseCode.ChangeOk.value, f"Test: [{test_manual_discrete_ingest.__name__}] Failed: create folder with status code: [{resp_code.status_code}],details : [{create_folder_err}]"
-
-    try:
-        updated_source_name, resp_code = update_ingestion_folder_pvc(False)
-    except Exception as err:
-        update_source_name_err = str(err)
-
-    assert resp_code.status_code == config.ResponseCode.ChangeOk.value, f"Test: [{test_manual_discrete_ingest.__name__}] Failed: create folder with status code: [{resp_code.status_code}],details : [{update_source_name_err}]"
-
-    try:
         resp = init_ingestion_src()
         error_msg = None
     except Exception as e:
@@ -364,5 +342,5 @@ if config.DEBUG_MODE_LOCAL:
     config.MAX_ZOOM_TO_CHANGE = 4
 
 if config.RUN_IT:
-    test_manual_discrete_ingest()
+    # test_manual_discrete_ingest()
     test_watch_discrete_ingest()

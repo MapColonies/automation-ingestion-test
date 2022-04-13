@@ -1292,13 +1292,17 @@ def write_text_to_file(path_to_text, text_to_write):
 
 # ToDo : Make MicroServices of all our code
 
-def create_ingestion_folder_pvc(watch_state):
+def create_ingestion_folder_pvc(watch_state, delete_folder=True):
     pvc_handler = azure_pvc_api.PVCHandler(
         endpoint_url=config.PVC_HANDLER_ROUTE, watch=watch_state
     )
 
     try:
-        resp = pvc_handler.create_new_ingestion_dir()
+        if delete_folder:
+            resp = pvc_handler.create_new_ingestion_dir()
+        elif not delete_folder:
+            params_to_send = {'delete': "yes", "name": "prio"}
+            resp = pvc_handler.create_new_ingestion_dir_no_delete(params_to_send)
         if not resp.status_code == config.ResponseCode.ChangeOk.value:
             raise RuntimeError(
                 f"Failed access pvc on source data cloning with error: [{resp.text}] and status: [{resp.status_code}]"
@@ -1312,7 +1316,7 @@ def create_ingestion_folder_pvc(watch_state):
         raise RuntimeError(
             f"Failed access pvc on source data cloning with error: [{str(e)}]"
         )
-    return new_dir , resp
+    return new_dir, resp
 
 
 def update_ingestion_folder_pvc(watch_state):
@@ -1332,18 +1336,19 @@ def update_ingestion_folder_pvc(watch_state):
 
     except Exception as e:
         raise RuntimeError(f"Failed access pvc on changing shape metadata: [{str(e)}]")
-    return changed_resource_name , resp
+    return changed_resource_name, resp
 
 
-def change_zoom_level_pvc():
+def change_zoom_level_pvc(zoom_level_to_change=4):
     # ToDo : handle the config param
+    resp = None
+    pvc_handler = azure_pvc_api.PVCHandler(
+        endpoint_url=config.PVC_HANDLER_ROUTE
+    )
     if config.PVC_UPDATE_ZOOM:
-        pvc_handler = azure_pvc_api.PVCHandler(
-            endpoint_url=config.PVC_HANDLER_ROUTE
-        )
         try:
             # ToDo: Fix Zoom
-            resp = pvc_handler.change_max_zoom_tfw()
+            resp = pvc_handler.change_max_zoom_tfw(zoom_level_to_change)
             if resp.status_code == config.ResponseCode.Ok.value:
                 _log.info(
                     f'Max resolution changed successfully: [{json.loads(resp.text)["json_data"][0]["reason"]}]'
@@ -1354,3 +1359,4 @@ def change_zoom_level_pvc():
                 )
         except Exception as e:
             raise IOError(f"Failed updating zoom max level with error: [{str(e)}]")
+    return resp

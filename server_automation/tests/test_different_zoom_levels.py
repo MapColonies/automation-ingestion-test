@@ -184,8 +184,7 @@ if config.RUN_IT:
     def test_zoom_level_third():
         test_zoom_level(config.THIRD_ZOOM_LEVEL)
 
-test_zoom_level_first()
+# test_zoom_level_first()
 test_zoom_level_second()
-test_zoom_level_third()
-# if config.TEST_ENV == config.EnvironmentTypes.QA.name or config.TEST_ENV == config.EnvironmentTypes.DEV.name:
-# elif config.TEST_ENV == config.EnvironmentTypes.PROD.name:
+# test_zoom_level_third()
+

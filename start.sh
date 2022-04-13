@@ -59,6 +59,24 @@ if [[ ! -z "${PYTEST_RUNNING_MODE}" ]]; then
     pytest --show-capture=no /source_code/server_automation/tests/test_ingestion_discrete.py --alluredir=/opt/my_results
     ;;
 
+  docker_test)
+    echo -ne "Start docker test suite \n"
+
+    pytest --show-capture=no /source_code/server_automation/tests/test_invalid_imagery_data.py
+    sleep 1m
+
+    pytest --show-capture=no /source_code/server_automation/tests/test_ingestion_discrete.py
+    sleep 1m
+
+    pytest --show-capture=no /source_code/server_automation/tests/test_invalid_imagery_data.py
+    sleep 1m
+
+    pytest --show-capture=no /source_code/server_automation/tests/test_failure_illegal_zoom_level_limit.py
+
+
+    pytest --show-capture=no /source_code/server_automation/tests/test_manual_geopackage_ingestion.py
+    ;;
+
 
   geopackage_ingest)
     echo -ne " ***** Will Run only ingestion *****\n"
@@ -66,7 +84,7 @@ if [[ ! -z "${PYTEST_RUNNING_MODE}" ]]; then
     ;;
     #  geopack_ingestion)
     #    echo -ne " ***** Will Run only ingestion *****\n"
-    #    pytest --show-capture=no /source_code/server_automation/tests/test_ingestion_discrete.py
+    #    pytest --show-capture=no /source_code/server_automation/tests/new_ingestion_ToDo.py
     #    ;;
 
   working)
@@ -94,7 +112,7 @@ else
   echo "no variable provided for PYTEST_RUNNING_MODE"
 fi
 
-#pytest --show-capture=no /source_code/server_automation/tests/test_ingestion_discrete.py
+#pytest --show-capture=no /source_code/server_automation/tests/new_ingestion_ToDo.py
 #sleep 1m
 #pytest --show-capture=no /source_code/server_automation/tests/test_failure_exists_product_manual_ingestion.py
 #sleep 1m
@@ -111,7 +129,7 @@ fi
 
 #pytest --show-capture=no /source_code/server_automation/tests/test_different_zoom_levels.py
 
-#test_ingestion_discrete.py
+#new_ingestion_ToDo.py
 #echo "Please Choose running mode:\n* Sanity - press 's'\n* E2E - press 'e'\n* Full set - press 'f'"
 #  read -p "Input Selection:" mode
 #  if [ "$mode" = "s" ]; then
@@ -121,6 +139,6 @@ fi
 #  elif [ "$mode" = "f" ]; then
 #        echo "Full set"
 #  fi
-#pytest --show-capture=no /source_code/server_automation/tests/test_ingestion_discrete.py --slack_username="Dannys Run 1
+#pytest --show-capture=no /source_code/server_automation/tests/new_ingestion_ToDo.py --slack_username="Dannys Run 1
 #sleep 1m
 #pytest --show-capture=no /source_code/server_automation/tests/test_failure_exists_product_manual_ingestion.py --slack_username="Dannys Run 2"

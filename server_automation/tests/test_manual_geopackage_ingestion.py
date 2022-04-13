@@ -27,11 +27,15 @@ def test_manual_ingestion_geopackage():
             status_code == config.ResponseCode.ChangeOk.value
     ), f"Test: [{test_manual_ingestion_geopackage.__name__}] Failed: on copy src {src_folder_to_copy} status code :  [{status_code}]"
     _log.info(f"Finished - copy {src_folder_to_copy} to watch folder")
-
+    if config.OVERSEER_JSON_LOCATION is None:
+        path_to_overseer = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        path_to_overseer = os.path.join(path_to_overseer, "configuration", 'os_param.json')
+    else:
+        path_to_overseer = config.OVERSEER_JSON_LOCATION
     # ToDo: Start Manual ingestion with api
     os_manager = overseer_api.Overseer(
         end_point_url=config.OVERSEER_END_URL)
-    os_param = config.OVERSEER_JSON_LOCATION
+    os_param = path_to_overseer
     try:
         with open(os_param, "r", encoding="utf-8") as fp:
             params = json.load(fp)
@@ -183,5 +187,6 @@ def test_manual_ingestion_geopackage():
 
     """
 
-if config.RUN_IT:
-    test_manual_ingestion_geopackage()
+#
+# if config.RUN_IT:
+#     test_manual_ingestion_geopackage()
