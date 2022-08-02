@@ -1,7 +1,7 @@
 """This module provides multiple test of ingestion services"""
 import shutil
 from time import sleep
-from conftest import ValueStorage
+from conftest_val import ValueStorage
 import logging
 import json
 from server_automation.configuration import config

@@ -569,7 +569,8 @@ def follow_running_job_manager(
         "version": product_version,
         # example to make it compatible to query params
         "shouldReturnTasks": str(True).lower(),
-        "type": "Discrete-Tiling",
+        "type": "Ingestion_New",
+        # "type": "Discrete-Tiling",
     }
     resp = job_task_handler.find_jobs_by_criteria(find_job_params)[0]
     if not resp:
@@ -649,7 +650,7 @@ def follow_parallel_running_tasks(
         "version": product_version,
         # example to make it compatible to query params
         "shouldReturnTasks": str(True).lower(),
-        "type": "Discrete-Tiling",
+        "type": "Ingestion_New",
     }
     resp = job_task_handler.find_jobs_by_criteria(find_job_params)[0]
     received_tasks = job_task_handler.tasks(resp["id"])
@@ -892,7 +893,7 @@ def validate_pycsw2(source_json_metadata, product_id=None, product_version=None)
     res_dict = {"validation": True, "reason": ""}
     try:
         pycsw_conn = pycsw_validator.PycswHandler(config.PYCSW_URL, config.PYCSW_GET_RECORD_PARAMS)
-        results = pycsw_conn.validate_pycsw(source_json_metadata, product_id, product_version)
+        results = pycsw_conn.validate_pycsw(source_json_metadata, product_id, product_version,header=config.HEADERS_FOR_MAPPROXY)
         res_dict = results['results']
         pycsw_records = results['pycsw_record']
         links = results['links']
@@ -1121,7 +1122,7 @@ def validate_mapproxy_layer(pycsw_record, product_id, product_version, params=No
                                                        s3_credential=s3_credential,
                                                        nfs_tiles_url=params['nfs_tiles_url'])
 
-    res = mapproxy_conn.validate_layer_from_pycsw(pycsw_record, product_id, product_version)
+    res = mapproxy_conn.validate_layer_from_pycsw(pycsw_record, product_id, product_version,config.HEADERS_FOR_MAPPROXY)
     _log.info(
         f'\n----------------------- Finish validation of layer mapproxy vs. pycsw record ---------------------------')
     return res
@@ -1157,7 +1158,7 @@ def validate_new_discrete(pycsw_records, product_id, product_version):
 
         results[group]["is_valid"] = {}
         # check that wms include the new layer on capabilities
-        wms_capabilities = common.get_xml_as_dict(results[group]["WMS"])
+        wms_capabilities = common.get_xml_as_dict(results[group]["WMS"],config.HEADERS_FOR_MAPPROXY)
         results[group]["is_valid"]["WMS"] = layer_name in [
             layer["Name"]
             for layer in wms_capabilities["WMS_Capabilities"]["Capability"]["Layer"][
@@ -1166,7 +1167,7 @@ def validate_new_discrete(pycsw_records, product_id, product_version):
         ]
 
         # check that wmts include the new layer on capabilities
-        wmts_capabilities = common.get_xml_as_dict(results[group]["WMTS"])
+        wmts_capabilities = common.get_xml_as_dict(results[group]["WMTS"],config.HEADERS_FOR_MAPPROXY)
         results[group]["is_valid"]["WMTS"] = layer_name in [
             layer["ows:Identifier"]
             for layer in wmts_capabilities["Capabilities"]["Contents"]["Layer"]

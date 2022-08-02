@@ -2,7 +2,6 @@
 import shutil
 # import allure
 from time import sleep
-from conftest import ValueStorage
 import logging
 import json
 from server_automation.configuration import config
@@ -11,6 +10,7 @@ from discrete_kit.functions.shape_functions import ShapeToJSON
 from server_automation.functions.executors import *
 from server_automation.postgress import postgress_adapter
 from mc_automation_tools.parse.stringy import pad_with_minus, pad_with_stars
+from conftest_val import ValueStorage
 
 _log = logging.getLogger("server_automation.tests.test_ingestion_discrete")
 
@@ -106,6 +106,7 @@ def test_manual_discrete_ingest():
         _log.info(f"manual ingestion validation - pycsw_record: {pycsw_record}")
         _log.info(f"manual ingestion validation - links: {links}")
 
+
     sleep(config.DELAY_MAPPROXY_PYCSW_VALIDATION)
     # validating new discrete on mapproxy
 
@@ -120,7 +121,7 @@ def test_manual_discrete_ingest():
             params['access_key'] = config.S3_ACCESS_KEY
             params['secret_key'] = config.S3_SECRET_KEY
             params['bucket_name'] = config.S3_BUCKET_NAME
-
+        sleep(100)
         result = validate_mapproxy_layer(pycsw_record, product_id, product_version, params)
         mapproxy_validation_state = result['validation']
         msg = result['reason']
@@ -342,5 +343,5 @@ if config.DEBUG_MODE_LOCAL:
     config.MAX_ZOOM_TO_CHANGE = 4
 
 if config.RUN_IT:
-    # test_manual_discrete_ingest()
-    test_watch_discrete_ingest()
+    test_manual_discrete_ingest()
+    # test_watch_discrete_ingest()

@@ -20,7 +20,7 @@ def get_raster_records(host=config.PYCSW_URL, params=config.PYCSW_GET_RECORD_PAR
     next_record = -1
     try:
         while next_record:
-            resp = base_requests.send_get_request(host, params)
+            resp = base_requests.send_get_request(host, params,header=config.HEADERS_FOR_MAPPROXY)
             s_code = resp.status_code
             if s_code != config.ResponseCode.Ok.value:
                 raise RuntimeError(

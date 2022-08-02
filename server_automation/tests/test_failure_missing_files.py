@@ -3,7 +3,7 @@ from time import sleep
 from server_automation.configuration import config
 from server_automation.functions.executors import stop_watch, init_ingestion_src, delete_file_from_folder, \
     write_text_to_file, start_manual_ingestion
-from conftest import ValueStorage
+from conftest_val import ValueStorage
 
 _log = logging.getLogger("server_automation.tests.test_failure_missing_files")
 
@@ -53,5 +53,5 @@ def test_missing_files():
         )
 
 
-# if config.RUN_IT:
-#     test_missing_files()
+if config.RUN_IT:
+    test_missing_files()

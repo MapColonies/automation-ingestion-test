@@ -2,7 +2,7 @@ import logging
 import json
 import os.path
 from time import sleep
-from conftest import ValueStorage
+from conftest_val import ValueStorage
 from server_automation.functions.executors import stop_watch, copy_geopackage_file_for_ingest, follow_running_task, \
     follow_running_job_manager, validate_geopack_pycsw, validate_new_discrete, validate_mapproxy_layer
 from server_automation.postgress import postgress_adapter
@@ -188,5 +188,5 @@ def test_manual_ingestion_geopackage():
     """
 
 #
-# if config.RUN_IT:
-#     test_manual_ingestion_geopackage()
+if config.RUN_IT:
+    test_manual_ingestion_geopackage()

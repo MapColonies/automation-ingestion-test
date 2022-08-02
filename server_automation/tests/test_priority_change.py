@@ -3,7 +3,7 @@ from server_automation.functions.executors import stop_watch
 from time import sleep
 from server_automation.configuration import config
 from server_automation.functions.executors import *
-from conftest import ValueStorage
+from conftest_val import ValueStorage
 from mc_automation_tools.parse.stringy import pad_with_minus, pad_with_stars
 
 _log = logging.getLogger("server_automation.tests.test_priority_change")

@@ -2,7 +2,7 @@
 import shutil
 import allure
 from time import sleep
-from conftest import ValueStorage
+from conftest_val import ValueStorage
 import logging
 import json
 from server_automation.configuration import config

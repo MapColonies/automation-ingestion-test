@@ -71,6 +71,7 @@ INGESTION_STOP_WATCHER = _ingestion_sub_url_api.get("ingestion_stop_watch", "sto
 INGESTION_AGENT_URL = _ingestion_sub_url_api.get("ingestion_agent_url", None)
 ################################################  MAPPROXY VARIABELS  ####
 _mapproxy_vars = conf.get("mapproxy_variables")
+HEADERS_FOR_MAPPROXY = _mapproxy_vars.get("mapproxy_header")
 WMS = _mapproxy_vars.get("wms")
 WMTS = _mapproxy_vars.get("wmts")
 WMTS_LAYER = _mapproxy_vars.get("wmts_layer")

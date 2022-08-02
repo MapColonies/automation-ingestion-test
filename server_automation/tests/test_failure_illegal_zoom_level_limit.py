@@ -3,7 +3,7 @@ from time import sleep
 from server_automation.configuration import config
 from server_automation.functions.executors import stop_watch, init_ingestion_src, azure_pvc_api, start_manual_ingestion, \
     write_text_to_file
-from conftest import ValueStorage
+from conftest_val import ValueStorage
 
 _log = logging.getLogger(
     "server_automation.tests.test_failure_illegal_zoom_level_limit"
@@ -52,5 +52,5 @@ def test_illegal_zoom():
     )
 
 
-# if config.RUN_IT:
-#     test_illegal_zoom()
+if config.RUN_IT:
+    test_illegal_zoom()

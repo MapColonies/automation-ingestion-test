@@ -5,7 +5,7 @@ from server_automation.configuration import config
 from server_automation.functions.executors import stop_watch, init_ingestion_src, write_text_to_file, azure_pvc_api, \
     create_mock_file, start_manual_ingestion, follow_running_task, follow_running_job_manager
 from server_automation.postgress import postgress_adapter
-from conftest import ValueStorage
+from conftest_val import ValueStorage
 
 _log = logging.getLogger("server_automation.tests.test_invalid_imagery_data")
 
@@ -86,5 +86,5 @@ def test_invalid_data():
     )
 
 #
-# if config.RUN_IT:
-#     test_invalid_data()
+if config.RUN_IT:
+    test_invalid_data()

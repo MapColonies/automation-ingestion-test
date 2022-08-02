@@ -5,7 +5,7 @@ from server_automation.configuration import config
 from server_automation.functions.executors import postgress_adapter, init_ingestion_src, write_text_to_file, \
     azure_pvc_api, start_manual_ingestion, follow_parallel_running_tasks, stop_watch, cleanup_env, \
     update_shape_zoom_level
-from conftest import ValueStorage
+from conftest_val import ValueStorage
 from time import sleep
 
 """

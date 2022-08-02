@@ -11,7 +11,7 @@ from server_automation.functions.executors import (
     update_shape_zoom_level
 )
 from server_automation.postgress import postgress_adapter
-from conftest import ValueStorage
+from conftest_val import ValueStorage
 
 LIST_OBJECT_FROM_S_ = "Getting list object from S3"
 
