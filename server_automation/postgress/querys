@@ -1,0 +1,37 @@
+SELECT * FROM "RasterCatalogManager".records
+where "product_name" like '%_ayosh_10cm'
+
+'SELECT {value} FROM "{schema}".{table}
+where "product_name" like 'O_ayosh_10%'
+
+Order by ASC,
+
+all = '*'
+
+value = my_value
+schema = self. schema
+condition = my_condition + ' = ' + params_table
+
+statement = " SELECT {value} FROM
+
+
+
+ {schema} WHERE {condition}"
+
+
+select {results} from {table} where {condition}
+
+def give_res(results_to_get, database.table, search_data,table_data)
+
+
+
+
+SELECT * FROM "RasterCatalogManager".records
+where "product_name" like '%_ayosh_10cm'
+
+SELECT * FROM "DiscreteAgentDB".layer_history
+ORDER BY directory ASC
+
+
+product_id
+2022_08_23T11_34_58Z_MAS_6_ORT_247557

@@ -2,15 +2,14 @@
 import shutil
 # import allure
 from time import sleep
-import logging
-import json
-from server_automation.configuration import config
-from discrete_kit.validator.json_compare_pycsw import *
-from discrete_kit.functions.shape_functions import ShapeToJSON
+
 from server_automation.functions.executors import *
 from server_automation.postgress import postgress_adapter
+
+from server_automation.postgress.test_sql_postgl import sql_main
 from mc_automation_tools.parse.stringy import pad_with_minus, pad_with_stars
 from conftest_val import ValueStorage
+
 
 _log = logging.getLogger("server_automation.tests.test_ingestion_discrete")
 
@@ -343,5 +342,6 @@ if config.DEBUG_MODE_LOCAL:
     config.MAX_ZOOM_TO_CHANGE = 4
 
 if config.RUN_IT:
-    test_manual_discrete_ingest()
-    # test_watch_discrete_ingest()
+    sql_main()
+    # test_manual_discrete_ingest()
+#   test_watch_discrete_ingest()
