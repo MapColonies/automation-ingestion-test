@@ -5,7 +5,9 @@ import logging
 
 # Read me SqlHelper class can execute Sql statement in 2 ways
 # 1.0v by Shay Perpinial
-# send to constructor of class Host , DataBase, User, Pass, scheme ,  port,
+
+# Create a PGClass instance
+# get_SqlHelper method from PGClass return instance of SqlHelper cLass with the parameters.
 # From the object can produce with build_query , sending the parameters by
 #       - "results_to_get" = Select  can get None as a default and get all the parameters as *
 #       - "table_name" = From The table that get the data from as format  "SchemasName".TableName
@@ -13,14 +15,14 @@ import logging
 #       - "data" = Columns  name from the table that we compare to the Data
 #       - "operator" =  there is 4  operator available  = ('compare', 'start', 'end', 'have')  send a string of the
 #                       desire operation start/ end  "Like" operation for start with and ending string .
-#       - "as_dict" = Boolean flag to get the results as a dictionary OBJ
 
-#     Sending Sql statement with static method, without create OBJ or parameters  and get result.
+#    execute_one() return a list of item as a tuple, if only 1 item return will be tuple inside list
+#    execute_all() return a list of item as a tuple, if only 1 item return will be tuple inside list
 
-# If you prefer to receive an object in the form of a value / key dictionary as a return.
-# You can add the dict_of_table function as an additional function to the SqlHelper object
+#    unit_dict()   method instead of  execute_one/all  return a dictionary key/value of the return statement
 
-#
+#    execute_sql_statement get a String query return the results  without get a parameters. o
+#    ptional send after the query, true for get as a dictionary
 
 class SqlHelper:
     def __init__(self, host=config.PG_HOST, database=config.PG_JOB_TASK_DB_NAME, user=config.PG_USER,
