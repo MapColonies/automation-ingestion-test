@@ -34,7 +34,7 @@ munch>=2.5.0
 numpy>=1.23.2
 ogr>=0.38.1
 packaging>=21.3
-pandas
+pandas~=1.4.4
 paramiko>=2.11.0
 pluggy>=0.13.1
 psycopg2-binary>=2.8.6
@@ -80,3 +80,5 @@ swagger-ui-bundle >= 0.0.2
 setuptools~=50.3.2
 connexion~=2.14.1
 Flask~=2.2.2
+Jinja2~=3.1.2
+streamlit~=1.12.2
