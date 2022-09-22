@@ -128,5 +128,5 @@ def teardown_module(module):  # pylint: disable=unused-argument
 if config.DEBUG_MODE_LOCAL:
     config.PVC_UPDATE_ZOOM = True
     config.MAX_ZOOM_TO_CHANGE = 14  # 4
-# if config.RUN_IT:
-#     test_parallel_ingestion()
+if config.RUN_IT:
+    test_parallel_ingestion()

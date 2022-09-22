@@ -1101,7 +1101,7 @@ def copy_geopackage_file_for_ingest():
     return resp_status, msg_text
 
 
-def validate_mapproxy_layer(pycsw_record, product_id, product_version, params=None):
+def validate_mapproxy_layer(pycsw_record, product_id, product_version, header, params=None):
     """
     This method will ensure the url's provided on mapproxy from pycsw
     :return: result dict -> {'validation': bool, 'reason':{}}, links -> dict
@@ -1122,7 +1122,7 @@ def validate_mapproxy_layer(pycsw_record, product_id, product_version, params=No
                                                        s3_credential=s3_credential,
                                                        nfs_tiles_url=params['nfs_tiles_url'])
 
-    res = mapproxy_conn.validate_layer_from_pycsw(pycsw_record, product_id, product_version,config.HEADERS_FOR_MAPPROXY)
+    res = mapproxy_conn.validate_layer_from_pycsw(pycsw_record, product_id, product_version, header=config.HEADERS_FOR_MAPPROXY)
     _log.info(
         f'\n----------------------- Finish validation of layer mapproxy vs. pycsw record ---------------------------')
     return res

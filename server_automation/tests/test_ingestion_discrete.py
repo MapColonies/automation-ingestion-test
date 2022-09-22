@@ -1,6 +1,5 @@
 """This module provides multiple test of ingestion services"""
 import shutil
-# import allure
 from time import sleep
 import logging
 import json
@@ -106,7 +105,6 @@ def test_manual_discrete_ingest():
         _log.info(f"manual ingestion validation - pycsw_record: {pycsw_record}")
         _log.info(f"manual ingestion validation - links: {links}")
 
-
     sleep(config.DELAY_MAPPROXY_PYCSW_VALIDATION)
     # validating new discrete on mapproxy
 
@@ -122,7 +120,8 @@ def test_manual_discrete_ingest():
             params['secret_key'] = config.S3_SECRET_KEY
             params['bucket_name'] = config.S3_BUCKET_NAME
         sleep(100)
-        result = validate_mapproxy_layer(pycsw_record, product_id, product_version, params)
+        result = validate_mapproxy_layer(pycsw_record, product_id, product_version, header=config.HEADERS_FOR_MAPPROXY,
+                                         params=params)
         mapproxy_validation_state = result['validation']
         msg = result['reason']
 
@@ -255,7 +254,8 @@ def test_watch_discrete_ingest():
             params['secret_key'] = config.S3_SECRET_KEY
             params['bucket_name'] = config.S3_BUCKET_NAME
 
-        result = validate_mapproxy_layer(pycsw_record, product_id, product_version, params)
+        result = validate_mapproxy_layer(pycsw_record, product_id, product_version, header=config.HEADERS_FOR_MAPPROXY,
+                                         params=params)
         mapproxy_validation_state = result['validation']
         msg = result['reason']
 
@@ -311,7 +311,6 @@ def test_watch_discrete_ingest():
             f'watch ingestion, Finish running watch ingestion. Watch status: [{resp["reason"]}]'
         )
 
-
 def init_ingestion_folder():
     _log.info('\n' + pad_with_stars('Started - init_ingestion_folder'))
     try:
@@ -344,4 +343,4 @@ if config.DEBUG_MODE_LOCAL:
 
 if config.RUN_IT:
     test_manual_discrete_ingest()
-    # test_watch_discrete_ingest()
+    test_watch_discrete_ingest()
