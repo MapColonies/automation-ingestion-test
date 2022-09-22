@@ -1,7 +1,11 @@
 """ configuration for running ingestion tests"""
 import json
+
 from mc_automation_tools import common
-from server_automation.models.structs import EnvironmentTypes, ResponseCode, JobStatus
+
+from server_automation.models.structs import EnvironmentTypes
+from server_automation.models.structs import JobStatus
+from server_automation.models.structs import ResponseCode
 
 CONF_FILE = common.get_environment_variable("CONF_FILE", None)
 if not CONF_FILE:
@@ -13,10 +17,10 @@ except Exception as e:
     raise EnvironmentError("Failed to load JSON for configuration") from e
 
 _api_route = conf.get("api_routes")
-MAPPROXY_URL = _api_route.get('mapproxy_url')
+MAPPROXY_URL = _api_route.get("mapproxy_url")
 ########  general running environment ##########
 environment = conf.get("environment")
-RUN_IT = environment.get('run_it', True)
+RUN_IT = environment.get("run_it", True)
 # compatibility to azure + prod env
 TEST_ENV = environment.get("name", EnvironmentTypes.QA.name)
 SHAPES_PATH = environment.get("shapes_path_name", "Shapes")
@@ -30,12 +34,12 @@ VALIDATION_SWITCH = environment.get("validation_switch", True)
 SYSTEM_DELAY = environment.get("system_delay", 60)
 PROGRESS_TASK_DELAY = environment.get("progress_task_delay", 50)
 FOLLOW_TIMEOUT = 60 * environment.get("follow_timeout", 5)
-DELETE_INGESTION_FOLDER = environment.get('delete_ingestion_folder', False)
-ALLURE_REPORTER = environment.get('reporter', False)
-SOURCE_DATA_PROVIDER = environment.get('source_data_provider', "NFS")
-TILES_PROVIDER = environment.get('tiles_provider', "S3")
-STOP_WATCH = environment.get('stop_watch', False)
-WRITE_TEXT_TO_FILE = environment.get('write_text_to_file', False)
+DELETE_INGESTION_FOLDER = environment.get("delete_ingestion_folder", False)
+ALLURE_REPORTER = environment.get("reporter", False)
+SOURCE_DATA_PROVIDER = environment.get("source_data_provider", "NFS")
+TILES_PROVIDER = environment.get("tiles_provider", "S3")
+STOP_WATCH = environment.get("stop_watch", False)
+WRITE_TEXT_TO_FILE = environment.get("write_text_to_file", False)
 
 ############################################  follow  ####################
 _job_manager_params = conf.get("job_manager_params")
@@ -55,9 +59,9 @@ SHAPE_FILE_LIST = [
     "ShapeMetadata.dbf",
 ]
 ##########################################  Overseer params
-_overseer_vars = conf.get('overseer_params')
-OVERSEER_END_URL = _overseer_vars.get('overseer_end_point_url')
-OVERSEER_JSON_LOCATION = _overseer_vars.get('geopackage_json')
+_overseer_vars = conf.get("overseer_params")
+OVERSEER_END_URL = _overseer_vars.get("overseer_end_point_url")
+OVERSEER_JSON_LOCATION = _overseer_vars.get("geopackage_json")
 # OVERSEER_JSON_LOCATION = _overseer_vars.get('geopackage_json')
 
 ##########################################  Ingestion API's sub urls & API
@@ -75,7 +79,7 @@ HEADERS_FOR_MAPPROXY = _mapproxy_vars.get("mapproxy_header")
 WMS = _mapproxy_vars.get("wms")
 WMTS = _mapproxy_vars.get("wmts")
 WMTS_LAYER = _mapproxy_vars.get("wmts_layer")
-MAPPROXY_GRID_ORIGIN = _mapproxy_vars.get('mapproxy_grid_origin')
+MAPPROXY_GRID_ORIGIN = _mapproxy_vars.get("mapproxy_grid_origin")
 ###############################################  POSTGRESS CREDENTIALS  ##
 _pg_credentials = conf.get("pg_credential")
 PG_USER = _pg_credentials.get("pg_user", None)
@@ -110,7 +114,7 @@ NFS_WATCH_ROOT_DIR = _nfs_directories.get("nfs_watch_root_directory", "/tmp")
 NFS_WATCH_SOURCE_DIR = _nfs_directories.get("nfs_watch_source_directory", "ingestion/2")
 NFS_WATCH_BASE_DIR = _nfs_directories.get("nfs_watch_base_direcotry", "ingestion/3")
 NFS_WATCH_DEST_DIR = _nfs_directories.get("nfs_watch_destination_directory", "watch")
-NFS_TILES_DIR = _nfs_directories.get('nfs_tiles_dir', None)
+NFS_TILES_DIR = _nfs_directories.get("nfs_tiles_dir", None)
 
 """
 #  PVC ROUTES  #
@@ -192,11 +196,11 @@ MOCK_IMAGERY_RAW_DATA_FILE = _mock_data.get("mock_data_file")
 """
 # Geopackage params
 """
-_geopack_vars = conf.get('overseer_params')
-GEO_PACKAGE_SRC_NFS = _geopack_vars.get('geopackage_src_dir_nfs')
-GEO_PACKAGE_DEST_NFS = _geopack_vars.get('geopackage_dest_dir_nfs')
-GEO_PACKAGE_SRC_PVC = _geopack_vars.get('geopackage_src_dir_pvc')
-GEO_PACKAGE_DEST_PVC = _geopack_vars.get('geopackage_dest_dir_pvc')
+_geopack_vars = conf.get("overseer_params")
+GEO_PACKAGE_SRC_NFS = _geopack_vars.get("geopackage_src_dir_nfs")
+GEO_PACKAGE_DEST_NFS = _geopack_vars.get("geopackage_dest_dir_nfs")
+GEO_PACKAGE_SRC_PVC = _geopack_vars.get("geopackage_src_dir_pvc")
+GEO_PACKAGE_DEST_PVC = _geopack_vars.get("geopackage_dest_dir_pvc")
 
 """
 #  Zoom level limit params  #
@@ -214,9 +218,11 @@ DIFFERENT_ZOOM_LEVEL_DELAY_16 = _zoom_level_limit_config.get("diff_zoom_level_16
 _delay_config = conf.get("delay_config")
 DELAY_INGESTION_TEST = _delay_config.get("system_delay_ingestion_test", 220)
 DELAY_INVALID_IMAGE_TEST = _delay_config.get("system_delay_invalid_image_test", 120)
-DELAY_MAPPROXY_PYCSW_VALIDATION = _delay_config.get("system_delay_inestion_pycsw_validation", 120)
-DELAY_PRIORITY_FIRST_JOB = _delay_config.get('system_delay_priority_first_job', 120)
-DELAY_PRIORITY_SECOND_JOB = _delay_config.get('system_delay_priority_second_job', 120)
+DELAY_MAPPROXY_PYCSW_VALIDATION = _delay_config.get(
+    "system_delay_inestion_pycsw_validation", 120
+)
+DELAY_PRIORITY_FIRST_JOB = _delay_config.get("system_delay_priority_first_job", 120)
+DELAY_PRIORITY_SECOND_JOB = _delay_config.get("system_delay_priority_second_job", 120)
 
 PYCSW_GET_RECORD_PARAMS = {
     "service": PYCSW_SERVICE,

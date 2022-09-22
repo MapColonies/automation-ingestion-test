@@ -51,7 +51,11 @@
 #
 #
 # # print(type(dod))
+import asyncio
+import time
 from textwrap import dedent
+
+import pytest
 
 # print(dedent("""
 # The Gothons of Planet Percal #25 have invaded your ship and
@@ -67,18 +71,16 @@ from textwrap import dedent
 # 15 about to pull a weapon to blast you.
 # """))
 
-import asyncio
-import time
-
-import pytest
 
 @pytest.fixture
 def input_value():
-   input = 39
-   return input
+    input = 39
+    return input
+
 
 def test_divisible_by_3(input_value):
-   assert input_value % 3 == 0
+    assert input_value % 3 == 0
+
 
 def test_divisible_by_6(input_value):
-   assert input_value % 6 == 3
+    assert input_value % 6 == 3

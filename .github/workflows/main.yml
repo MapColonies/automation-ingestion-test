@@ -9,7 +9,7 @@ jobs:
 
   build_and_test:
     runs-on: ubuntu-latest
-    env: 
+    env:
       ACTIONS_ALLOW_UNSECURE_COMMANDS: true
     steps:
     - name: Checkout
@@ -17,11 +17,11 @@ jobs:
     - name: setup version
       run: |
           ./generate_version.sh
-          
+
     - name: Print version
       run: |
           echo "the version is:"  ${{ env.TAG_NAME }}
-      
+
     - name: Azure Pipelines Action
       uses: Azure/pipelines@v1
       with:
@@ -36,4 +36,4 @@ jobs:
       uses: snyk/actions/node@master
       continue-on-error: true
       env:
-        SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}  
+        SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}

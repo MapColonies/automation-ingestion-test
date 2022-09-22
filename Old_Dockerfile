@@ -39,4 +39,3 @@ RUN apk add iputils
 USER app:app
 # cmd to run
 CMD ["/bin/sh","-c", "/source_code/start.sh"]
-

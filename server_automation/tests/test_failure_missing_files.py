@@ -1,9 +1,13 @@
 import logging
 from time import sleep
-from server_automation.configuration import config
-from server_automation.functions.executors import stop_watch, init_ingestion_src, delete_file_from_folder, \
-    write_text_to_file, start_manual_ingestion
+
 from conftest_val import ValueStorage
+from server_automation.configuration import config
+from server_automation.functions.executors import delete_file_from_folder
+from server_automation.functions.executors import init_ingestion_src
+from server_automation.functions.executors import start_manual_ingestion
+from server_automation.functions.executors import stop_watch
+from server_automation.functions.executors import write_text_to_file
 
 _log = logging.getLogger("server_automation.tests.test_failure_missing_files")
 
@@ -34,16 +38,20 @@ def test_missing_files():
         sleep(5)
 
         if config.WRITE_TEXT_TO_FILE:
-            write_text_to_file('//tmp//shlomo.txt',
-                               {'source_dir': source_directory, 'product_id_version': ValueStorage.discrete_list,
-                                'test_name': test_missing_files.__name__})
+            write_text_to_file(
+                "//tmp//shlomo.txt",
+                {
+                    "source_dir": source_directory,
+                    "product_id_version": ValueStorage.discrete_list,
+                    "test_name": test_missing_files.__name__,
+                },
+            )
 
         delete_file_from_folder(source_directory, missing_file)
 
         try:
             status_code, content, source_data = start_manual_ingestion(
-                source_directory
-                , False
+                source_directory, False
             )
         except Exception as e:
             content = str(e)

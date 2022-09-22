@@ -1,12 +1,14 @@
 """This module responsible interface with orig upload directory"""
 import logging
 import os
-from mc_automation_tools import shape_convertor as sv
-from server_automation.configuration import config as a_config
+from pathlib import Path
+
 from discrete_kit.configuration import config as cfg
 from discrete_kit.functions.shape_functions import *
 from discrete_kit.validator.schema_validator import *
-from pathlib import Path
+from mc_automation_tools import shape_convertor as sv
+
+from server_automation.configuration import config as a_config
 
 _log = logging.getLogger("server_automation.ingestion_api.discrete_directory_loader")
 

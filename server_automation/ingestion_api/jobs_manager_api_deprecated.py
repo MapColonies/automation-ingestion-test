@@ -2,8 +2,11 @@
 This module is the wrapper for job manager api according provided swagger
 """
 import json
+
+from mc_automation_tools import base_requests
+from mc_automation_tools import common
+
 from server_automation.configuration import config
-from mc_automation_tools import base_requests, common
 
 
 class JobsTasksManager:

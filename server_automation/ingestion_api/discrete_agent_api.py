@@ -1,11 +1,12 @@
 """
 This module wrapping agent api's restful functionality
 """
-
 import logging
-from server_automation.configuration import config
-from mc_automation_tools import common
+
 from mc_automation_tools import base_requests
+from mc_automation_tools import common
+
+from server_automation.configuration import config
 
 logging.getLogger("server_automation.ingestion_api.discrete_agent_api")
 

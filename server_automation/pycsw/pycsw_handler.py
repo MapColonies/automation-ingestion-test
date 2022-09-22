@@ -1,8 +1,10 @@
 """This module provide multiple pycsw client requests"""
 import json
+
 import xmltodict
-from server_automation.configuration import config
 from mc_automation_tools import base_requests
+
+from server_automation.configuration import config
 
 CSW_SEARCH_RESULTS = "csw:SearchResults"
 
@@ -20,7 +22,9 @@ def get_raster_records(host=config.PYCSW_URL, params=config.PYCSW_GET_RECORD_PAR
     next_record = -1
     try:
         while next_record:
-            resp = base_requests.send_get_request(host, params,header=config.HEADERS_FOR_MAPPROXY)
+            resp = base_requests.send_get_request(
+                host, params, header=config.HEADERS_FOR_MAPPROXY
+            )
             s_code = resp.status_code
             if s_code != config.ResponseCode.Ok.value:
                 raise RuntimeError(
@@ -48,10 +52,10 @@ def get_raster_records(host=config.PYCSW_URL, params=config.PYCSW_GET_RECORD_PAR
 
 
 def get_record_by_id(
-        product_name,
-        product_id,
-        host=config.PYCSW_URL,
-        params=config.PYCSW_GET_RECORD_PARAMS,
+    product_name,
+    product_id,
+    host=config.PYCSW_URL,
+    params=config.PYCSW_GET_RECORD_PARAMS,
 ):
     """
     This method find record by semi unique ID -> product_name & product_id
@@ -66,8 +70,8 @@ def get_record_by_id(
         record
         for record in res
         if (
-                record["mc:productId"] == product_name
-                and record["mc:productVersion"] == product_id
+            record["mc:productId"] == product_name
+            and record["mc:productVersion"] == product_id
         )
     ]
     return records_list

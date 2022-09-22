@@ -1,7 +1,8 @@
 """This module provide multiple test of ingestion services"""
 import logging
-from conftest_val import ValueStorage
 import time
+
+from conftest_val import ValueStorage
 from server_automation.configuration import config
 from server_automation.functions import executors
 from server_automation.postgress import postgress_adapter
@@ -61,7 +62,7 @@ def test_watch_discrete_ingest():
     Start watch ingestion:
     1) Validate source directory
     2) Create and return Shapefile JSON object
-    
+
     """
     try:
         state, content, source_data = executors.start_watch_ingestion(
@@ -93,7 +94,7 @@ def test_watch_discrete_ingest():
     """
     PYCSW Validation:
     1) Get record from pycsw.
-    2) Validation pycsw with shapefile json and returns assertion 
+    2) Validation pycsw with shapefile json and returns assertion
     """
     try:
         resp, pycsw_record, links = executors.validate_pycsw2(
@@ -148,6 +149,7 @@ def teardown_module(module):  # pylint: disable=unused-argument
             executors.cleanup_env(
                 p["product_id"], p["product_version"], initial_mapproxy_config
             )
+
 
 # ToDo: Uncomment those only
 # if config.DEBUG_MODE_LOCAL:

@@ -1,9 +1,13 @@
 import logging
 from time import sleep
-from server_automation.configuration import config
-from server_automation.functions.executors import stop_watch, init_ingestion_src, azure_pvc_api, start_manual_ingestion, \
-    write_text_to_file
+
 from conftest_val import ValueStorage
+from server_automation.configuration import config
+from server_automation.functions.executors import azure_pvc_api
+from server_automation.functions.executors import init_ingestion_src
+from server_automation.functions.executors import start_manual_ingestion
+from server_automation.functions.executors import stop_watch
+from server_automation.functions.executors import write_text_to_file
 
 _log = logging.getLogger(
     "server_automation.tests.test_failure_illegal_zoom_level_limit"
@@ -31,9 +35,14 @@ def test_illegal_zoom():
     _log.info(f"{product_id} {product_version}")
     sleep(5)
     if config.WRITE_TEXT_TO_FILE:
-        write_text_to_file('//tmp//shlomo.txt',
-                           {'source_dir': source_directory, 'product_id_version': ValueStorage.discrete_list,
-                            'test_name': test_illegal_zoom.__name__})
+        write_text_to_file(
+            "//tmp//shlomo.txt",
+            {
+                "source_dir": source_directory,
+                "product_id_version": ValueStorage.discrete_list,
+                "test_name": test_illegal_zoom.__name__,
+            },
+        )
     config.PVC_UPDATE_ZOOM = True
     config.MAX_ZOOM_TO_CHANGE = 3  # 4
     pvc_handler = azure_pvc_api.PVCHandler(

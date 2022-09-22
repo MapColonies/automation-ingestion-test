@@ -37,7 +37,7 @@ class JobStatus(enum.Enum):
 
 
 class S3Provider:
-    """This class provide s3 credential """
+    """This class provide s3 credential"""
 
     def __init__(self, entrypoint_url, access_key, secret_key, bucket_name=None):
         self.s3_entrypoint_url = entrypoint_url

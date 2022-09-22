@@ -1,15 +1,18 @@
 """This module provides multiple test of ingestion services"""
+import json
+import logging
 import shutil
 from time import sleep
-import logging
-import json
-from server_automation.configuration import config
-from discrete_kit.validator.json_compare_pycsw import *
+
 from discrete_kit.functions.shape_functions import ShapeToJSON
+from discrete_kit.validator.json_compare_pycsw import *
+from mc_automation_tools.parse.stringy import pad_with_minus
+from mc_automation_tools.parse.stringy import pad_with_stars
+
+from conftest_val import ValueStorage
+from server_automation.configuration import config
 from server_automation.functions.executors import *
 from server_automation.postgress import postgress_adapter
-from mc_automation_tools.parse.stringy import pad_with_minus, pad_with_stars
-from conftest_val import ValueStorage
 
 _log = logging.getLogger("server_automation.tests.test_ingestion_discrete")
 
@@ -24,7 +27,9 @@ def test_manual_discrete_ingest():
 
     watch_resp = stop_watch()
     if watch_resp:
-        _log.info(f"watch state = {watch_resp['state']}, watch response is : {watch_resp['reason']}")
+        _log.info(
+            f"watch state = {watch_resp['state']}, watch response is : {watch_resp['reason']}"
+        )
 
     resp_from_init_folder = init_ingestion_folder()
 
@@ -38,13 +43,18 @@ def test_manual_discrete_ingest():
 
     if config.WRITE_TEXT_TO_FILE:
         _log.info("Starting - Write Tests to files.................")
-        write_text_to_file('//tmp//test_runs.txt',
-                           {'source_dir': source_directory, 'product_id_version': ValueStorage.discrete_list,
-                            'test_name': test_manual_discrete_ingest.__name__,
-                            'folder_to_delete': ValueStorage.folder_to_delete})
+        write_text_to_file(
+            "//tmp//test_runs.txt",
+            {
+                "source_dir": source_directory,
+                "product_id_version": ValueStorage.discrete_list,
+                "test_name": test_manual_discrete_ingest.__name__,
+                "folder_to_delete": ValueStorage.folder_to_delete,
+            },
+        )
         _log.info("Finished - Write Tests to files.................")
 
-    _log.info(f'Starting - manual ingestion...............')
+    _log.info(f"Starting - manual ingestion...............")
     try:
         status_code, content, source_data = start_manual_ingestion(source_directory)
     except Exception as e:
@@ -109,29 +119,38 @@ def test_manual_discrete_ingest():
     # validating new discrete on mapproxy
 
     try:
-        params = {'mapproxy_endpoint_url': config.MAPPROXY_URL,
-                  'tiles_storage_provide': config.TILES_PROVIDER,
-                  'grid_origin': config.MAPPROXY_GRID_ORIGIN,
-                  'nfs_tiles_url': config.NFS_TILES_DIR}
+        params = {
+            "mapproxy_endpoint_url": config.MAPPROXY_URL,
+            "tiles_storage_provide": config.TILES_PROVIDER,
+            "grid_origin": config.MAPPROXY_GRID_ORIGIN,
+            "nfs_tiles_url": config.NFS_TILES_DIR,
+        }
 
         if config.TILES_PROVIDER.lower() == "s3":
-            params['endpoint_url'] = config.S3_ENDPOINT_URL
-            params['access_key'] = config.S3_ACCESS_KEY
-            params['secret_key'] = config.S3_SECRET_KEY
-            params['bucket_name'] = config.S3_BUCKET_NAME
+            params["endpoint_url"] = config.S3_ENDPOINT_URL
+            params["access_key"] = config.S3_ACCESS_KEY
+            params["secret_key"] = config.S3_SECRET_KEY
+            params["bucket_name"] = config.S3_BUCKET_NAME
         sleep(100)
-        result = validate_mapproxy_layer(pycsw_record, product_id, product_version, header=config.HEADERS_FOR_MAPPROXY,
-                                         params=params)
-        mapproxy_validation_state = result['validation']
-        msg = result['reason']
+        result = validate_mapproxy_layer(
+            pycsw_record,
+            product_id,
+            product_version,
+            header=config.HEADERS_FOR_MAPPROXY,
+            params=params,
+        )
+        mapproxy_validation_state = result["validation"]
+        msg = result["reason"]
 
     except Exception as e:
         mapproxy_validation_state = False
         msg = str(e)
 
-    assert mapproxy_validation_state, f'Test: [{test_manual_discrete_ingest.__name__}] Failed: Validation of mapproxy urls\n' \
-                                      f'related errors:\n' \
-                                      f'{msg}'
+    assert mapproxy_validation_state, (
+        f"Test: [{test_manual_discrete_ingest.__name__}] Failed: Validation of mapproxy urls\n"
+        f"related errors:\n"
+        f"{msg}"
+    )
     if config.DEBUG_MODE_LOCAL:
         cleanup_env(product_id, product_version, initial_mapproxy_config)
 
@@ -172,14 +191,17 @@ def test_watch_discrete_ingest():
     ValueStorage.folder_to_delete = source_directory.split("/watch/")[-1]
     _log.info(f"{product_id} {product_version}")
     _log.info(f"watch ingestion init - source_directory: {source_directory}")
-    write_text_to_file('//tmp//shlomo.txt',
-                       {'source_dir': source_directory, 'product_id_version': ValueStorage.discrete_list,
-                        'test_name': test_watch_discrete_ingest.__name__,
-                        'folder_to_delete': ValueStorage.folder_to_delete})
+    write_text_to_file(
+        "//tmp//shlomo.txt",
+        {
+            "source_dir": source_directory,
+            "product_id_version": ValueStorage.discrete_list,
+            "test_name": test_watch_discrete_ingest.__name__,
+            "folder_to_delete": ValueStorage.folder_to_delete,
+        },
+    )
     try:
-        state, content, source_data = start_watch_ingestion(
-            source_directory
-        )
+        state, content, source_data = start_watch_ingestion(source_directory)
     except Exception as e:
         status_code = "unknown"
         content = str(e)
@@ -243,29 +265,38 @@ def test_watch_discrete_ingest():
     # validating new discrete on mapproxy
 
     try:
-        params = {'mapproxy_endpoint_url': config.MAPPROXY_URL,
-                  'tiles_storage_provide': config.TILES_PROVIDER,
-                  'grid_origin': config.MAPPROXY_GRID_ORIGIN,
-                  'nfs_tiles_url': config.NFS_TILES_DIR}
+        params = {
+            "mapproxy_endpoint_url": config.MAPPROXY_URL,
+            "tiles_storage_provide": config.TILES_PROVIDER,
+            "grid_origin": config.MAPPROXY_GRID_ORIGIN,
+            "nfs_tiles_url": config.NFS_TILES_DIR,
+        }
 
         if config.TILES_PROVIDER.lower() == "s3":
-            params['endpoint_url'] = config.S3_ENDPOINT_URL
-            params['access_key'] = config.S3_ACCESS_KEY
-            params['secret_key'] = config.S3_SECRET_KEY
-            params['bucket_name'] = config.S3_BUCKET_NAME
+            params["endpoint_url"] = config.S3_ENDPOINT_URL
+            params["access_key"] = config.S3_ACCESS_KEY
+            params["secret_key"] = config.S3_SECRET_KEY
+            params["bucket_name"] = config.S3_BUCKET_NAME
 
-        result = validate_mapproxy_layer(pycsw_record, product_id, product_version, header=config.HEADERS_FOR_MAPPROXY,
-                                         params=params)
-        mapproxy_validation_state = result['validation']
-        msg = result['reason']
+        result = validate_mapproxy_layer(
+            pycsw_record,
+            product_id,
+            product_version,
+            header=config.HEADERS_FOR_MAPPROXY,
+            params=params,
+        )
+        mapproxy_validation_state = result["validation"]
+        msg = result["reason"]
 
     except Exception as e:
         mapproxy_validation_state = False
         msg = str(e)
 
-    assert mapproxy_validation_state, f'Test: [{test_watch_discrete_ingest.__name__}] Failed: Validation of mapproxy urls\n' \
-                                      f'related errors:\n' \
-                                      f'{msg}'
+    assert mapproxy_validation_state, (
+        f"Test: [{test_watch_discrete_ingest.__name__}] Failed: Validation of mapproxy urls\n"
+        f"related errors:\n"
+        f"{msg}"
+    )
 
     # validate new discrete on pycsw records
     # try:
@@ -311,8 +342,9 @@ def test_watch_discrete_ingest():
             f'watch ingestion, Finish running watch ingestion. Watch status: [{resp["reason"]}]'
         )
 
+
 def init_ingestion_folder():
-    _log.info('\n' + pad_with_stars('Started - init_ingestion_folder'))
+    _log.info("\n" + pad_with_stars("Started - init_ingestion_folder"))
     try:
         resp = init_ingestion_src()
         error_msg = None
@@ -323,7 +355,7 @@ def init_ingestion_folder():
         resp
     ), f"Test: [{test_manual_discrete_ingest.__name__}] Failed: on creating and updating layerSource folder [{error_msg}]"
     _log.info(f"Response [init_ingestion_src] : {resp}")
-    _log.info(pad_with_minus('\nFinished - init_ingestion_folder'))
+    _log.info(pad_with_minus("\nFinished - init_ingestion_folder"))
     return resp
 
 

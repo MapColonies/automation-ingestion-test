@@ -1,17 +1,16 @@
 import logging
 from time import sleep
-from server_automation.configuration import config
-from server_automation.functions.executors import (
-    stop_watch,
-    init_ingestion_src,
-    azure_pvc_api,
-    start_manual_ingestion,
-    s3,
-    write_text_to_file,
-    update_shape_zoom_level
-)
-from server_automation.postgress import postgress_adapter
+
 from conftest_val import ValueStorage
+from server_automation.configuration import config
+from server_automation.functions.executors import azure_pvc_api
+from server_automation.functions.executors import init_ingestion_src
+from server_automation.functions.executors import s3
+from server_automation.functions.executors import start_manual_ingestion
+from server_automation.functions.executors import stop_watch
+from server_automation.functions.executors import update_shape_zoom_level
+from server_automation.functions.executors import write_text_to_file
+from server_automation.postgress import postgress_adapter
 
 LIST_OBJECT_FROM_S_ = "Getting list object from S3"
 
@@ -57,17 +56,22 @@ def test_zoom_level(zoom_lvl):
     _log.info(f"{product_id} {product_version}")
     sleep(5)
     if config.WRITE_TEXT_TO_FILE:
-        write_text_to_file('//tmp//shlomo.txt',
-                           {'source_dir': source_directory, 'product_id_version': ValueStorage.discrete_list,
-                            'test_name': test_zoom_level.__name__})
+        write_text_to_file(
+            "//tmp//shlomo.txt",
+            {
+                "source_dir": source_directory,
+                "product_id_version": ValueStorage.discrete_list,
+                "test_name": test_zoom_level.__name__,
+            },
+        )
         _log.info(f"changing zoom to level : {zoom_lvl}")
 
-    if config.SOURCE_DATA_PROVIDER.lower() == 'pv':
+    if config.SOURCE_DATA_PROVIDER.lower() == "pv":
         pvc_handler = azure_pvc_api.PVCHandler(
             endpoint_url=config.PVC_HANDLER_ROUTE, watch=False
         )
         pvc_handler.change_max_zoom_tfw(zoom_lvl)
-    if config.SOURCE_DATA_PROVIDER.lower() == 'nfs':
+    if config.SOURCE_DATA_PROVIDER.lower() == "nfs":
         update_shape_zoom_level(zoom_lvl)
     try:
         status_code, content, source_data = start_manual_ingestion(
@@ -110,7 +114,7 @@ def test_zoom_level(zoom_lvl):
             raise IndexError(f"Out of index in path , with msg {str(e)}")
         _log.info(f"sorted folders file from s3: {verification_list_0_to_4}")
         assert (
-                verification_list_0_to_4 == ZOOM_LEVEL_0_TO_4
+            verification_list_0_to_4 == ZOOM_LEVEL_0_TO_4
         ), f"Test: [{test_zoom_level.__name__}] Failed: on validation : actual [{verification_list_0_to_4} , expected {ZOOM_LEVEL_0_TO_4}]"
 
     elif zoom_lvl == config.SECOND_ZOOM_LEVEL:
@@ -138,7 +142,7 @@ def test_zoom_level(zoom_lvl):
             raise IndexError(f"Out of index in path , with msg {str(e)}")
         _log.info(f"sorted folders file from s3: {verification_list_0_to_10}")
         assert (
-                verification_list_0_to_10 == ZOOM_LEVEL_0_TO_10
+            verification_list_0_to_10 == ZOOM_LEVEL_0_TO_10
         ), f"Test: [{test_zoom_level.__name__}] Failed: on validation : actual [{verification_list_0_to_10} , expected {ZOOM_LEVEL_0_TO_10}]"
 
     elif zoom_lvl == config.THIRD_ZOOM_LEVEL:
@@ -166,23 +170,23 @@ def test_zoom_level(zoom_lvl):
             raise IndexError(f"Out of index in path , with msg {str(e)}")
         _log.info(f"sorted folders file from s3: {verification_list_0_to_16}")
         assert (
-                verification_list_0_to_16 == ZOOM_LEVEL_0_TO_16
+            verification_list_0_to_16 == ZOOM_LEVEL_0_TO_16
         ), f"Test: [{test_zoom_level.__name__}] Failed: on validation : actual [{verification_list_0_to_16} , expected {ZOOM_LEVEL_0_TO_16}]"
     else:
         raise RuntimeError(f"Failed : unmatch zoom level , zoom level is {zoom_lvl}")
 
 
 if config.RUN_IT:
+
     def test_zoom_level_first():
         test_zoom_level(config.FIRST_ZOOM_LEVEL)
-
 
     def test_zoom_level_second():
         test_zoom_level(config.SECOND_ZOOM_LEVEL)
 
-
     def test_zoom_level_third():
         test_zoom_level(config.THIRD_ZOOM_LEVEL)
+
 
 test_zoom_level_first()
 # test_zoom_level_second()

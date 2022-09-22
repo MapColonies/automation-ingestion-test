@@ -1,11 +1,19 @@
 import logging
 from time import sleep
+
 from discrete_kit.functions.shape_functions import ShapeToJSON
-from server_automation.configuration import config
-from server_automation.functions.executors import stop_watch, init_ingestion_src, write_text_to_file, azure_pvc_api, \
-    create_mock_file, start_manual_ingestion, follow_running_task, follow_running_job_manager
-from server_automation.postgress import postgress_adapter
+
 from conftest_val import ValueStorage
+from server_automation.configuration import config
+from server_automation.functions.executors import azure_pvc_api
+from server_automation.functions.executors import create_mock_file
+from server_automation.functions.executors import follow_running_job_manager
+from server_automation.functions.executors import follow_running_task
+from server_automation.functions.executors import init_ingestion_src
+from server_automation.functions.executors import start_manual_ingestion
+from server_automation.functions.executors import stop_watch
+from server_automation.functions.executors import write_text_to_file
+from server_automation.postgress import postgress_adapter
 
 _log = logging.getLogger("server_automation.tests.test_invalid_imagery_data")
 
@@ -31,27 +39,30 @@ def test_invalid_data():
     source_directory = resp["ingestion_dir"]
     _log.info("%s %s", product_id, product_version)
     if config.WRITE_TEXT_TO_FILE:
-        write_text_to_file('//tmp//shlomo.txt',
-                           {'source_dir': source_directory, 'product_id_version': ValueStorage.discrete_list,
-                            'test_name': test_invalid_data.__name__})
+        write_text_to_file(
+            "//tmp//shlomo.txt",
+            {
+                "source_dir": source_directory,
+                "product_id_version": ValueStorage.discrete_list,
+                "test_name": test_invalid_data.__name__,
+            },
+        )
     sleep(5)
-    if config.SOURCE_DATA_PROVIDER.lower() == 'pv':
+    if config.SOURCE_DATA_PROVIDER.lower() == "pv":
         pvc_handler = azure_pvc_api.PVCHandler(
             endpoint_url=config.PVC_HANDLER_ROUTE, watch=False
         )
         pvc_handler.create_mock_file(
             config.MOCK_IMAGERY_RAW_DATA_PATH_PVC, config.MOCK_IMAGERY_RAW_DATA_FILE_PVC
         )
-    if config.SOURCE_DATA_PROVIDER.lower() == 'nfs':
+    if config.SOURCE_DATA_PROVIDER.lower() == "nfs":
         create_mock_file(
             config.MOCK_IMAGERY_RAW_DATA_PATH, config.MOCK_IMAGERY_RAW_DATA_FILE
         )
     # ToDo : Change the source of .tif for NFS
 
     try:
-        status_code, content, source_data = start_manual_ingestion(
-            source_directory
-        )
+        status_code, content, source_data = start_manual_ingestion(source_directory)
     except Exception as e:
         status_code = "unknown"
         content = str(e)

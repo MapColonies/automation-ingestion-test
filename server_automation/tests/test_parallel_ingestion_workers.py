@@ -1,12 +1,19 @@
 import logging
-import shutil
 import os
-from server_automation.configuration import config
-from server_automation.functions.executors import postgress_adapter, init_ingestion_src, write_text_to_file, \
-    azure_pvc_api, start_manual_ingestion, follow_parallel_running_tasks, stop_watch, cleanup_env, \
-    update_shape_zoom_level
-from conftest_val import ValueStorage
+import shutil
 from time import sleep
+
+from conftest_val import ValueStorage
+from server_automation.configuration import config
+from server_automation.functions.executors import azure_pvc_api
+from server_automation.functions.executors import cleanup_env
+from server_automation.functions.executors import follow_parallel_running_tasks
+from server_automation.functions.executors import init_ingestion_src
+from server_automation.functions.executors import postgress_adapter
+from server_automation.functions.executors import start_manual_ingestion
+from server_automation.functions.executors import stop_watch
+from server_automation.functions.executors import update_shape_zoom_level
+from server_automation.functions.executors import write_text_to_file
 
 """
   For 2 Workers:
@@ -50,26 +57,31 @@ def test_parallel_ingestion():
     ValueStorage.folder_to_delete = source_directory.split("/watch/")[-1]
 
     if config.WRITE_TEXT_TO_FILE:
-        write_text_to_file('//tmp//shlomo.txt',
-                           {'source_dir': source_directory, 'product_id_version': ValueStorage.discrete_list,
-                            'test_name': test_parallel_ingestion.__name__,
-                            'folder_to_delete': ValueStorage.folder_to_delete})
+        write_text_to_file(
+            "//tmp//shlomo.txt",
+            {
+                "source_dir": source_directory,
+                "product_id_version": ValueStorage.discrete_list,
+                "test_name": test_parallel_ingestion.__name__,
+                "folder_to_delete": ValueStorage.folder_to_delete,
+            },
+        )
 
     sleep(5)
 
-    if config.SOURCE_DATA_PROVIDER.lower() == 'pv':
+    if config.SOURCE_DATA_PROVIDER.lower() == "pv":
         pvc_handler = azure_pvc_api.PVCHandler(
             endpoint_url=config.PVC_HANDLER_ROUTE, watch=False
         )
         pvc_handler.change_max_zoom_tfw(12)
     # ================================================================================================================ #
-    if config.SOURCE_DATA_PROVIDER.lower() == 'nfs':
-        resp_from_update = update_shape_zoom_level(source_directory, str(config.MAX_ZOOM_TO_CHANGE))
-        _log.info(f'Zoom update response: {str(resp_from_update)}')
-    try:
-        status_code, content, source_data = start_manual_ingestion(
-            source_directory
+    if config.SOURCE_DATA_PROVIDER.lower() == "nfs":
+        resp_from_update = update_shape_zoom_level(
+            source_directory, str(config.MAX_ZOOM_TO_CHANGE)
         )
+        _log.info(f"Zoom update response: {str(resp_from_update)}")
+    try:
+        status_code, content, source_data = start_manual_ingestion(source_directory)
     except Exception as e:
         status_code = "unknown"
         content = str(e)
@@ -105,7 +117,7 @@ def test_parallel_ingestion():
     _log.info(f"manual ingestion following task response: {resp}")
 
     assert (
-            num_tasks == config.AMOUNT_OF_WORKERS
+        num_tasks == config.AMOUNT_OF_WORKERS
     ), f"Test: [{test_parallel_ingestion.__name__}] Failed: on following ingestion process [{error_msg} , actually {num_tasks} but expected : {config.AMOUNT_OF_WORKERS}]"
     _log.info(f"manual ingestion following task response: {resp}")
     _log.info(

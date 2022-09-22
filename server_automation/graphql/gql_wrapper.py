@@ -1,7 +1,10 @@
 """This module provide all method to access discrete ingestion bff service based on graphql"""
 import logging
+
+from mc_automation_tools import common
+from mc_automation_tools import graphql
+
 from server_automation.configuration import config
-from mc_automation_tools import graphql, common
 
 _log = logging.getLogger("automation_tools.graphql.gql_wrapper")
 

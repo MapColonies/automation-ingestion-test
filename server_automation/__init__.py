@@ -2,9 +2,9 @@
 """
 base initialization of automation infrastructure - init logger and etc.
 """
+import datetime
 import logging
 import os
-import datetime
 
 log_mode = os.environ.get("DEBUG_LOGS", None)
 file_log = os.environ.get("FILE_LOGS", None)

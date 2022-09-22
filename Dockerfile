@@ -57,4 +57,3 @@ RUN useradd -ms /bin/bash user && usermod -a -G root user
 USER user
 # cmd to run
 CMD "/source_code/start.sh"
-

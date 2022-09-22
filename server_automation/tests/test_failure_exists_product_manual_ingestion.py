@@ -1,11 +1,19 @@
 import logging
 import os
-from server_automation.configuration import config
-from server_automation.functions.executors import postgress_adapter, init_ingestion_src, start_manual_ingestion, \
-    write_text_to_file, follow_running_task, follow_running_job_manager, azure_pvc_api, stop_watch, cleanup_env
-from conftest_val import ValueStorage
-from time import sleep
 import shutil
+from time import sleep
+
+from conftest_val import ValueStorage
+from server_automation.configuration import config
+from server_automation.functions.executors import azure_pvc_api
+from server_automation.functions.executors import cleanup_env
+from server_automation.functions.executors import follow_running_job_manager
+from server_automation.functions.executors import follow_running_task
+from server_automation.functions.executors import init_ingestion_src
+from server_automation.functions.executors import postgress_adapter
+from server_automation.functions.executors import start_manual_ingestion
+from server_automation.functions.executors import stop_watch
+from server_automation.functions.executors import write_text_to_file
 
 _log = logging.getLogger("server_automation.tests.test_ingestion_discrete")
 
@@ -33,17 +41,20 @@ def test_exists_product_manual_ingestion():
     source_directory = resp["ingestion_dir"]
     ValueStorage.folder_to_delete = source_directory.split("/watch/")[-1]
     if config.WRITE_TEXT_TO_FILE:
-        write_text_to_file('//tmp//shlomo.txt',
-                           {'source_dir': source_directory, 'product_id_version': ValueStorage.discrete_list,
-                            'test_name': test_exists_product_manual_ingestion.__name__,
-                            'folder_to_delete': ValueStorage.folder_to_delete})
+        write_text_to_file(
+            "//tmp//shlomo.txt",
+            {
+                "source_dir": source_directory,
+                "product_id_version": ValueStorage.discrete_list,
+                "test_name": test_exists_product_manual_ingestion.__name__,
+                "folder_to_delete": ValueStorage.folder_to_delete,
+            },
+        )
     _log.info(f"{product_id} {product_version}")
     sleep(5)
     # ================================================================================================================ #
     try:
-        status_code, content, source_data = start_manual_ingestion(
-            source_directory
-        )
+        status_code, content, source_data = start_manual_ingestion(source_directory)
     except Exception as e:
         status_code = "unknown"
         content = str(e)
@@ -80,9 +91,7 @@ def test_exists_product_manual_ingestion():
     sleep(config.DELAY_INGESTION_TEST)
 
     try:
-        status_code, content, source_data = start_manual_ingestion(
-            source_directory
-        )
+        status_code, content, source_data = start_manual_ingestion(source_directory)
     except Exception as e:
         status_code = "unknown"
         content = str(e)

@@ -1,17 +1,23 @@
 import json
+
 import jsonschema
-from jsonschema import validate
-from server_automation.functions.executors import *
 from discrete_kit.configuration.config import validate_ext_files_exists
+from jsonschema import validate
 
-#
-from server_automation.ingestion_api.discrete_directory_loader import get_folder_path_by_name
-
-job_task_handler = job_manager_api.JobsTasksManager(
-    config.JOB_MANAGER_URL
+from server_automation.functions.executors import *
+from server_automation.ingestion_api.discrete_directory_loader import (
+    get_folder_path_by_name,
 )
 
-print(job_task_handler.updates_job('01140c91-efa7-4f8b-8edd-902f5728a048', {"priority": 15000}))
+#
+
+job_task_handler = job_manager_api.JobsTasksManager(config.JOB_MANAGER_URL)
+
+print(
+    job_task_handler.updates_job(
+        "01140c91-efa7-4f8b-8edd-902f5728a048", {"priority": 15000}
+    )
+)
 
 #
 # def validate_json_keys(path_to_schema_key, json_to_validate):
