@@ -29,13 +29,17 @@ if st.button("Run Test "):
     process.start()
     with st.expander('Logs', expanded=True):
         placeholder = st.empty()
+        counter = 0
         with st.empty():
             while process.is_alive():
-                time.sleep(2)
+                time.sleep(1.5)
                 if os.path.exists(LOGS):
                     with open(LOGS, 'r') as l:
                         st.code(l.read(), language="python")
-        # Clear all those elements:
+              #  if st.button("Stop test", key=counter):
+               #     process.kill()
+                # Clear all those elements:
+             #   counter += 1
         placeholder.empty()
 
     # st.write(os.system(f"CONF_FILE={fp} py.test {path} >{LOGS}"))
