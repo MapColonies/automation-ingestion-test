@@ -1,0 +1,9 @@
+{
+  "environment": {
+    "tiles_provider_mode": "s3"
+  },
+  "test_manual_ingestion_params": {
+    "zoom_level": 4,
+    "system_delay_ingestion_test": ""
+  }
+}

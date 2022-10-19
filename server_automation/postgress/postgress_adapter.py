@@ -7,7 +7,9 @@ from server_automation.configuration import config
 _log = logging.getLogger("server_automation.postgress.postgress_adapter")
 
 
-def get_current_job_id(product_id, product_version, db_name=config.PG_JOB_TASK_DB_NAME):
+def get_current_job_id(
+    product_id, product_version, db_name=config.PG_JOB_TASK_DB_NAME
+):
     """This method query and return uuid of current ingestion job according keys: productId and productVersion"""
     client = postgres.PGClass(
         config.PG_HOST,
@@ -22,7 +24,9 @@ def get_current_job_id(product_id, product_version, db_name=config.PG_JOB_TASK_D
         "Job", keys_values, order_key="creationTime", order_desc=True
     )
     latest_job_id = res[0][0]
-    _log.info(f"Received current job id: [{latest_job_id}], from date: {res[0][6]}")
+    _log.info(
+        f"Received current job id: [{latest_job_id}], from date: {res[0][6]}"
+    )
     return latest_job_id
 
 
@@ -53,13 +57,17 @@ def get_tasks_by_job(job_id, db_name=config.PG_JOB_TASK_DB_NAME):
         config.SCHEMA_JOB_MANAGER,
         port=int(config.PG_PORT),
     )
-    res = client.get_rows_by_keys("Task", {"jobId": job_id}, return_as_dict=True)
+    res = client.get_rows_by_keys(
+        "Task", {"jobId": job_id}, return_as_dict=True
+    )
     return res
 
 
 def clean_layer_history(job_id, db_name=config.PG_AGENT):
     """This will directly clean job and related task from db"""
-    deletion_command = f"""DELETE FROM "layer_history" WHERE "layerId"='{job_id}';"""
+    deletion_command = (
+        f"""DELETE FROM "layer_history" WHERE "layerId"='{job_id}';"""
+    )
     client = postgres.PGClass(
         config.PG_HOST,
         db_name,
@@ -135,15 +143,22 @@ def get_mapproxy_config(db_name=config.PG_MAPPROXY_CONFIG):
     )
 
     try:
-        res = client.get_column_by_name(table_name="config", column_name="data")[0]
-        _log.info(f"got json-config ok")
+        res = client.get_column_by_name(
+            table_name="config", column_name="data"
+        )[0]
+        _log.info("got json-config ok")
         return {"status": "OK", "message": res}
 
     except Exception as e:
-        return {"status": "Failed", "message": f"Failed get json-config: [{str(e)}]"}
+        return {
+            "status": "Failed",
+            "message": f"Failed get json-config: [{str(e)}]",
+        }
 
 
-def get_mapproxy_configs(table_name="config", db_name=config.PG_MAPPROXY_CONFIG):
+def get_mapproxy_configs(
+    table_name="config", db_name=config.PG_MAPPROXY_CONFIG
+):
     """This method query and return uuid of current ingestion job according keys: productId and productVersion"""
 
     client = postgres.PGClass(
@@ -183,6 +198,7 @@ def delete_config_mapproxy(
         port=int(config.PG_PORT),
     )
     res = client.delete_row_by_id(table_name, id, value)
+    return res
 
 
 def delete_pycsw_record(
@@ -204,6 +220,7 @@ def delete_pycsw_record(
         port=int(config.PG_PORT),
     )
     res = client.delete_row_by_id(table_name, product_id, value)
+    return res
 
 
 def delete_agent_path(
@@ -225,3 +242,4 @@ def delete_agent_path(
         port=int(config.PG_PORT),
     )
     res = client.delete_row_by_id(table_name, layer_id, value)
+    return res

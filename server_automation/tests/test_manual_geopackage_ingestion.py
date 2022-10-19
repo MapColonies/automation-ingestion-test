@@ -7,20 +7,26 @@ from time import sleep
 
 from discrete_kit.functions.shape_functions import ShapeToJSON
 from mc_automation_tools.ingestion_api import overseer_api
-from mc_automation_tools.validators import pycsw_validator
 
-from conftest_val import ValueStorage
 from server_automation.configuration import config
-from server_automation.functions.executors import copy_geopackage_file_for_ingest
+from server_automation.functions.executors import (
+    copy_geopackage_file_for_ingest,
+)
 from server_automation.functions.executors import follow_running_job_manager
 from server_automation.functions.executors import follow_running_task
 from server_automation.functions.executors import stop_watch
 from server_automation.functions.executors import validate_geopack_pycsw
 from server_automation.functions.executors import validate_mapproxy_layer
-from server_automation.functions.executors import validate_new_discrete
-from server_automation.postgress import postgress_adapter
 
-_log = logging.getLogger("server_automation.tests.test_manual_geopackage_ingestion")
+# from mc_automation_tools.validators import pycsw_validator
+# from conftest_val import ValueStorage
+
+# from server_automation.functions.executors import validate_new_discrete
+# from server_automation.postgress import postgress_adapter
+
+_log = logging.getLogger(
+    "server_automation.tests.test_manual_geopackage_ingestion"
+)
 
 
 def test_manual_ingestion_geopackage():
@@ -34,7 +40,9 @@ def test_manual_ingestion_geopackage():
     ), f"Test: [{test_manual_ingestion_geopackage.__name__}] Failed: on copy src {src_folder_to_copy} status code :  [{status_code}]"
     _log.info(f"Finished - copy {src_folder_to_copy} to watch folder")
     if config.OVERSEER_JSON_LOCATION is None:
-        path_to_overseer = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        path_to_overseer = os.path.dirname(
+            os.path.dirname(os.path.abspath(__file__))
+        )
         path_to_overseer = os.path.join(
             path_to_overseer, "configuration", "os_param.json"
         )
@@ -81,7 +89,9 @@ def test_manual_ingestion_geopackage():
                 body_json["metadata"]["productVersion"],
             )
             _log.info("Start following job-tasks based on bff api")
-        resp = ingestion_follow_state["status"] == config.JobStatus.Completed.name
+        resp = (
+            ingestion_follow_state["status"] == config.JobStatus.Completed.name
+        )
         error_msg = ingestion_follow_state["message"]
 
     except Exception as e:

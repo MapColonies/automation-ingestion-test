@@ -1,6 +1,4 @@
 """This module provide multiple pycsw client requests"""
-import json
-
 import xmltodict
 from mc_automation_tools import base_requests
 
@@ -11,7 +9,9 @@ CSW_SEARCH_RESULTS = "csw:SearchResults"
 CSW_GET_RECORDS_RESPONSE = "csw:GetRecordsResponse"
 
 
-def get_raster_records(host=config.PYCSW_URL, params=config.PYCSW_GET_RECORD_PARAMS):
+def get_raster_records(
+    host=config.PYCSW_URL, params=config.PYCSW_GET_RECORD_PARAMS
+):
     """
     This function will return all records of raster's data
     :param host: pycsw server's entrypoiny url
@@ -32,14 +32,16 @@ def get_raster_records(host=config.PYCSW_URL, params=config.PYCSW_GET_RECORD_PAR
                 )
 
             records = xmltodict.parse(resp.content)
-            cuurent_records = records[CSW_GET_RECORDS_RESPONSE][CSW_SEARCH_RESULTS][
-                "mc:MCRasterRecord"
-            ]
+            cuurent_records = records[CSW_GET_RECORDS_RESPONSE][
+                CSW_SEARCH_RESULTS
+            ]["mc:MCRasterRecord"]
             params["startPosition"] = records[CSW_GET_RECORDS_RESPONSE][
                 CSW_SEARCH_RESULTS
             ]["@nextRecord"]
             next_record = int(
-                records[CSW_GET_RECORDS_RESPONSE][CSW_SEARCH_RESULTS]["@nextRecord"]
+                records[CSW_GET_RECORDS_RESPONSE][CSW_SEARCH_RESULTS][
+                    "@nextRecord"
+                ]
             )
             records_list = records_list + cuurent_records
 

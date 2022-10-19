@@ -1,11 +1,8 @@
 import logging
-import os
-import shutil
 from time import sleep
 
 from conftest_val import ValueStorage
 from server_automation.configuration import config
-from server_automation.functions.executors import azure_pvc_api
 from server_automation.functions.executors import cleanup_env
 from server_automation.functions.executors import follow_running_job_manager
 from server_automation.functions.executors import follow_running_task
@@ -14,6 +11,10 @@ from server_automation.functions.executors import postgress_adapter
 from server_automation.functions.executors import start_manual_ingestion
 from server_automation.functions.executors import stop_watch
 from server_automation.functions.executors import write_text_to_file
+
+# import os
+# import shutil
+# from server_automation.functions.executors import azure_pvc_api
 
 _log = logging.getLogger("server_automation.tests.test_ingestion_discrete")
 
@@ -54,7 +55,9 @@ def test_exists_product_manual_ingestion():
     sleep(5)
     # ================================================================================================================ #
     try:
-        status_code, content, source_data = start_manual_ingestion(source_directory)
+        status_code, content, source_data = start_manual_ingestion(
+            source_directory
+        )
     except Exception as e:
         status_code = "unknown"
         content = str(e)
@@ -75,8 +78,12 @@ def test_exists_product_manual_ingestion():
                 product_id, product_version
             )
         else:  # following based on bff service
-            ingestion_follow_state = follow_running_task(product_id, product_version)
-        resp = ingestion_follow_state["status"] == config.JobStatus.Completed.name
+            ingestion_follow_state = follow_running_task(
+                product_id, product_version
+            )
+        resp = (
+            ingestion_follow_state["status"] == config.JobStatus.Completed.name
+        )
         error_msg = ingestion_follow_state["message"]
 
     except Exception as e:
@@ -91,7 +98,9 @@ def test_exists_product_manual_ingestion():
     sleep(config.DELAY_INGESTION_TEST)
 
     try:
-        status_code, content, source_data = start_manual_ingestion(source_directory)
+        status_code, content, source_data = start_manual_ingestion(
+            source_directory
+        )
     except Exception as e:
         status_code = "unknown"
         content = str(e)
@@ -111,7 +120,9 @@ def teardown_module(module):  # pylint: disable=unused-argument
     stop_watch()
     if config.CLEAN_UP:
         for p in ValueStorage.discrete_list:
-            cleanup_env(p["product_id"], p["product_version"], initial_mapproxy_config)
+            cleanup_env(
+                p["product_id"], p["product_version"], initial_mapproxy_config
+            )
 
 
 if config.DEBUG_MODE_LOCAL:

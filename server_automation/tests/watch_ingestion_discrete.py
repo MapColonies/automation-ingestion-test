@@ -1,18 +1,28 @@
-import json
+# import json
 import logging
 from time import sleep
 
-from discrete_kit.functions.shape_functions import ShapeToJSON
-from discrete_kit.validator.json_compare_pycsw import *
-from mc_automation_tools.parse.stringy import pad_with_minus
-from mc_automation_tools.parse.stringy import pad_with_stars
-
 from conftest_val import ValueStorage
 from server_automation.configuration import config
-from server_automation.functions.executors import *
+from server_automation.functions.executors import cleanup_env
+from server_automation.functions.executors import follow_running_job_manager
+from server_automation.functions.executors import follow_running_task
+from server_automation.functions.executors import init_watch_ingestion_src
+from server_automation.functions.executors import start_watch_ingestion
+from server_automation.functions.executors import stop_watch
+from server_automation.functions.executors import validate_mapproxy_layer
+from server_automation.functions.executors import validate_pycsw2
+from server_automation.functions.executors import write_text_to_file
 from server_automation.postgress import postgress_adapter
 
-_log = logging.getLogger("server_automation.tests.test_watch_ingestion_discrete")
+# from discrete_kit.functions.shape_functions import ShapeToJSON
+# from discrete_kit.validator.json_compare_pycsw import *
+# from mc_automation_tools.parse.stringy import pad_with_minus
+# from mc_automation_tools.parse.stringy import pad_with_stars
+
+_log = logging.getLogger(
+    "server_automation.tests.test_watch_ingestion_discrete"
+)
 
 if config.DEBUG_MODE_LOCAL:
     initial_mapproxy_config = postgress_adapter.get_mapproxy_configs()
@@ -86,9 +96,13 @@ def test_watch_discrete_ingest():
                 product_id, product_version
             )
         else:  # following based on bff service
-            ingestion_follow_state = follow_running_task(product_id, product_version)
+            ingestion_follow_state = follow_running_task(
+                product_id, product_version
+            )
             _log.info("Start following job-tasks based on bff api")
-        resp = ingestion_follow_state["status"] == config.JobStatus.Completed.name
+        resp = (
+            ingestion_follow_state["status"] == config.JobStatus.Completed.name
+        )
         error_msg = ingestion_follow_state["message"]
 
     except Exception as e:
@@ -121,7 +135,9 @@ def test_watch_discrete_ingest():
             f"{error_msg}"
         )
         _log.info(f"manual ingestion validation - response: {resp}")
-        _log.info(f"manual ingestion validation - pycsw_record: {pycsw_record}")
+        _log.info(
+            f"manual ingestion validation - pycsw_record: {pycsw_record}"
+        )
         _log.info(f"manual ingestion validation - links: {links}")
 
     sleep(config.DELAY_MAPPROXY_PYCSW_VALIDATION)
@@ -176,7 +192,9 @@ def teardown_module(module):  # pylint: disable=unused-argument
     stop_watch()
     if config.CLEAN_UP:
         for p in ValueStorage.discrete_list:
-            cleanup_env(p["product_id"], p["product_version"], initial_mapproxy_config)
+            cleanup_env(
+                p["product_id"], p["product_version"], initial_mapproxy_config
+            )
 
 
 test_watch_discrete_ingest()

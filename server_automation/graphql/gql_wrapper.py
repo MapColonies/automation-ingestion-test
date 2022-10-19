@@ -1,10 +1,11 @@
 """This module provide all method to access discrete ingestion bff service based on graphql"""
 import logging
 
-from mc_automation_tools import common
 from mc_automation_tools import graphql
 
 from server_automation.configuration import config
+
+# from mc_automation_tools import common
 
 _log = logging.getLogger("automation_tools.graphql.gql_wrapper")
 
@@ -22,7 +23,8 @@ def get_job_by_product(product_id, product_version, host=config.GQK_URL):
     job = [
         element
         for element in all_jobs
-        if element["resourceId"] == product_id and element["version"] == product_version
+        if element["resourceId"] == product_id
+        and element["version"] == product_version
     ]
     if not job:
         raise Exception(f"job not found for {product_id}:{product_version}")
@@ -46,6 +48,8 @@ def get_pycsw_record(host, product_id):
 
     except Exception as e:
         _log.error(f"Failed on getting pycsw record with error: [{str(e)}]")
-        raise Exception(f"Failed on getting pycsw record with error: [{str(e)}]")
+        raise Exception(
+            f"Failed on getting pycsw record with error: [{str(e)}]"
+        )
 
     return records

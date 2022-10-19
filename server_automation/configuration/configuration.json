@@ -1,0 +1,148 @@
+{
+  "environment": {
+    "name": "QA",
+    "reporter": true,
+    "shapes_path_name": "Shapes",
+    "delete_ingestion_folder": false,
+    "tiff_path_name": "tiff",
+    "shape_metadata_file_name": "ShapeMetadata.shp",
+    "clean_up": false,
+    "debug": true,
+    "validation_switch": true,
+    "system_delay": 120,
+    "progress_task_delay": 10,
+    "follow_timeout": 5,
+    "run_it": true,
+    "source_data_provider": "pv",
+    "tiles_provider": "S3",
+    "write_text_to_file": false,
+    "TOKEN": "eyJhbGciOiJSUzI1NiIsImtpZCI6Ik1hcENvbG9uaWVzUUEifQ.eyJkIjpbInJhc3RlciIsInJhc3RlcldtcyIsInJhc3RlckV4cG9ydCIsImRlbSIsInZlY3RvciIsIjNkIl0sImlhdCI6MTY2Mzg2MzM0Mywic3ViIjoiTWFwQ29sb25pZXNRQSIsImlzcyI6Im1hcGNvbG9uaWVzLXRva2VuLWNsaSJ9.U_sx0Rsy96MA3xpIcWQHJ76xvK0PlHa--J1YILBYm2fCwtDdM4HLGagwq-OQQnBqi2e8KwktQ7sgt27hOJIPBHuONQS0ezBbuByk6UqN2S7P8WERdt8_lejuR1c94owQq7FOkhEaj_PKJ64ehXuMMHskfNeAIBf8GBN6QUGEenVx2w5k2rYBULoU30rpFkQVo8TtmiK2yGx0Ssx2k6LqSgCZfyZJbFzZ2MH3BPeCVleP1-zypaF9DS7SxS-EutL-gZ1e9bEccNktxQA4VMcjeTv45KYJLTIrccs_8gtPlzfaeNQFTIUKD-cRD1gyd_uLatPsl0wwHyFZIgRuJtcvfw"
+  },
+  "mapproxy_variables": {
+    "wms": "WMS",
+    "wmts": "WMTS",
+    "wmts_layer": "WMTS_LAYER",
+    "mapproxy_grid_origin": "ul",
+    "mapproxy_header": ""
+  },
+  "api_routes": {
+    "graphql": "https://https-bff-raster.apps.v0h0bdx6.eastus.aroapp.io/graphql",
+    "trigger_nifi": "http://10.8.1.31:5557",
+    "layer_spec": "dsfsf",
+    "sync_trigger_api": "/synchronize/trigger",
+    "pycsw_url": "https://pycsw-raster-qa-pycsw-nginx-route-raster-qa.apps.j1lk3njp.eastus.aroapp.io/api/v1/raster/?token=eyJhbGciOiJSUzI1NiIsImtpZCI6Ik1hcENvbG9uaWVzUUEifQ.eyJkIjpbInJhc3RlciIsInJhc3RlcldtcyIsInJhc3RlckV4cG9ydCIsImRlbSIsInZlY3RvciIsIjNkIl0sImlhdCI6MTY2Mzg2MzM0Mywic3ViIjoiTWFwQ29sb25pZXNRQSIsImlzcyI6Im1hcGNvbG9uaWVzLXRva2VuLWNsaSJ9.U_sx0Rsy96MA3xpIcWQHJ76xvK0PlHa--J1YILBYm2fCwtDdM4HLGagwq-OQQnBqi2e8KwktQ7sgt27hOJIPBHuONQS0ezBbuByk6UqN2S7P8WERdt8_lejuR1c94owQq7FOkhEaj_PKJ64ehXuMMHskfNeAIBf8GBN6QUGEenVx2w5k2rYBULoU30rpFkQVo8TtmiK2yGx0Ssx2k6LqSgCZfyZJbFzZ2MH3BPeCVleP1-zypaF9DS7SxS-EutL-gZ1e9bEccNktxQA4VMcjeTv45KYJLTIrccs_8gtPlzfaeNQFTIUKD-cRD1gyd_uLatPsl0wwHyFZIgRuJtcvfw",
+    "mapproxy_url": "https://mapproxy-raster-qa-mapproxy-route-raster-qa.apps.j1lk3njp.eastus.aroapp.io/"
+  },
+  "discrete_ingestion_credential": {
+    "pycsw_url": "https://pycsw-raster-qa-pycsw-nginx-route-raster-qa.apps.j1lk3njp.eastus.aroapp.io/api/v1/raster/",
+    "pvc_handler_url": "https://pvc-qa-discrete-ingestion-qa-route-raster-qa.apps.j1lk3njp.eastus.aroapp.io/",
+    "change_max_zoom_level": true,
+    "max_zoom_level": 4,
+    "failure_tag": false
+  },
+  "s3_credential": {
+    "s3_endpoint_url": "http://10.8.0.9:9000/",
+    "s3_access_key": "raster",
+    "s3_secret_key": "rasterPassword",
+    "s3_bucket_name": "raster-qa",
+    "s3_end_point": "http://10.8.0.9:9000/"
+  },
+  "pg_credential": {
+    "pg_host": "10.0.4.4",
+    "pg_user": "postgres",
+    "pg_port": "5432",
+    "pg_pass": "Libot4allnonprod",
+    "pg_job_task_table": "raster-qa",
+    "pg_pycsw_record_table": "raster-qa",
+    "pg_mapproxy_table": "raster-qa",
+    "pg_agent_table": "raster-qa"
+  },
+  "ingestion_sub_url_api": {
+    "ingestion_trigger": "trigger",
+    "ingestion_watch_status": "status",
+    "ingestion_start_watch": "start",
+    "ingestion_stop_watch": "stop",
+    "ingestion_agent_url": "https://agent-raster-qa-discrete-agent-route-raster-qa.apps.j1lk3njp.eastus.aroapp.io/"
+  },
+  "pycsw_records_params": {
+    "pycsw_service": "CSW",
+    "pycsw_version": "2.0.2",
+    "pycsw_request_get_records": "GetRecords",
+    "pycsw_type_names": "mc:MCRasterRecord",
+    "pycsw_element_set_name": "full",
+    "pycsw_output_format": "application/xml",
+    "pycsw_result_type": "results",
+    "pycsw_output_schema": "http://schema.mapcolonies.com/raster",
+    "pycsw_request_get_capabilities": "GetCapabilities"
+  },
+  "job_manager_params": {
+    "follow_job_by_manager": true,
+    "job_manager_url": "https://job-manager-raster-qa-job-manager-route-raster-qa.apps.j1lk3njp.eastus.aroapp.io/",
+    "amount_of_workers": 3
+  },
+  "nfs_directories": {
+    "nfs_root_directory": "/tmp/tmp_ingest/",
+    "nfs_source_directory": "1",
+    "nfs_root_directory_destination": "/tmp/tmp_ingest/",
+    "nfs_destination_directory": "watch",
+    "nfs_tiles_directory": "/tmp",
+    "nfs_watch_root_directory": "/tmp",
+    "nfs_watch_source_directory": "ingestion/1",
+    "nfs_watch_base_direcotry": "ingestion/1",
+    "nfs_watch_destination_directory": "tmp",
+    "nfs_tiles_dir": "/tmp/tmp_ingest/mytiles/"
+  },
+  "pvc_routes": {
+    "pvc_create_test_dir": "createTestDir",
+    "pvc_update_shape_metadata": "updateShape",
+    "pvc_update_watch_shape_metadata": "updateWatchShape",
+    "pvc_validate_metadata": "validatePath",
+    "pvc_delete_directory": "deleteTestDir",
+    "pvc_copy_file_to_src": "copyFile",
+    "pvc_watch_create_directory": "createWatchDir",
+    "pvc_watch_update_shape_metadata": "updateWatchShape",
+    "pvc_watch_validate_metdata": "validateWatchPath",
+    "pvc_change_max_zoom": "changeMaxZoom",
+    "pvc_change_watch_max_zoom": "changeWatchMaxZoom",
+    "pvc_root_directory": "/layerSources"
+  },
+  "zoom_level_limit_config": {
+    "first_zoom_level": 4,
+    "second_zoom_level": 10,
+    "third_zoom_level": 16,
+    "diff_zoom_level": 950,
+    "diff_zoom_level_4": 250,
+    "diff_zoom_level_10": 600,
+    "diff_zoom_level_16": 700
+  },
+  "mock_data": {
+    "mock_imagery_data_path_pvc": "/layerSources/watch",
+    "mock_data_file_pvc": "*.tif",
+    "mock_imagery_data_path": "/tmp/tmp_ingest/watch",
+    "mock_data_file": "*.tif"
+  },
+  "overseer_params": {
+    "overseer_end_point_url": "https://overseer-raster-qa-discrete-overseer-creator-route-raster-qa.apps.j1lk3njp.eastus.aroapp.io/",
+    "geopackage_json": null,
+    "geopackage_src_dir_nfs": "/tmp/a/1/",
+    "geopackage_dest_dir_nfs": "/tmp/a/watch",
+    "geopackage_src_dir_pvc": "geopackage",
+    "geopackage_dest_dir_pvc": ""
+  },
+  "delay_config": {
+    "system_delay_ingestion_test": 80,
+    "system_delay_invalid_image_test": 220,
+    "system_delay_inestion_pycsw_validation": 250,
+    "system_delay_priority_first_job": 300,
+    "system_delay_priority_second_job": 300
+  },
+  "pg_schemas": {
+    "discrete_agent_db": "DiscreteAgentDB",
+    "heartbeat_manager": "HeartbeatManager",
+    "job_manager": "JobManager",
+    "layer_spec": "LayerSpec",
+    "mapproxy_config": "MapproxyConfig",
+    "raster_catalog_manager": "RasterCatalogManager",
+    "public": "DiscreteAgentDB"
+  }
+}

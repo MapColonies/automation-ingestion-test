@@ -20,7 +20,9 @@ class ResponseCode(enum.Enum):
     ChangeOk = 201  # server was return ok for changing
     ValidationErrors = 400  # bad request
     StatusNotFound = 404  # status\es not found on db
-    DuplicatedError = 409  # in case of requesting package with same name already exists
+    DuplicatedError = (
+        409  # in case of requesting package with same name already exists
+    )
     GatewayTimeout = 504  # some server didn't respond
     ServerError = 500  # problem with error
 
@@ -39,7 +41,9 @@ class JobStatus(enum.Enum):
 class S3Provider:
     """This class provide s3 credential"""
 
-    def __init__(self, entrypoint_url, access_key, secret_key, bucket_name=None):
+    def __init__(
+        self, entrypoint_url, access_key, secret_key, bucket_name=None
+    ):
         self.s3_entrypoint_url = entrypoint_url
         self.s3_access_key = access_key
         self.s3_secret_key = secret_key

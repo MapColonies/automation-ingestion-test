@@ -4,6 +4,7 @@ import json
 from mc_automation_tools import common
 
 from server_automation.models.structs import EnvironmentTypes
+
 from server_automation.models.structs import JobStatus
 from server_automation.models.structs import ResponseCode
 
@@ -18,14 +19,16 @@ except Exception as e:
 
 _api_route = conf.get("api_routes")
 MAPPROXY_URL = _api_route.get("mapproxy_url")
-########  general running environment ##########
+#  general running environment #
 environment = conf.get("environment")
 RUN_IT = environment.get("run_it", True)
 # compatibility to azure + prod env
 TEST_ENV = environment.get("name", EnvironmentTypes.QA.name)
 SHAPES_PATH = environment.get("shapes_path_name", "Shapes")
 TIFF_PATH = environment.get("tiff_path_name", "tiff")
-SHAPE_METADATA_FILE = environment.get("shape_metadata_file_name", "ShapeMetadata.shp")
+SHAPE_METADATA_FILE = environment.get(
+    "shape_metadata_file_name", "ShapeMetadata.shp"
+)
 DEBUG_MODE_LOCAL = environment.get("debug", False)
 # If should clean running data from env at the end
 CLEAN_UP = environment.get("clean_up", False)
@@ -40,8 +43,8 @@ SOURCE_DATA_PROVIDER = environment.get("source_data_provider", "NFS")
 TILES_PROVIDER = environment.get("tiles_provider", "S3")
 STOP_WATCH = environment.get("stop_watch", False)
 WRITE_TEXT_TO_FILE = environment.get("write_text_to_file", False)
-
-############################################  follow  ####################
+TOKEN = environment.get("TOKEN", 'eyJhbGciOiJSUzI1NiIsImtpZCI6Ik1hcENvbG9uaWVzUUEifQ.eyJkIjpbInJhc3RlciIsInJhc3RlcldtcyIsInJhc3RlckV4cG9ydCIsImRlbSIsInZlY3RvciIsIjNkIl0sImlhdCI6MTY2Mzg2MzM0Mywic3ViIjoiTWFwQ29sb25pZXNRQSIsImlzcyI6Im1hcGNvbG9uaWVzLXRva2VuLWNsaSJ9.U_sx0Rsy96MA3xpIcWQHJ76xvK0PlHa--J1YILBYm2fCwtDdM4HLGagwq-OQQnBqi2e8KwktQ7sgt27hOJIPBHuONQS0ezBbuByk6UqN2S7P8WERdt8_lejuR1c94owQq7FOkhEaj_PKJ64ehXuMMHskfNeAIBf8GBN6QUGEenVx2w5k2rYBULoU30rpFkQVo8TtmiK2yGx0Ssx2k6LqSgCZfyZJbFzZ2MH3BPeCVleP1-zypaF9DS7SxS-EutL-gZ1e9bEccNktxQA4VMcjeTv45KYJLTIrccs_8gtPlzfaeNQFTIUKD-cRD1gyd_uLatPsl0wwHyFZIgRuJtcvfw')
+#  follow  #
 _job_manager_params = conf.get("job_manager_params")
 AMOUNT_OF_WORKERS = _job_manager_params.get("amount_of_workers", 1)
 FOLLOW_JOB_BY_MANAGER = _job_manager_params.get("FOLLOW_JOB_BY_MANAGER", True)
@@ -58,29 +61,35 @@ SHAPE_FILE_LIST = [
     "ShapeMetadata.shp",
     "ShapeMetadata.dbf",
 ]
-##########################################  Overseer params
+# Overseer params
 _overseer_vars = conf.get("overseer_params")
 OVERSEER_END_URL = _overseer_vars.get("overseer_end_point_url")
 OVERSEER_JSON_LOCATION = _overseer_vars.get("geopackage_json")
 # OVERSEER_JSON_LOCATION = _overseer_vars.get('geopackage_json')
 
-##########################################  Ingestion API's sub urls & API
+# Ingestion API's sub urls & API
 _ingestion_sub_url_api = conf.get("ingestion_sub_url_api")
-INGESTION_MANUAL_TRIGGER = _ingestion_sub_url_api.get("ingestion_trigger", "trigger")
+INGESTION_MANUAL_TRIGGER = _ingestion_sub_url_api.get(
+    "ingestion_trigger", "trigger"
+)
 INGESTION_WATCHER_STATUS = _ingestion_sub_url_api.get(
     "ingestion_watch_status", "status"
 )
-INGESTION_START_WATCHER = _ingestion_sub_url_api.get("ingestion_start_watch", "start")
-INGESTION_STOP_WATCHER = _ingestion_sub_url_api.get("ingestion_stop_watch", "stop")
+INGESTION_START_WATCHER = _ingestion_sub_url_api.get(
+    "ingestion_start_watch", "start"
+)
+INGESTION_STOP_WATCHER = _ingestion_sub_url_api.get(
+    "ingestion_stop_watch", "stop"
+)
 INGESTION_AGENT_URL = _ingestion_sub_url_api.get("ingestion_agent_url", None)
-################################################  MAPPROXY VARIABELS  ####
+#  MAPPROXY VARIABELS  #
 _mapproxy_vars = conf.get("mapproxy_variables")
 HEADERS_FOR_MAPPROXY = _mapproxy_vars.get("mapproxy_header")
 WMS = _mapproxy_vars.get("wms")
 WMTS = _mapproxy_vars.get("wmts")
 WMTS_LAYER = _mapproxy_vars.get("wmts_layer")
 MAPPROXY_GRID_ORIGIN = _mapproxy_vars.get("mapproxy_grid_origin")
-###############################################  POSTGRESS CREDENTIALS  ##
+#  POSTGRESS CREDENTIALS  #
 _pg_credentials = conf.get("pg_credential")
 PG_USER = _pg_credentials.get("pg_user", None)
 PG_PASS = _pg_credentials.get("pg_pass", None)
@@ -90,7 +99,7 @@ PG_JOB_TASK_DB_NAME = _pg_credentials.get("pg_job_task_table", None)
 PG_RECORD_PYCSW_DB = _pg_credentials.get("pg_pycsw_record_table", None)
 PG_MAPPROXY_CONFIG = _pg_credentials.get("pg_mapproxy_table", None)
 PG_AGENT = _pg_credentials.get("pg_agent_table", None)
-###############################################  POSTGRESS SCHEMAS  ##
+#  POSTGRESS SCHEMAS  #
 _pg_schemas = conf.get("pg_schemas")
 SCHEMA_DISCRETE_AGENT_DB = _pg_schemas.get("discrete_agent_db")
 SCHEMA_HEARTBEAT_MANAGER = _pg_schemas.get("heartbeat_manager")
@@ -106,14 +115,22 @@ SCHEMA_PUBLIC = _pg_schemas.get("public")
 
 _nfs_directories = conf.get("nfs_directories")
 NFS_ROOT_DIR = _nfs_directories.get("nfs_root_directory", "/tmp")
-NFS_ROOT_DIR_DEST = _nfs_directories.get("nfs_root_directory_destination", "/tmp")
+NFS_ROOT_DIR_DEST = _nfs_directories.get(
+    "nfs_root_directory_destination", "/tmp"
+)
 NFS_SOURCE_DIR = _nfs_directories.get("nfs_source_directory", "ingestion/1")
 NFS_DEST_DIR = _nfs_directories.get("nfs_destination_directory", "test_data")
 NFS_TILES_DIR = _nfs_directories.get("nfs_tiles_directory", "/tmp")
 NFS_WATCH_ROOT_DIR = _nfs_directories.get("nfs_watch_root_directory", "/tmp")
-NFS_WATCH_SOURCE_DIR = _nfs_directories.get("nfs_watch_source_directory", "ingestion/2")
-NFS_WATCH_BASE_DIR = _nfs_directories.get("nfs_watch_base_direcotry", "ingestion/3")
-NFS_WATCH_DEST_DIR = _nfs_directories.get("nfs_watch_destination_directory", "watch")
+NFS_WATCH_SOURCE_DIR = _nfs_directories.get(
+    "nfs_watch_source_directory", "ingestion/2"
+)
+NFS_WATCH_BASE_DIR = _nfs_directories.get(
+    "nfs_watch_base_direcotry", "ingestion/3"
+)
+NFS_WATCH_DEST_DIR = _nfs_directories.get(
+    "nfs_watch_destination_directory", "watch"
+)
 NFS_TILES_DIR = _nfs_directories.get("nfs_tiles_dir", None)
 
 """
@@ -122,18 +139,26 @@ NFS_TILES_DIR = _nfs_directories.get("nfs_tiles_dir", None)
 
 _pvc_routes = conf.get("pvc_routes")
 PVC_CLONE_SOURCE = _pvc_routes.get("pvc_create_test_dir", "createTestDir")
-PVC_CHANGE_METADATA = _pvc_routes.get("pvc_update_shape_metadata", "updateShape")
+PVC_CHANGE_METADATA = _pvc_routes.get(
+    "pvc_update_shape_metadata", "updateShape"
+)
 PVC_CHANGE_WATCH_METADATA = _pvc_routes.get(
     "pvc_update_watch_shape_metadata", "updateWatchShape"
 )
-PVC_VALIDATE_METADATA = _pvc_routes.get("pvc_validate_metadata", "validatePath")
+PVC_VALIDATE_METADATA = _pvc_routes.get(
+    "pvc_validate_metadata", "validatePath"
+)
 PVC_DELETE_DIR = _pvc_routes.get("pvc_delete_directory", "deleteTestDir")
 PVC_COPY_DIR = _pvc_routes.get("pvc_copy_file_to_src", "copyFile")
-PVC_WATCH_CREATE_DIR = _pvc_routes.get("pvc_watch_create_directory", "createWatchDir")
+PVC_WATCH_CREATE_DIR = _pvc_routes.get(
+    "pvc_watch_create_directory", "createWatchDir"
+)
 PVC_WATCH_UPDATE_SHAPE = _pvc_routes.get(
     "pvc_watch_update_shape_metadata", "updateWatchShape"
 )
-PVC_WATCH_VALIDATE = _pvc_routes.get("pvc_watch_validate_metdata", "validateWatchPath")
+PVC_WATCH_VALIDATE = _pvc_routes.get(
+    "pvc_watch_validate_metdata", "validateWatchPath"
+)
 PVC_CHANGE_MAX_ZOOM = _pvc_routes.get("pvc_change_max_zoom", "changeMaxZoom")
 PVC_CHANGE_WATCH_MAX_ZOOM = _pvc_routes.get(
     "pvc_change_watch_max_zoom", "changeWatchMaxZoom"
@@ -159,7 +184,9 @@ _endpoints_discrete_ingestion = conf.get("discrete_ingestion_credential")
 PYCSW_URL = _api_route.get("pycsw_url", None)
 MAX_ZOOM_TO_CHANGE = _endpoints_discrete_ingestion.get("max_zoom_level", None)
 FAILURE_FLAG = _endpoints_discrete_ingestion.get("failure_tag", False)
-PVC_UPDATE_ZOOM = _endpoints_discrete_ingestion.get("change_max_zoom_level", True)
+PVC_UPDATE_ZOOM = _endpoints_discrete_ingestion.get(
+    "change_max_zoom_level", True
+)
 PVC_HANDLER_ROUTE = _endpoints_discrete_ingestion.get("pvc_handler_url", None)
 
 """
@@ -172,8 +199,12 @@ PYCSW_VERSION = _pycsw_records_params.get("pycsw_version", "2.0.2")
 PYCSW_REQUEST_GET_RECORDS = _pycsw_records_params.get(
     "pycsw_request_get_records", "GetRecords"
 )
-PYCSW_TYPE_NAMES = _pycsw_records_params.get("pycsw_type_names", "mc:MCRasterRecord")
-PYCSW_ElEMENT_SET_NAME = _pycsw_records_params.get("pycsw_element_set_name", "full")
+PYCSW_TYPE_NAMES = _pycsw_records_params.get(
+    "pycsw_type_names", "mc:MCRasterRecord"
+)
+PYCSW_ElEMENT_SET_NAME = _pycsw_records_params.get(
+    "pycsw_element_set_name", "full"
+)
 PYCSW_OUTPUT_FORMAT = _pycsw_records_params.get(
     "pycsw_output_format", "application/xml"
 )
@@ -210,19 +241,33 @@ _zoom_level_limit_config = conf.get("zoom_level_limit_config")
 FIRST_ZOOM_LEVEL = _zoom_level_limit_config.get("first_zoom_level", 4)
 SECOND_ZOOM_LEVEL = _zoom_level_limit_config.get("second_zoom_level", 10)
 THIRD_ZOOM_LEVEL = _zoom_level_limit_config.get("third_zoom_level", 16)
-DIFFERENT_ZOOM_LEVEL_DELAY = _zoom_level_limit_config.get("diff_zoom_level", 60)
-DIFFERENT_ZOOM_LEVEL_DELAY_4 = _zoom_level_limit_config.get("diff_zoom_level_4", 90)
-DIFFERENT_ZOOM_LEVEL_DELAY_10 = _zoom_level_limit_config.get("diff_zoom_level_10", 180)
-DIFFERENT_ZOOM_LEVEL_DELAY_16 = _zoom_level_limit_config.get("diff_zoom_level_16", 360)
+DIFFERENT_ZOOM_LEVEL_DELAY = _zoom_level_limit_config.get(
+    "diff_zoom_level", 60
+)
+DIFFERENT_ZOOM_LEVEL_DELAY_4 = _zoom_level_limit_config.get(
+    "diff_zoom_level_4", 90
+)
+DIFFERENT_ZOOM_LEVEL_DELAY_10 = _zoom_level_limit_config.get(
+    "diff_zoom_level_10", 180
+)
+DIFFERENT_ZOOM_LEVEL_DELAY_16 = _zoom_level_limit_config.get(
+    "diff_zoom_level_16", 360
+)
 
 _delay_config = conf.get("delay_config")
-DELAY_INGESTION_TEST = _delay_config.get("system_delay_ingestion_test", 220)
-DELAY_INVALID_IMAGE_TEST = _delay_config.get("system_delay_invalid_image_test", 120)
+DELAY_INGESTION_TEST = _delay_config.get("system_delay_ingestion_test", 80)
+DELAY_INVALID_IMAGE_TEST = _delay_config.get(
+    "system_delay_invalid_image_test", 120
+)
 DELAY_MAPPROXY_PYCSW_VALIDATION = _delay_config.get(
     "system_delay_inestion_pycsw_validation", 120
 )
-DELAY_PRIORITY_FIRST_JOB = _delay_config.get("system_delay_priority_first_job", 120)
-DELAY_PRIORITY_SECOND_JOB = _delay_config.get("system_delay_priority_second_job", 120)
+DELAY_PRIORITY_FIRST_JOB = _delay_config.get(
+    "system_delay_priority_first_job", 120
+)
+DELAY_PRIORITY_SECOND_JOB = _delay_config.get(
+    "system_delay_priority_second_job", 120
+)
 
 PYCSW_GET_RECORD_PARAMS = {
     "service": PYCSW_SERVICE,

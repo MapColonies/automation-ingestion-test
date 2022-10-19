@@ -4,13 +4,14 @@ import glob
 import json
 import logging
 import os
-import shutil
 import time
 from pathlib import Path
 
 import xmltodict
 from discrete_kit.functions import metadata_convertor
-from discrete_kit.validator.json_compare_pycsw import *
+from discrete_kit.validator.json_compare_pycsw import (
+    validate_pycsw_with_shape_json,
+)
 from mc_automation_tools import base_requests
 from mc_automation_tools import common as common
 from mc_automation_tools import s3storage as s3
@@ -66,7 +67,9 @@ def stop_watch():
         return {"state": True, "reason": "isWatch=False - agent not watching"}
     except Exception as e:
         _log.error(f"Failed on stop watching process with error: [{str(e)}]")
-        raise RuntimeError(f"Failed on stop watching process with error: [{str(e)}]")
+        raise RuntimeError(
+            f"Failed on stop watching process with error: [{str(e)}]"
+        )
 
 
 def start_watch():
@@ -101,7 +104,9 @@ def start_watch():
 
     except Exception as e:
         _log.error(f"Failed on start watching process with error: [{str(e)}]")
-        raise RuntimeError(f"Failed on start watching process with error: [{str(e)}]")
+        raise RuntimeError(
+            f"Failed on start watching process with error: [{str(e)}]"
+        )
 
 
 def init_watch_ingestion_src():
@@ -116,11 +121,17 @@ def init_watch_ingestion_src():
         api = config.PVC_WATCH_CREATE_DIR
         change_api = config.PVC_WATCH_UPDATE_SHAPE
         res = init_ingestion_src_pvc(
-            True, host, api, change_api, update_tfw_url=config.PVC_CHANGE_WATCH_MAX_ZOOM
+            True,
+            host,
+            api,
+            change_api,
+            update_tfw_url=config.PVC_CHANGE_WATCH_MAX_ZOOM,
         )
         return res
     if config.SOURCE_DATA_PROVIDER.lower() == "nfs":
-        src = os.path.join(config.NFS_WATCH_ROOT_DIR, config.NFS_WATCH_SOURCE_DIR)
+        src = os.path.join(
+            config.NFS_WATCH_ROOT_DIR, config.NFS_WATCH_SOURCE_DIR
+        )
         dst = os.path.join(
             config.NFS_WATCH_ROOT_DIR,
             config.NFS_WATCH_ROOT_DIR,
@@ -141,7 +152,9 @@ def delete_file_from_folder(path_to_folder, file_to_delete):
     )
 
     if config.SOURCE_DATA_PROVIDER.lower() == "pv":
-        resp = pvc_handler.delete_file_from_folder(path_to_folder, file_to_delete)
+        resp = pvc_handler.delete_file_from_folder(
+            path_to_folder, file_to_delete
+        )
         # ToDo: Continue here
         if not resp.status_code == config.ResponseCode.Ok.value:
             raise RuntimeError(
@@ -149,10 +162,14 @@ def delete_file_from_folder(path_to_folder, file_to_delete):
             )
     if config.SOURCE_DATA_PROVIDER.lower() == "nfs":
         _log.info(f"Deleting file - {file_to_delete} from folder")
-        ret_folder = glob.glob(path_to_folder + "/**/" + file_to_delete, recursive=True)
+        ret_folder = glob.glob(
+            path_to_folder + "/**/" + file_to_delete, recursive=True
+        )
         if not ret_folder:
             _log.error(f"{file_to_delete} not found in {path_to_folder}")
-            raise RuntimeError(f"{file_to_delete} not found in {path_to_folder}")
+            raise RuntimeError(
+                f"{file_to_delete} not found in {path_to_folder}"
+            )
         try:
             for folder in ret_folder:
                 os.remove(folder)
@@ -176,7 +193,9 @@ def init_ingestion_src():
         dst = os.path.join(config.NFS_ROOT_DIR_DEST, config.NFS_DEST_DIR)
         try:
             res = init_ingest_nfs(
-                src, dst, str(config.zoom_level_dict[config.MAX_ZOOM_TO_CHANGE])
+                src,
+                dst,
+                str(config.zoom_level_dict[config.MAX_ZOOM_TO_CHANGE]),
             )
             # res = init_ingestion_src_fs(src, dst, str(config.zoom_level_dict[config.MAX_ZOOM_TO_CHANGE]), watch=False)
             return res
@@ -198,7 +217,9 @@ def delete_destination_folder(dst):
         if os.path.exists(folder_to_delete):
             _log.info(f"Folder To Delete: {folder_to_delete}")
     except Exception as er:
-        raise RuntimeError(f"Failed to find {folder_to_delete} folder")
+        raise RuntimeError(
+            f"Failed to find {folder_to_delete} folder, error: {str(er)}"
+        )
 
 
 def init_ingestion_src_for_priority():
@@ -216,7 +237,9 @@ def init_ingestion_src_for_priority():
         dst = os.path.join(config.NFS_ROOT_DIR_DEST, config.NFS_DEST_DIR)
         try:
             res = init_ingest_nfs(
-                src, dst, str(config.zoom_level_dict[config.MAX_ZOOM_TO_CHANGE])
+                src,
+                dst,
+                str(config.zoom_level_dict[config.MAX_ZOOM_TO_CHANGE]),
             )
             # res = init_ingestion_src_fs(src, dst, str(config.zoom_level_dict[config.MAX_ZOOM_TO_CHANGE]), watch=False)
             return res
@@ -232,13 +255,13 @@ def init_ingestion_src_for_priority():
         )
 
 
-def delete_destination_folder(dst):
-    try:
-        folder_to_delete = os.path.dirname(dst)
-        if os.path.exists(folder_to_delete):
-            _log.info(f"Folder To Delete: {folder_to_delete}")
-    except Exception as er:
-        raise RuntimeError(f"Failed to find {folder_to_delete} folder")
+# def delete_destination_folder(dst):
+#     try:
+#         folder_to_delete = os.path.dirname(dst)
+#         if os.path.exists(folder_to_delete):
+#             _log.info(f"Folder To Delete: {folder_to_delete}")
+#     except Exception as er:
+#         raise RuntimeError(f"Failed to find {folder_to_delete} folder")
 
 
 def copy_file_from_src_to_dst(src, dst):
@@ -251,7 +274,9 @@ def copy_file_from_src_to_dst(src, dst):
             raise IOError("Failed on creating ingestion directory")
 
     except Exception as e2:
-        _log.error(f"Failed copy files from {src} into {dst} with error: [{str(e2)}]")
+        _log.error(
+            f"Failed copy files from {src} into {dst} with error: [{str(e2)}]"
+        )
         raise e2
 
 
@@ -259,7 +284,9 @@ def update_destination_shape_file(dst):
     try:
         # file = os.path.join(dst, config.SHAPES_PATH, config.SHAPE_METADATA_FILE)
         file = os.path.join(
-            discrete_directory_loader.get_folder_path_by_name(dst, config.SHAPES_PATH),
+            discrete_directory_loader.get_folder_path_by_name(
+                dst, config.SHAPES_PATH
+            ),
             config.SHAPE_METADATA_FILE,
         )
         if config.FAILURE_FLAG:
@@ -268,14 +295,18 @@ def update_destination_shape_file(dst):
             source_name = update_shape_fs(file)
         _log.info(f"[{file}]:was changed resource name: {source_name}")
     except Exception as e:
-        _log.error(f"Failed on updating shape file: {file} with error: {str(e)}")
+        _log.error(
+            f"Failed on updating shape file: {file} with error: {str(e)}"
+        )
         raise e
     return source_name
 
 
 def update_shape_zoom_level(dst, zoom_level):
     if config.PVC_UPDATE_ZOOM:
-        res = metadata_convertor.replace_discrete_resolution(dst, zoom_level, "tfw")
+        res = metadata_convertor.replace_discrete_resolution(
+            dst, zoom_level, "tfw"
+        )
         return res
 
 
@@ -331,13 +362,17 @@ def init_ingestion_src_fs(src, dst, zoom_level, watch=False):
             raise IOError("Failed on creating ingestion directory")
 
     except Exception as e2:
-        _log.error(f"Failed copy files from {src} into {dst} with error: [{str(e2)}]")
+        _log.error(
+            f"Failed copy files from {src} into {dst} with error: [{str(e2)}]"
+        )
         raise e2
 
     try:
         # file = os.path.join(dst, config.SHAPES_PATH, config.SHAPE_METADATA_FILE)
         file = os.path.join(
-            discrete_directory_loader.get_folder_path_by_name(dst, config.SHAPES_PATH),
+            discrete_directory_loader.get_folder_path_by_name(
+                dst, config.SHAPES_PATH
+            ),
             config.SHAPE_METADATA_FILE,
         )
         if config.FAILURE_FLAG:
@@ -346,13 +381,21 @@ def init_ingestion_src_fs(src, dst, zoom_level, watch=False):
             source_name = update_shape_fs(file)
         _log.info(f"[{file}]:was changed resource name: {source_name}")
     except Exception as e:
-        _log.error(f"Failed on updating shape file: {file} with error: {str(e)}")
+        _log.error(
+            f"Failed on updating shape file: {file} with error: {str(e)}"
+        )
         raise e
 
     if config.PVC_UPDATE_ZOOM:
-        res = metadata_convertor.replace_discrete_resolution(dst, zoom_level, "tfw")
+        res = metadata_convertor.replace_discrete_resolution(
+            dst, zoom_level, "tfw"
+        )
 
-    return {"ingestion_dir": dst, "resource_name": source_name, "max_resolution": res}
+    return {
+        "ingestion_dir": dst,
+        "resource_name": source_name,
+        "max_resolution": res,
+    }
 
 
 def init_ingestion_src_pvc(
@@ -401,7 +444,9 @@ def init_ingestion_src_pvc(
         )
 
     except Exception as e:
-        raise RuntimeError(f"Failed access pvc on changing shape metadata: [{str(e)}]")
+        raise RuntimeError(
+            f"Failed access pvc on changing shape metadata: [{str(e)}]"
+        )
 
     if config.PVC_UPDATE_ZOOM:
         try:
@@ -416,7 +461,9 @@ def init_ingestion_src_pvc(
                     f'Failed on updating zoom level with error: [{json.loads(resp.text)["message"]} | {json.loads(resp.text)["json_data"]}]'
                 )
         except Exception as e:
-            raise IOError(f"Failed updating zoom max level with error: [{str(e)}]")
+            raise IOError(
+                f"Failed updating zoom max level with error: [{str(e)}]"
+            )
     return {"ingestion_dir": new_dir, "resource_name": resource_name}
 
 
@@ -513,7 +560,9 @@ def start_watch_ingestion(path):
     return watch_state, resp["reason"], body
 
 
-def follow_running_task(product_id, product_version, timeout=config.FOLLOW_TIMEOUT):
+def follow_running_task(
+    product_id, product_version, timeout=config.FOLLOW_TIMEOUT
+):
     """This method will follow running ingestion task and return results on finish"""
 
     t_end = time.time() + timeout
@@ -536,7 +585,9 @@ def follow_running_task(product_id, product_version, timeout=config.FOLLOW_TIMEO
         tasks = job["tasks"]
 
         completed_task = sum(
-            1 for task in tasks if task["status"] == config.JobStatus.Completed.name
+            1
+            for task in tasks
+            if task["status"] == config.JobStatus.Completed.name
         )
         _log.info(
             f"\nIngestion status of job for resource: {product_id}:{product_version} is [{status}]\n"
@@ -577,7 +628,7 @@ def follow_running_job_manager(
     running = True
     job_task_handler = job_manager_api.JobsTasksManager(
         config.JOB_MANAGER_URL
-    )  # deal with job task api's
+    )  # deal with job task api's0
     find_job_params = {
         "resourceId": product_id,
         "version": product_version,
@@ -617,7 +668,9 @@ def follow_running_job_manager(
         tasks = job["tasks"]
 
         completed_task = sum(
-            1 for task in tasks if task["status"] == config.JobStatus.Completed.name
+            1
+            for task in tasks
+            if task["status"] == config.JobStatus.Completed.name
         )
         _log.info(
             f"\nIngestion status of job for resource: {product_id}:{product_version} is [{status}]\n"
@@ -629,12 +682,14 @@ def follow_running_job_manager(
                 "status": status,
                 "message": " ".join(["OK", reason]),
                 "job_id": job_id,
+                "relative_path": resp['parameters']['metadata']['id']
             }
         elif status == config.JobStatus.Failed.name:
             return {
                 "status": status,
                 "message": " ".join([FAILED_, reason]),
                 "job_id": job_id,
+                "relative_path": resp['parameters']['metadata']['id']
             }
 
         current_time = time.time()
@@ -646,8 +701,8 @@ def follow_running_job_manager(
                     [FAILED_, "got timeout while following job running"]
                 ),
                 "job_id": job_id,
+                "relative_path": resp['parameters']['metadata']['id']
             }
-
 
 def follow_parallel_running_tasks(
     product_id, product_version, timeout=config.FOLLOW_TIMEOUT
@@ -705,7 +760,9 @@ def follow_parallel_running_tasks(
         tasks = job["tasks"]
 
         completed_task = sum(
-            1 for task in tasks if task["status"] == config.JobStatus.Completed.name
+            1
+            for task in tasks
+            if task["status"] == config.JobStatus.Completed.name
         )
         _log.info(
             f"\nIngestion status of job for resource: {product_id}:{product_version} is [{status}]\n"
@@ -804,7 +861,9 @@ def validate_tiff_exists(path_name, tiff_list):
 def cleanup_env(product_id, product_version, initial_mapproxy_config):
     try:
         """This method will clean all created test data"""
-        job_id = postgress_adapter.get_current_job_id(product_id, product_version)
+        job_id = postgress_adapter.get_current_job_id(
+            product_id, product_version
+        )
         postgress_adapter.clean_job_task(job_id)
         # postgress_adapter.clean_layer_history(product_id)
         # postgress_adapter.clean_pycsw_record(product_id)
@@ -817,7 +876,9 @@ def cleanup_env(product_id, product_version, initial_mapproxy_config):
             )
             s3_conn.delete_folder(config.S3_BUCKET_NAME, product_id)
         elif config.TEST_ENV == config.EnvironmentTypes.PROD.name:
-            path = os.path.join(config.NFS_TILES_DIR, product_id, product_version)
+            path = os.path.join(
+                config.NFS_TILES_DIR, product_id, product_version
+            )
 
             try:
                 if os.path.exists(path):
@@ -829,7 +890,9 @@ def cleanup_env(product_id, product_version, initial_mapproxy_config):
                 else:
                     # todo maybe on future add it with exception and test step
                     # assertion
-                    _log.error(f"Directory of tiles [{path}] not exists on File System")
+                    _log.error(
+                        f"Directory of tiles [{path}] not exists on File System"
+                    )
 
             except Exception as e:
                 _log.error(
@@ -857,19 +920,21 @@ def cleanup_env(product_id, product_version, initial_mapproxy_config):
         postgress_adapter.delete_pycsw_record("product_id", product_id)
 
         _log.info(
-            f"Cleanup was executed and delete at end of test:\n"
-            f"DB - job and related task\n"
-            f"DB - mapproxy-config\n"
-            f"DB - pycsw-records\n"
-            f"DB - agent-discrete\n"
-            f"S3 - uploaded layers\n"
+            "Cleanup was executed and delete at end of test:\n"
+            "DB - job and related task\n"
+            "DB - mapproxy-config\n"
+            "DB - pycsw-records\n"
+            "DB - agent-discrete\n"
+            "S3 - uploaded layers\n"
         )
 
     except Exception as e:
         _log.error(f"Failed on cleanup with error: {str(e)}")
 
 
-def validate_geopack_pycsw(source_json_metadata, product_id=None, product_version=None):
+def validate_geopack_pycsw(
+    source_json_metadata, product_id=None, product_version=None
+):
     res_dict = {"validation": True, "reason": ""}
     pycsw_records = pycsw_handler.get_record_by_id(
         product_id,
@@ -878,7 +943,10 @@ def validate_geopack_pycsw(source_json_metadata, product_id=None, product_versio
         params=config.PYCSW_GET_RECORD_PARAMS,
     )
     if not pycsw_records:
-        return {"validation": False, "reason": f"Records of [{product_id}] not found"}
+        return {
+            "validation": False,
+            "reason": f"Records of [{product_id}] not found",
+        }
     links = {}
     for record in pycsw_records:
         links[record["mc:productType"]] = {
@@ -900,7 +968,9 @@ def validate_geopack_pycsw(source_json_metadata, product_id=None, product_versio
     return res_dict, pycsw_records, links
 
 
-def validate_pycsw2(source_json_metadata, product_id=None, product_version=None):
+def validate_pycsw2(
+    source_json_metadata, product_id=None, product_version=None, token=None
+):
     """
     :return: dict of result validation
     """
@@ -913,12 +983,12 @@ def validate_pycsw2(source_json_metadata, product_id=None, product_version=None)
             source_json_metadata,
             product_id,
             product_version,
-            header=config.HEADERS_FOR_MAPPROXY,
+            token=token
         )
         res_dict = results["results"]
         pycsw_records = results["pycsw_record"]
         links = results["links"]
-        _log.info(f"")
+        _log.info("")
 
     except Exception as e:
         _log.error(f"Failed validation of pycsw with error: [{str(e)}]")
@@ -927,7 +997,7 @@ def validate_pycsw2(source_json_metadata, product_id=None, product_version=None)
         links = {}
 
     _log.info(
-        f"\n-------------------------- Finish validation of toc metadata vs. pycsw record ----------------------------"
+        "\n-------------------------- Finish validation of toc metadata vs. pycsw record ----------------------------"
     )
     # pycsw_records = pycsw_handler.get_record_by_id(
     #     product_id,
@@ -973,19 +1043,22 @@ def validate_pycsw(gqk=config.GQK_URL, product_id=None, source_data=None):
     res_dict = {"validation": True, "reason": ""}
     # pycsw_record = gql_wrapper.get_pycsw_record(host=gqk, product_id=product_id)
     if not pycsw_record["data"]["search"]:
-        return {"validation": False, "reason": f"Record of [{product_id}] not found"}
+        return {
+            "validation": False,
+            "reason": f"Record of [{product_id}] not found",
+        }
 
     # generate dict of protocol:related url
     links = {
-        pycsw_record["data"]["search"][0]["links"][0]["protocol"]: pycsw_record["data"][
-            "search"
-        ][0]["links"][0]["url"],
-        pycsw_record["data"]["search"][0]["links"][1]["protocol"]: pycsw_record["data"][
-            "search"
-        ][0]["links"][1]["url"],
-        pycsw_record["data"]["search"][0]["links"][2]["protocol"]: pycsw_record["data"][
-            "search"
-        ][0]["links"][2]["url"],
+        pycsw_record["data"]["search"][0]["links"][0][
+            "protocol"
+        ]: pycsw_record["data"]["search"][0]["links"][0]["url"],
+        pycsw_record["data"]["search"][0]["links"][1][
+            "protocol"
+        ]: pycsw_record["data"]["search"][0]["links"][1]["url"],
+        pycsw_record["data"]["search"][0]["links"][2][
+            "protocol"
+        ]: pycsw_record["data"]["search"][0]["links"][2]["url"],
     }
 
     WMS_STATE = (
@@ -1000,7 +1073,10 @@ def validate_pycsw(gqk=config.GQK_URL, product_id=None, source_data=None):
     if not WMS_STATE and not WMTS_STATE:
         res_dict["validation"] = False
         res_dict["reason"] = "\n----------------------".join(
-            [res_dict["reason"], f"\nProtocol urls that provided not correct: {links}"]
+            [
+                res_dict["reason"],
+                f"\nProtocol urls that provided not correct: {links}",
+            ]
         )
 
     # validate product id:
@@ -1064,7 +1140,9 @@ def validate_pycsw(gqk=config.GQK_URL, product_id=None, source_data=None):
         )
 
     # validate geometry:
-    record_geometry = pycsw_record["data"]["search"][0]["footprint"]["coordinates"][0]
+    record_geometry = pycsw_record["data"]["search"][0]["footprint"][
+        "coordinates"
+    ][0]
     orig_geometry = source_data["metadata"]["footprint"]["coordinates"][0]
     poly_record = Polygon(record_geometry)
     poly_orig = Polygon(orig_geometry)
@@ -1105,12 +1183,11 @@ def copy_geopackage_file_for_ingest():
         except Exception as e:
             resp = None
             error_msg = str(e)
+            raise Exception(f"resp: {resp}, error: {error_msg}")
 
     if config.SOURCE_DATA_PROVIDER.lower() == "nfs":
         try:
-            command = (
-                f"cp -r {config.GEO_PACKAGE_SRC_NFS}/. {config.GEO_PACKAGE_DEST_NFS}"
-            )
+            command = f"cp -r {config.GEO_PACKAGE_SRC_NFS}/. {config.GEO_PACKAGE_DEST_NFS}"
             os.system(command)
             if os.path.exists(config.GEO_PACKAGE_DEST_NFS):
                 _log.info(
@@ -1131,14 +1208,14 @@ def copy_geopackage_file_for_ingest():
 
 
 def validate_mapproxy_layer(
-    pycsw_record, product_id, product_version, header, params=None
+    pycsw_record, product_id, product_version, layer_id, header=None, params=None, token=None
 ):
     """
     This method will ensure the url's provided on mapproxy from pycsw
     :return: result dict -> {'validation': bool, 'reason':{}}, links -> dict
     """
     _log.info(
-        f"\n\n********************** Will run validation of layer mapproxy vs. pycsw record *************************"
+        "\n\n********************** Will run validation of layer mapproxy vs. pycsw record *************************"
     )
 
     if params["tiles_storage_provide"].lower() == "s3":
@@ -1159,10 +1236,14 @@ def validate_mapproxy_layer(
     )
 
     res = mapproxy_conn.validate_layer_from_pycsw(
-        pycsw_record, product_id, product_version, header=config.HEADERS_FOR_MAPPROXY
+        pycsw_record,
+        product_id,
+        product_version,
+        layer_id=layer_id,
+        token=token
     )
     _log.info(
-        f"\n----------------------- Finish validation of layer mapproxy vs. pycsw record ---------------------------"
+        "\n----------------------- Finish validation of layer mapproxy vs. pycsw record ---------------------------"
     )
     return res
 
@@ -1192,7 +1273,7 @@ def validate_new_discrete(pycsw_records, product_id, product_version):
             layer_name = "-".join([product_id, product_version, group])
         else:
             raise ValueError(
-                f"records type on recognize as OrthophotoHistory or Orthophoto"
+                "records type on recognize as OrthophotoHistory or Orthophoto"
             )
 
         results[group]["is_valid"] = {}
@@ -1202,9 +1283,9 @@ def validate_new_discrete(pycsw_records, product_id, product_version):
         )
         results[group]["is_valid"]["WMS"] = layer_name in [
             layer["Name"]
-            for layer in wms_capabilities["WMS_Capabilities"]["Capability"]["Layer"][
+            for layer in wms_capabilities["WMS_Capabilities"]["Capability"][
                 "Layer"
-            ]
+            ]["Layer"]
         ]
 
         # check that wmts include the new layer on capabilities
@@ -1233,7 +1314,9 @@ def validate_new_discrete(pycsw_records, product_id, product_version):
                 config.S3_BUCKET_NAME, "/".join([product_id, product_version])
             )
         elif config.TEST_ENV == config.EnvironmentTypes.PROD.name:
-            path = os.path.join(config.NFS_TILES_DIR, product_id, product_version)
+            path = os.path.join(
+                config.NFS_TILES_DIR, product_id, product_version
+            )
             list_of_tiles = []
             # r=root, d=directories, f = files
             for r, d, f in os.walk(path):
@@ -1241,12 +1324,16 @@ def validate_new_discrete(pycsw_records, product_id, product_version):
                     if ".png" in file:
                         list_of_tiles.append(os.path.join(r, file))
         else:
-            raise RuntimeError(f"Illegal environment value type: {config.TEST_ENV}")
+            raise RuntimeError(
+                f"Illegal environment value type: {config.TEST_ENV}"
+            )
 
         zxy = list_of_tiles[len(list_of_tiles) - 1].split("/")[-3:]
         zxy[2] = zxy[2].split(".")[0]
         zxy[2] = str(2 ** int(zxy[0]) - 1 - int(zxy[2]))
-        tile_matrix_set = wmts_layer_properties[0]["TileMatrixSetLink"]["TileMatrixSet"]
+        tile_matrix_set = wmts_layer_properties[0]["TileMatrixSetLink"][
+            "TileMatrixSet"
+        ]
         wmts_layers_url = results[group]["WMTS_LAYER"]
         wmts_layers_url = wmts_layers_url.format(
             TileMatrixSet=tile_matrix_set,
@@ -1265,7 +1352,9 @@ def validate_new_discrete(pycsw_records, product_id, product_version):
         if not all(val for key, val in value["is_valid"].items()):
             validation = False
             break
-    _log.info(f"validation of discrete layers on mapproxy status:\n" f"{results}")
+    _log.info(
+        f"validation of discrete layers on mapproxy status:\n" f"{results}"
+    )
     return {"validation": validation, "reason": results}
 
 
@@ -1295,14 +1384,18 @@ def get_xml_as_dict(url):
         return dict_data
 
     except Exception as e:
-        _log.error(f"Failed getting xml object from url [{url}] with error: {str(e)}")
+        _log.error(
+            f"Failed getting xml object from url [{url}] with error: {str(e)}"
+        )
         raise RuntimeError(
             f"Failed getting xml object from url [{url}] with error: {str(e)}"
         )
 
 
 def create_mock_file(path_to_folder, file_to_create):
-    ret_folder = glob.glob(path_to_folder + "/**/" + file_to_create, recursive=True)
+    ret_folder = glob.glob(
+        path_to_folder + "/**/" + file_to_create, recursive=True
+    )
     if not ret_folder:
         raise RuntimeError(f"{file_to_create} not found in {path_to_folder}")
     try:
@@ -1320,7 +1413,9 @@ def write_text_to_file(path_to_text, text_to_write):
         with open(path_to_text, "a") as f:
             f.write(f"{text_to_write}\n")
     except IOError as e:
-        raise RuntimeError(f"Failed to write to {path_to_text} , with msg : {str(e)}")
+        raise RuntimeError(
+            f"Failed to write to {path_to_text} , with msg : {str(e)}"
+        )
 
 
 """====================================       NEW          ===================================="""
@@ -1347,7 +1442,9 @@ def create_ingestion_folder_pvc(watch_state, delete_folder=True):
             resp = pvc_handler.create_new_ingestion_dir()
         elif not delete_folder:
             params_to_send = {"delete": "yes", "name": "prio"}
-            resp = pvc_handler.create_new_ingestion_dir_no_delete(params_to_send)
+            resp = pvc_handler.create_new_ingestion_dir_no_delete(
+                params_to_send
+            )
         if not resp.status_code == config.ResponseCode.ChangeOk.value:
             raise RuntimeError(
                 f"Failed access pvc on source data cloning with error: [{resp.text}] and status: [{resp.status_code}]"
@@ -1380,14 +1477,18 @@ def update_ingestion_folder_pvc(watch_state):
         )
 
     except Exception as e:
-        raise RuntimeError(f"Failed access pvc on changing shape metadata: [{str(e)}]")
+        raise RuntimeError(
+            f"Failed access pvc on changing shape metadata: [{str(e)}]"
+        )
     return changed_resource_name, resp
 
 
 def change_zoom_level_pvc(zoom_level_to_change=4):
     # ToDo : handle the config param
     resp = None
-    pvc_handler = azure_pvc_api.PVCHandler(endpoint_url=config.PVC_HANDLER_ROUTE)
+    pvc_handler = azure_pvc_api.PVCHandler(
+        endpoint_url=config.PVC_HANDLER_ROUTE
+    )
     if config.PVC_UPDATE_ZOOM:
         try:
             # ToDo: Fix Zoom
@@ -1401,5 +1502,7 @@ def change_zoom_level_pvc(zoom_level_to_change=4):
                     f'Failed on updating zoom level with error: [{json.loads(resp.text)["message"]} | {json.loads(resp.text)["json_data"]}]'
                 )
         except Exception as e:
-            raise IOError(f"Failed updating zoom max level with error: [{str(e)}]")
+            raise IOError(
+                f"Failed updating zoom max level with error: [{str(e)}]"
+            )
     return resp

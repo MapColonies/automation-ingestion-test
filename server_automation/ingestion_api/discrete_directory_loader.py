@@ -1,16 +1,18 @@
 """This module responsible interface with orig upload directory"""
 import logging
 import os
-from pathlib import Path
 
 from discrete_kit.configuration import config as cfg
-from discrete_kit.functions.shape_functions import *
-from discrete_kit.validator.schema_validator import *
-from mc_automation_tools import shape_convertor as sv
+from discrete_kit.functions.shape_functions import ShapeToJSON
 
 from server_automation.configuration import config as a_config
 
-_log = logging.getLogger("server_automation.ingestion_api.discrete_directory_loader")
+# from discrete_kit.validator.schema_validator import
+# from mc_automation_tools import shape_convertor as sv
+
+_log = logging.getLogger(
+    "server_automation.ingestion_api.discrete_directory_loader"
+)
 
 
 #
@@ -52,12 +54,22 @@ def validate_source_directory(path):
         return False, f"Path [{path}] not exists"
 
     if not find_if_folder_exists(path, a_config.SHAPES_PATH):
-        _log.error(f"Path [{os.path.join(path, a_config.SHAPES_PATH)}] not exists")
-        return False, f"Path [{os.path.join(path, a_config.SHAPES_PATH)}] not exists"
+        _log.error(
+            f"Path [{os.path.join(path, a_config.SHAPES_PATH)}] not exists"
+        )
+        return (
+            False,
+            f"Path [{os.path.join(path, a_config.SHAPES_PATH)}] not exists",
+        )
 
     if not find_if_folder_exists(path, a_config.TIFF_PATH):
-        _log.error(f"Path [{os.path.join(path, a_config.TIFF_PATH)}] not exists")
-        return False, f"Path [{os.path.join(path, a_config.TIFF_PATH)}] not exists"
+        _log.error(
+            f"Path [{os.path.join(path, a_config.TIFF_PATH)}] not exists"
+        )
+        return (
+            False,
+            f"Path [{os.path.join(path, a_config.TIFF_PATH)}] not exists",
+        )
 
     ret_folder = get_folder_path_by_name(path, a_config.SHAPES_PATH)
     for file_name in cfg.files_names:

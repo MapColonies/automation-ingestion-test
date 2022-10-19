@@ -126,7 +126,7 @@ def test_watch_discrete_ingest():
         state = False
         error_msg = str(e)
 
-    ##### enable after new version of ingestion with mapproxy live update
+    # enable after new version of ingestion with mapproxy live update
 
     assert state, (
         f"Test: [{test_watch_discrete_ingest.__name__}] Failed: validation of mapproxy layer\n"
@@ -134,9 +134,13 @@ def test_watch_discrete_ingest():
         f"{error_msg}"
     )
     resp = executors.stop_watch()
-    _log.info(f'Finish running watch ingestion. Watch status: [{resp["reason"]}]')
+    _log.info(
+        f'Finish running watch ingestion. Watch status: [{resp["reason"]}]'
+    )
     if config.DEBUG_MODE_LOCAL:
-        executors.cleanup_env(product_id, product_version, initial_mapproxy_config)
+        executors.cleanup_env(
+            product_id, product_version, initial_mapproxy_config
+        )
 
 
 def teardown_module(module):  # pylint: disable=unused-argument

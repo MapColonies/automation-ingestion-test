@@ -1,6 +1,4 @@
 import logging
-import os
-import shutil
 from time import sleep
 
 from conftest_val import ValueStorage
@@ -30,7 +28,9 @@ from server_automation.functions.executors import write_text_to_file
 
 """
 
-_log = logging.getLogger("server_automation.tests.test_parallel_ingestion_workers")
+_log = logging.getLogger(
+    "server_automation.tests.test_parallel_ingestion_workers"
+)
 
 if config.DEBUG_MODE_LOCAL:
     initial_mapproxy_config = postgress_adapter.get_mapproxy_configs()
@@ -81,7 +81,9 @@ def test_parallel_ingestion():
         )
         _log.info(f"Zoom update response: {str(resp_from_update)}")
     try:
-        status_code, content, source_data = start_manual_ingestion(source_directory)
+        status_code, content, source_data = start_manual_ingestion(
+            source_directory
+        )
     except Exception as e:
         status_code = "unknown"
         content = str(e)
@@ -108,7 +110,10 @@ def test_parallel_ingestion():
     if error_msg is None:
         error_msg = "Workers not equal to progress tasks"
     num_tasks = ingestion_in_progress_state["in_progress_tasks"]
-    resp = ingestion_in_progress_state["status"] == config.JobStatus.Completed.name
+    resp = (
+        ingestion_in_progress_state["status"]
+        == config.JobStatus.Completed.name
+    )
     error_msg = ingestion_in_progress_state["message"]
 
     assert (
@@ -134,7 +139,9 @@ def teardown_module(module):  # pylint: disable=unused-argument
     stop_watch()
     if config.CLEAN_UP:
         for p in ValueStorage.discrete_list:
-            cleanup_env(p["product_id"], p["product_version"], initial_mapproxy_config)
+            cleanup_env(
+                p["product_id"], p["product_version"], initial_mapproxy_config
+            )
 
 
 if config.DEBUG_MODE_LOCAL:

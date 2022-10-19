@@ -1,20 +1,30 @@
 """This module provides multiple test of ingestion services"""
-import json
 import logging
-import shutil
 from time import sleep
 
-from discrete_kit.functions.shape_functions import ShapeToJSON
-from discrete_kit.validator.json_compare_pycsw import *
 from mc_automation_tools.parse.stringy import pad_with_minus
 from mc_automation_tools.parse.stringy import pad_with_stars
 
 from conftest_val import ValueStorage
 from server_automation.configuration import config
-from server_automation.functions.executors import *
+from server_automation.functions.executors import cleanup_env
+from server_automation.functions.executors import follow_running_job_manager
+from server_automation.functions.executors import follow_running_task
+from server_automation.functions.executors import init_ingestion_src
+from server_automation.functions.executors import init_watch_ingestion_src
+from server_automation.functions.executors import start_manual_ingestion
+from server_automation.functions.executors import start_watch_ingestion
+from server_automation.functions.executors import stop_watch
+from server_automation.functions.executors import validate_mapproxy_layer
+from server_automation.functions.executors import validate_pycsw2
+from server_automation.functions.executors import write_text_to_file
 from server_automation.postgress import postgress_adapter
 
+# from discrete_kit.functions.shape_functions import ShapeToJSON
+# from discrete_kit.validator.json_compare_pycsw import *
+
 _log = logging.getLogger("server_automation.tests.test_ingestion_discrete")
+
 
 if config.DEBUG_MODE_LOCAL:
     initial_mapproxy_config = postgress_adapter.get_mapproxy_configs()
@@ -24,7 +34,7 @@ def test_manual_discrete_ingest():
     """
     This test will test full e2e discrete ingestion
     """
-
+    _log.propagate = False
     watch_resp = stop_watch()
     if watch_resp:
         _log.info(
@@ -33,12 +43,17 @@ def test_manual_discrete_ingest():
 
     resp_from_init_folder = init_ingestion_folder()
 
-    product_id, product_version = resp_from_init_folder["resource_name"].split("-")
+    product_id, product_version = resp_from_init_folder["resource_name"].split(
+        "-"
+    )
+    # layer_id = ""
     ValueStorage.discrete_list.append(
         {"product_id": product_id, "product_version": product_version}
     )
     source_directory = resp_from_init_folder["ingestion_dir"]
-    _log.info(f"Product_id : {product_id} , Product_version : {product_version}")
+    _log.info(
+        f"Product_id : {product_id} , Product_version : {product_version}"
+    )
     sleep(5)
 
     if config.WRITE_TEXT_TO_FILE:
@@ -54,9 +69,12 @@ def test_manual_discrete_ingest():
         )
         _log.info("Finished - Write Tests to files.................")
 
-    _log.info(f"Starting - manual ingestion...............")
+    _log.info("Starting - manual ingestion...............")
     try:
-        status_code, content, source_data = start_manual_ingestion(source_directory)
+        status_code, content, source_data = start_manual_ingestion(
+            source_directory
+        )
+
     except Exception as e:
         status_code = "unknown"
         content = str(e)
@@ -75,9 +93,14 @@ def test_manual_discrete_ingest():
             ingestion_follow_state = follow_running_job_manager(
                 product_id, product_version
             )
+            layer_id = ingestion_follow_state['relative_path']
         else:  # following based on bff service
-            ingestion_follow_state = follow_running_task(product_id, product_version)
-        resp = ingestion_follow_state["status"] == config.JobStatus.Completed.name
+            ingestion_follow_state = follow_running_task(
+                product_id, product_version
+            )
+        resp = (
+            ingestion_follow_state["status"] == config.JobStatus.Completed.name
+        )
         error_msg = ingestion_follow_state["message"]
 
     except Exception as e:
@@ -89,13 +112,13 @@ def test_manual_discrete_ingest():
     _log.info(f"manual ingestion following task response: {resp}")
 
     # this timeout is for mapproxy updating time of new layer on configuration
-    sleep(config.DELAY_INGESTION_TEST)
+    sleep(config.DELAY_INGESTION_TEST) # ToDo: Was 220 now 80
     pycsw_record = None
 
     # validate new discrete on pycsw records
     try:
         resp, pycsw_record, links = validate_pycsw2(
-            source_data, product_id, product_version
+            source_data, product_id, product_version, token=config.TOKEN
         )
         # todo this is legacy records validator based graphql -> for future needs maybe
         # resp, pycsw_record = executors.validate_pycsw(config.GQK_URL, product_id, source_data)
@@ -112,7 +135,9 @@ def test_manual_discrete_ingest():
             f"{error_msg}"
         )
         _log.info(f"manual ingestion validation - response: {resp}")
-        _log.info(f"manual ingestion validation - pycsw_record: {pycsw_record}")
+        _log.info(
+            f"manual ingestion validation - pycsw_record: {pycsw_record}"
+        )
         _log.info(f"manual ingestion validation - links: {links}")
 
     sleep(config.DELAY_MAPPROXY_PYCSW_VALIDATION)
@@ -131,13 +156,15 @@ def test_manual_discrete_ingest():
             params["access_key"] = config.S3_ACCESS_KEY
             params["secret_key"] = config.S3_SECRET_KEY
             params["bucket_name"] = config.S3_BUCKET_NAME
-        sleep(100)
+        # sleep(100)
+
         result = validate_mapproxy_layer(
             pycsw_record,
             product_id,
             product_version,
-            header=config.HEADERS_FOR_MAPPROXY,
+            layer_id=layer_id,
             params=params,
+            token=config.TOKEN
         )
         mapproxy_validation_state = result["validation"]
         msg = result["reason"]
@@ -222,10 +249,15 @@ def test_watch_discrete_ingest():
             ingestion_follow_state = follow_running_job_manager(
                 product_id, product_version
             )
+            layer_id = ingestion_follow_state['relative_path']
         else:  # following based on bff service
-            ingestion_follow_state = follow_running_task(product_id, product_version)
+            ingestion_follow_state = follow_running_task(
+                product_id, product_version
+            )
             _log.info("Start following job-tasks based on bff api")
-        resp = ingestion_follow_state["status"] == config.JobStatus.Completed.name
+        resp = (
+            ingestion_follow_state["status"] == config.JobStatus.Completed.name
+        )
         error_msg = ingestion_follow_state["message"]
 
     except Exception as e:
@@ -258,7 +290,9 @@ def test_watch_discrete_ingest():
             f"{error_msg}"
         )
         _log.info(f"manual ingestion validation - response: {resp}")
-        _log.info(f"manual ingestion validation - pycsw_record: {pycsw_record}")
+        _log.info(
+            f"manual ingestion validation - pycsw_record: {pycsw_record}"
+        )
         _log.info(f"manual ingestion validation - links: {links}")
 
     sleep(config.DELAY_MAPPROXY_PYCSW_VALIDATION)
@@ -284,6 +318,8 @@ def test_watch_discrete_ingest():
             product_version,
             header=config.HEADERS_FOR_MAPPROXY,
             params=params,
+            layer_id=layer_id,
+            token=config.TOKEN
         )
         mapproxy_validation_state = result["validation"]
         msg = result["reason"]
@@ -366,7 +402,9 @@ def teardown_module(module):  # pylint: disable=unused-argument
     stop_watch()
     if config.CLEAN_UP:
         for p in ValueStorage.discrete_list:
-            cleanup_env(p["product_id"], p["product_version"], initial_mapproxy_config)
+            cleanup_env(
+                p["product_id"], p["product_version"], initial_mapproxy_config
+            )
 
 
 if config.DEBUG_MODE_LOCAL:
