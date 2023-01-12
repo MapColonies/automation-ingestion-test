@@ -104,3 +104,10 @@ This repo provide full set of tests that responsible for Discrete Ingestion serv
 | PVC_CHANGE_MAX_ZOOM | route to change tfw resolution value - route | max_zoom parameter | changeMaxZoom |
 | PVC_CHANGE_WATCH_MAX_ZOOM | route to change tfw resolution value on watch dir - route | max_zoom parameter | changeWatchMaxZoom |
 | MAX_ZOOM_TO_CHANGE | value of max zoom to changed | - | zoom level related to resolution |
+
+
+| Test             | Pass / Fail                                                            |
+| ---------------- | --------------------------------------------------------------------------|
+| Bug fix          | ✔/✖                                                                        |
+
+
